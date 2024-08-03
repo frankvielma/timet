@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["frankvielma@gmail.com"]
 
   spec.summary = "Time tracking gem with time reports"
-  spec.description = "Using Timew, you can keep track of how much time you spend on various activities. It's simple to track your hours for work with Timew, whether you're curious about how you allocate your time."
+  spec.description = "Using timet, you can keep track of how much time you spend on various activities. It's simple to track your hours for work with Timew, whether you're curious about how you allocate your time."
   spec.homepage = "https://github.com/frankvielma/timet"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
@@ -34,7 +34,9 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   # spec.add_dependency "example-gem", "~> 1.0"
   spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "thor", "~> 1.0"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
+  spec.metadata["rubygems_mfa_required"] = "true"
 end
