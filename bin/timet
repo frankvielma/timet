@@ -3,4 +3,4 @@
 
 require_relative "../lib/timet"
 
-Timet::CLI.start
+Timet::Application.start(ARGV)
