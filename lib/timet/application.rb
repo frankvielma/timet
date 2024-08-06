@@ -4,35 +4,33 @@ require_relative "version"
 require "thor"
 
 module Timet
+  # Tracks time spent on various tasks.
   class Application < Thor
     def initialize(*args)
       super
       @db = Timet::Database.new
     end
 
-    # ww start timet-sqlite
-    # Tracking "timet-sqlite"
-    # Started 2024-08-05T11:53:48
-    # Current                  48
-    # Total               0:00:00
-    desc "start", "start time tracking"
-    # method_option :delete, aliases: "-d", desc: "Delete the file after parsing it"
-
-    def start
+    desc "start <tag>", "start time tracking"
+    def start(tag)
       start = Time.now.to_i
-      tag = "test"
-      @db.insert_item(start, tag)
+      @db.insert_item(start, tag) if @db.incomplete_item?
+      puts "Tracking <#{tag}>"
+      puts "Started: #{Time.at(start)}"
+      puts "Total: #{@db.total_time}"
     end
 
-    # ww stop
-    # Recorded "timet-sqlite"
-    #   Started 2024-08-05T11:53:48
-    #   Ended                 54:11
-    #   Total               0:00:23
     desc "stop", "stop time tracking"
     def stop
       stop = Time.now.to_i
-      @db.update(stop)
+      @db.update(stop) if @db.complete_item?
+      result = @db.last_item
+
+      return if result.nil?
+
+      puts "Recorded <#{result[3]}>"
+      puts "Started: #{Time.at(result[1])}"
+      puts "Total: #{@db.total_time}"
     end
 
     def self.exit_on_failure?
