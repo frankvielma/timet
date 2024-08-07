@@ -75,6 +75,10 @@ module Timet
       seconds_to_hms(total)
     end
 
+    def all_items
+      execute_sql("SELECT * FROM items ORDER BY id DESC")
+    end
+
     # Executes a SQL query and returns the result
     def execute_sql(sql, params = [])
       @db.execute(sql, params)
@@ -87,8 +91,6 @@ module Timet
     def close
       @db&.close
     end
-
-    private
 
     # Converts a given number of seconds into a human-readable HH:MM:SS format.
     def seconds_to_hms(seconds)
