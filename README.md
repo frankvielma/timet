@@ -14,7 +14,9 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
-TODO: Write usage instructions here
+- **timet start [tag]**: Starts tracking time for a task labeled with the provided [tag].
+
+- **timet stop**: Stops tracking the current task, records the elapsed time, and displays the total time spent on all tasks.
 
 ## Development
 
