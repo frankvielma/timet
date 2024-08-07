@@ -18,6 +18,12 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 - **timet stop**: Stops tracking the current task, records the elapsed time, and displays the total time spent on all tasks.
 
+- **timet report today**: Display a report of tracked time for today
+
+- **timet report yesterday**: Display a report of tracked time for yesterday
+
+- **timet report week**: Display a report of tracked time for the week
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
