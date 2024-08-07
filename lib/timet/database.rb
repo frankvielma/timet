@@ -44,21 +44,29 @@ module Timet
       execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
     end
 
-    # Checks if there are any existing items in the database.
-    def incomplete_item?
-      result = execute_sql("SELECT end FROM items ORDER BY id DESC LIMIT 1")
-      result.empty? || !result.first[0].nil?
-    end
+    def item_status
+      result = execute_sql("SELECT id, end FROM items ORDER BY id DESC LIMIT 1")
 
-    # Checks if there is a completed item in the database.
-    def complete_item?
-      result = execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
-      result.nil? || result[2].nil?
+      # Check if there's any item at all
+      return :no_items if result.empty?
+
+      # Extract the last item's data
+      last_item = result.first
+      last_item[0]
+      last_item_end = last_item[1]
+
+      # Check if the last item is complete
+      return :incomplete if last_item_end.nil?
+
+      # If there's a last item and it's complete
+      :complete
     end
 
     # Calculates the total time elapsed since the last recorded time.
     def total_time
       result = execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
+      return "00:00:00" if result.nil?
+
       total = if result[2].nil?
                 Time.now.to_i - result[1]
               else
@@ -70,7 +78,7 @@ module Timet
     # Executes a SQL query and returns the result
     def execute_sql(sql, params = [])
       @db.execute(sql, params)
-    rescue SQLite3::Error => e
+    rescue SQLite3::SQLException => e
       puts "Error: #{e.message}"
       []
     end

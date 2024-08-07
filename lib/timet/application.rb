@@ -14,7 +14,7 @@ module Timet
     desc "start <tag>", "start time tracking"
     def start(tag)
       start = Time.now.to_i
-      @db.insert_item(start, tag) if @db.incomplete_item?
+      @db.insert_item(start, tag) if %i[no_items complete].include?(@db.item_status)
       puts "Tracking <#{tag}>"
       puts "Started: #{Time.at(start)}"
       puts "Total: #{@db.total_time}"
@@ -23,7 +23,7 @@ module Timet
     desc "stop", "stop time tracking"
     def stop
       stop = Time.now.to_i
-      @db.update(stop) if @db.complete_item?
+      @db.update(stop) if @db.item_status == :incomplete
       result = @db.last_item
 
       return if result.nil?
