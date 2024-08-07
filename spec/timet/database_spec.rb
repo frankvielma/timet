@@ -2,7 +2,6 @@
 
 require "timet/database"
 require "tmpdir"
-require "byebug"
 
 RSpec.describe Timet::Database do
   let(:db_path) { File.join(Dir.tmpdir, "test_timet.db") }

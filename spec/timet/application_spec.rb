@@ -6,6 +6,27 @@ RSpec.describe Timet::Application do
 
   before do
     allow(Timet::Database).to receive(:new).and_return(db)
+    allow(db).to receive(:all_items).and_return([]) # Mocking the all_items method to return an array
+  end
+
+  describe "#report" do
+    let(:filter) { nil }
+    let(:report_instance) { instance_spy(Timet::TimeReport) }
+
+    before do
+      allow(Timet::TimeReport).to receive(:new).and_return(report_instance)
+    end
+
+    it "creates a new TimeReport instance" do
+      application.report(filter)
+      expect(Timet::TimeReport).to have_received(:new).with(db, filter)
+    end
+
+    it "calls display on the TimeReport instance" do
+      allow(report_instance).to receive(:display) # Stub the display method
+      application.report(filter)
+      expect(report_instance).to have_received(:display)
+    end
   end
 
   describe "#start" do
@@ -14,7 +35,7 @@ RSpec.describe Timet::Application do
     context "when the database is in a no_items or complete state" do
       before do
         allow(db).to receive(:insert_item)
-        allow(db).to receive_messages(item_status: :no_items, total_time: 0)
+        allow(db).to receive_messages(item_status: :no_items)
       end
 
       it "inserts a new item into the database" do
@@ -22,38 +43,38 @@ RSpec.describe Timet::Application do
         expect(db).to have_received(:insert_item)
       end
 
-      it "starts tracking and outputs the correct messages" do
+      it "outputs the correct messages" do
         allow(db).to receive(:insert_item) # To avoid unexpected call errors
-        expect { application.start(tag) }.to output(/Tracking <#{tag}>/).to_stdout
+        allow(application).to receive(:report)
+        application.start(tag)
+        expect(application).to have_received(:report)
       end
     end
 
     context "when the database is not in a no_items or complete state" do
       it "does not insert a new item" do
-        allow(db).to receive_messages(item_status: :incomplete, total_time: 0)
+        allow(db).to receive_messages(item_status: :incomplete)
 
         application.start(tag)
 
-        # Assert that insert_item was not called
         expect(db).not_to have_received(:insert_item)
       end
 
       it "prints output to stdout" do
-        allow(db).to receive_messages(item_status: :incomplete, total_time: 0)
-
-        expect { application.start(tag) }.to output.to_stdout
+        allow(db).to receive_messages(item_status: :incomplete)
+        allow(application).to receive(:report)
+        application.start(tag)
+        expect(application).to have_received(:report)
       end
     end
   end
 
   describe "#stop" do
-    let(:last_item) { [1, Time.now.to_i - 3600, Time.now.to_i, "test_task"] }
+    let(:last_item) { [1, Time.now.to_i - 3600, nil, "test_task"] }
 
     context "when the database is in an incomplete state" do
-      let(:last_item) { [1, 1_678_824_000, nil, "Test Task"] } # Example last_item
-
       before do
-        allow(db).to receive_messages(item_status: :incomplete, last_item: last_item, total_time: 3600)
+        allow(db).to receive_messages(item_status: :incomplete, last_item: last_item)
       end
 
       it "updates the last item" do
@@ -63,13 +84,15 @@ RSpec.describe Timet::Application do
 
       it "outputs the correct messages" do
         allow(db).to receive(:update) # Still needed to prevent unexpected call errors
-        expect { application.stop }.to output(/Recorded <#{last_item[3]}>/).to_stdout
+        allow(application).to receive(:report)
+        application.stop
+        expect(application).to have_received(:report)
       end
     end
 
     context "when the database is not in an incomplete state" do
       before do
-        allow(db).to receive_messages(item_status: :complete, last_item: nil, total_time: 3600)
+        allow(db).to receive_messages(item_status: :complete, last_item: nil)
       end
 
       it "does not update any item" do
