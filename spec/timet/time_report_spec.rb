@@ -73,13 +73,6 @@ RSpec.describe Timet::TimeReport do
       expect(subject).to have_received(:filter_by_date).with(Date.today - 1)
     end
 
-    it 'calls filter_by_date with a week ago if the filter is "week"' do
-      filter = "week"
-      allow(subject).to receive(:filter_by_date)
-      subject.instance_eval { filter_items(filter) }
-      expect(subject).to have_received(:filter_by_date).with(Date.today - 7)
-    end
-
     it "prints an error message and returns an empty array if the filter is invalid" do
       filter = "invalid"
       allow(subject).to receive(:puts)

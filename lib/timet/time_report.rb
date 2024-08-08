@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
+require "byebug"
 module Timet
   # This class represents a report of tracked time.
   class TimeReport
@@ -69,7 +70,7 @@ module Timet
       when "yesterday"
         filter_by_date(Date.today - 1)
       when "week"
-        filter_by_date(Date.today - 7)
+        filter_by_date_range(Date.today - 7, Date.today + 1)
       else
         puts "Invalid filter. Supported filters: today, yesterday, week"
         []
@@ -79,6 +80,12 @@ module Timet
     def filter_by_date(date)
       start_time = date.to_time.to_i
       end_time = (date + 1).to_time.to_i
+      @db.execute_sql("select * from items where start >= #{start_time} and start < #{end_time}")
+    end
+
+    def filter_by_date_range(start_date, end_date)
+      start_time = start_date.to_time.to_i
+      end_time = end_date.to_time.to_i
       @db.execute_sql("select * from items where start >= #{start_time} and start < #{end_time}")
     end
   end
