@@ -17,16 +17,20 @@ module Timet
 
       format_table_header
       items.each do |item|
-        start_time = format_time(item[1])
-        end_time = format_time(item[2]) || "-".rjust(19)
-        duration = calculate_duration(item[1], item[2])
-        puts format_table_row(item[0], item[3][0..5], start_time, end_time, duration)
+        display_time_entry(item)
       end
       puts format_table_separator
       total
     end
 
     private
+
+    def display_time_entry(item)
+      start_time = format_time(item[1])
+      end_time = format_time(item[2]) || "-".rjust(19)
+      duration = calculate_duration(item[1], item[2])
+      puts format_table_row(item[0], item[3][0..5], start_time, end_time, duration)
+    end
 
     def total
       total = @items.map do |item|
@@ -48,7 +52,8 @@ module Timet
     end
 
     def format_table_row(id, task, start_time, end_time, duration)
-      "| #{id.to_s.rjust(5)} | #{task.ljust(6)} | #{start_time} | #{end_time} | #{@db.seconds_to_hms(duration).rjust(10)} |"
+      "| #{id.to_s.rjust(5)} | #{task.ljust(6)} | #{start_time} | #{end_time} | " \
+        "#{@db.seconds_to_hms(duration).rjust(10)} |"
     end
 
     def format_time(timestamp)

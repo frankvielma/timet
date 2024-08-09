@@ -25,7 +25,7 @@ module Timet
       @db.update(stop) if @db.item_status == :incomplete
       result = @db.last_item
 
-      return if result.nil?
+      return unless result
 
       report
     end

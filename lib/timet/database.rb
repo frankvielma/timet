@@ -51,12 +51,10 @@ module Timet
       return :no_items if result.empty?
 
       # Extract the last item's data
-      last_item = result.first
-      last_item[0]
-      last_item_end = last_item[1]
+      last_item_end = result.first[1]
 
       # Check if the last item is complete
-      return :incomplete if last_item_end.nil?
+      return :incomplete unless last_item_end
 
       # If there's a last item and it's complete
       :complete
@@ -64,15 +62,14 @@ module Timet
 
     # Calculates the total time elapsed since the last recorded time.
     def total_time
-      result = execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
-      return "00:00:00" if result.nil?
+      last_item = execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
+      return "00:00:00" unless last_item
 
-      total = if result[2].nil?
-                Time.now.to_i - result[1]
-              else
-                result[2] - result[1]
-              end
-      seconds_to_hms(total)
+      start_time = last_item[1]
+      end_time = last_item[2]
+
+      total_seconds = end_time ? end_time - start_time : Time.now.to_i - start_time
+      seconds_to_hms(total_seconds)
     end
 
     def all_items

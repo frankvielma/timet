@@ -3,14 +3,16 @@
 RSpec.describe Timet::TimeReport do
   subject { described_class.new(db, filter) }
 
-  let(:db) { double("DB", all_items: [], execute_sql: []) }
+  let(:db) { instance_double(Timet::Database, all_items: [], execute_sql: []) }
   let(:filter) { nil }
 
   describe "#initialize" do
     it "calls filter_items with the filter if a filter is provided" do
       filter = "today"
-      expect_any_instance_of(described_class).to receive(:filter_items).with(filter)
-      described_class.new(db, filter)
+      time_report = described_class.new(db, filter)
+      allow(time_report).to receive(:filter_items).with(filter).and_call_original
+      time_report.send(:initialize, db, filter)
+      expect(time_report).to have_received(:filter_items).with(filter)
     end
   end
 
@@ -28,8 +30,7 @@ RSpec.describe Timet::TimeReport do
 
     it "iterates over the items and prints a table row for each" do
       item = [1, 2, 3, "task"]
-      allow(subject).to receive(:items).and_return([item])
-      allow(subject).to receive(:calculate_duration).and_return(1)
+      allow(subject).to receive_messages(items: [item], calculate_duration: 1)
       expect do
         subject.display
       end.to output(/#{item[0]}.*#{item[3][0..5]}.*#{subject.send(:format_time,
@@ -45,16 +46,17 @@ RSpec.describe Timet::TimeReport do
   end
 
   describe "#total" do
-    let(:item1) { [1, 2, 3, "task"] }
-    let(:item2) { [4, 5, 6, "task"] }
+    subject(:time_report) { described_class.new(db, filter) }
+
+    let(:first_item) { [1, 2, 3, "task"] }
+    let(:second_item) { [4, 5, 6, "task"] }
 
     before do
-      allow(subject).to receive(:items).and_return([item1, item2])
-      allow(db).to receive(:seconds_to_hms).and_return("00:00:01")
+      allow(db).to receive_messages(all_items: [first_item, second_item], seconds_to_hms: "00:00:01")
     end
 
     it "prints the total duration" do
-      expect { subject.display }.to output(/Total:  /).to_stdout
+      expect { time_report.display }.to output(/Total:  /).to_stdout
     end
   end
 
@@ -63,19 +65,19 @@ RSpec.describe Timet::TimeReport do
       allow(subject).to receive(:filter_by_date_range)
     end
 
-    it 'calls filter_by_date_range with the correct range for "today"' do
+    it "calls filter_by_date_range with the correct range for 'today'" do
       filter = "today"
       subject.instance_eval { filter_items(filter) }
       expect(subject).to have_received(:filter_by_date_range).with(Date.today, nil)
     end
 
-    it 'calls filter_by_date_range with the correct range for "yesterday"' do
+    it "calls filter_by_date_range with the correct range for 'yesterday'" do
       filter = "yesterday"
       subject.instance_eval { filter_items(filter) }
       expect(subject).to have_received(:filter_by_date_range).with(Date.today - 1, nil)
     end
 
-    it 'calls filter_by_date_range with the correct range for "week"' do
+    it "calls filter_by_date_range with the correct range for 'week'" do
       filter = "week"
       subject.instance_eval { filter_items(filter) }
       expect(subject).to have_received(:filter_by_date_range).with(Date.today - 7, Date.today + 1)
