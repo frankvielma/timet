@@ -105,4 +105,47 @@ RSpec.describe Timet::Application do
       end
     end
   end
+
+  describe "#resume" do
+    context "when a task is currently being tracked" do
+      before do
+        allow(db).to receive(:item_status).and_return(:incomplete)
+      end
+
+      it "prints a message indicating a task is being tracked" do
+        expect { application.resume }.to output("A task is currently being tracked.\n").to_stdout
+      end
+    end
+
+    context "when no task is being tracked" do
+      before do
+        allow(db).to receive(:item_status).and_return(:complete)
+      end
+
+      context "when there is a last task" do
+        let(:last_task) { "task_name" }
+
+        before do
+          allow(db).to receive(:last_item).and_return([last_task])
+          allow(application).to receive(:start)
+        end
+
+        it "starts the last task" do
+          expect(application).to receive(:start).with(last_task)
+          application.resume
+        end
+      end
+
+      context "when there is no last task" do
+        before do
+          allow(db).to receive(:last_item).and_return(nil)
+        end
+
+        it "does not call start" do
+          expect(application).not_to receive(:start)
+          application.resume
+        end
+      end
+    end
+  end
 end

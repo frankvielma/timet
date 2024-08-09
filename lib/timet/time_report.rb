@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "date"
-require "byebug"
 module Timet
   # This class represents a report of tracked time.
   class TimeReport
@@ -43,12 +42,12 @@ module Timet
     def format_table_header
       puts "Tracked time report:"
       puts format_table_separator
-      puts "| Id    | Task   | Start Time            | End Time          | Duration   |"
+      puts "| Id    | Task   | Start Time          | End Time            | Duration   |"
       puts format_table_separator
     end
 
     def format_table_separator
-      "+-------+--------+-----------------------+-------------------+------------+"
+      "+-------+--------+---------------------+---------------------+------------+"
     end
 
     def format_table_row(id, task, start_time, end_time, duration)

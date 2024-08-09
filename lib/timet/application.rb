@@ -2,7 +2,6 @@
 
 require_relative "version"
 require "thor"
-require "byebug"
 
 module Timet
   # Tracks time spent on various tasks.
@@ -28,6 +27,16 @@ module Timet
       return unless result
 
       report
+    end
+
+    desc "resume", "resume last task"
+    def resume
+      if @db.item_status == :incomplete
+        puts "A task is currently being tracked."
+      else
+        last_task = @db.last_item&.last
+        start last_task if last_task
+      end
     end
 
     desc "report [filter]", "Display a report of tracked time (today), filter => [today, yestarday, week]"
