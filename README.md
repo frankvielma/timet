@@ -14,15 +14,45 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
-- **timet start [tag]**: Starts tracking time for a task labeled with the provided [tag].
+- **timet start [tag]**: Starts tracking time for a task labeled with the provided [tag]. Example:
+    ```shell
+    timet start task1
+    ```
+
+    ```shell
+    Tracked time report:
+    +-------+--------+-----------------------+-------------------+------------+
+    | Id    | Task   | Start Time            | End Time          | Duration   |
+    +-------+--------+-----------------------+-------------------+------------+
+    |     1 | task1  | 2024-08-09 14:55:07 |                   - |   00:00:00 |
+    +-------+--------+-----------------------+-------------------+------------+
+    |                                                    Total:  |   00:00:00 |
+    +-------+--------+-----------------------+-------------------+------------+
+    ```
 
 - **timet stop**: Stops tracking the current task, records the elapsed time, and displays the total time spent on all tasks.
 
-- **timet report today**: Display a report of tracked time for today
+    ```shell
+    timet stop
+    ```
 
-- **timet report yesterday**: Display a report of tracked time for yesterday
+    ```shell
+    Tracked time report:
+    +-------+--------+-----------------------+-------------------+------------+
+    | Id    | Task   | Start Time            | End Time          | Duration   |
+    +-------+--------+-----------------------+-------------------+------------+
+    |     1 | task1  | 2024-08-09 14:55:07 | 2024-08-09 14:56:20 |   00:01:13 |
+    +-------+--------+-----------------------+-------------------+------------+
+    |                                                    Total:  |   00:01:13 |
+    +-------+--------+-----------------------+-------------------+------------+
+    ```
 
-- **timet report week**: Display a report of tracked time for the week
+
+- **timet report today (t)**: Display a report of tracked time for today
+
+- **timet report yesterday (y)**: Display a report of tracked time for yesterday
+
+- **timet report week (w)**: Display a report of tracked time for the week
 
 ## Development
 

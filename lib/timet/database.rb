@@ -76,7 +76,7 @@ module Timet
     end
 
     def all_items
-      execute_sql("SELECT * FROM items ORDER BY id DESC")
+      execute_sql("SELECT * FROM items where start >= '#{Date.today.to_time.to_i}' ORDER BY id DESC")
     end
 
     # Executes a SQL query and returns the result

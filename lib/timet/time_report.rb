@@ -18,7 +18,7 @@ module Timet
       format_table_header
       items.each do |item|
         start_time = format_time(item[1])
-        end_time = format_time(item[2]) || "-".rjust(21)
+        end_time = format_time(item[2]) || "-".rjust(19)
         duration = calculate_duration(item[1], item[2])
         puts format_table_row(item[0], item[3][0..5], start_time, end_time, duration)
       end
@@ -32,19 +32,19 @@ module Timet
       total = @items.map do |item|
         calculate_duration(item[1], item[2])
       end.sum
-      puts "|                                                        Total:  | #{@db.seconds_to_hms(total).rjust(10)} |"
+      puts "|                                                    Total:  | #{@db.seconds_to_hms(total).rjust(10)} |"
       puts format_table_separator
     end
 
     def format_table_header
       puts "Tracked time report:"
       puts format_table_separator
-      puts "| Id    | Task   | Start Time            | End Time              | Duration   |"
+      puts "| Id    | Task   | Start Time            | End Time          | Duration   |"
       puts format_table_separator
     end
 
     def format_table_separator
-      "+-------+--------+-----------------------+-----------------------+------------+"
+      "+-------+--------+-----------------------+-------------------+------------+"
     end
 
     def format_table_row(id, task, start_time, end_time, duration)
@@ -54,7 +54,7 @@ module Timet
     def format_time(timestamp)
       return nil if timestamp.nil?
 
-      Time.at(timestamp).strftime("%Y-%m-%d %H:%M:%S").ljust(21)
+      Time.at(timestamp).strftime("%Y-%m-%d %H:%M:%S").ljust(19)
     end
 
     def calculate_duration(start_time, end_time)
@@ -65,11 +65,11 @@ module Timet
 
     def filter_items(filter)
       case filter
-      when "today"
-        filter_by_date(Date.today)
-      when "yesterday"
-        filter_by_date(Date.today - 1)
-      when "week"
+      when "today", "t"
+        filter_by_date_range(Date.today, nil)
+      when "yesterday", "y"
+        filter_by_date_range(Date.today - 1, nil)
+      when "week", "w"
         filter_by_date_range(Date.today - 7, Date.today + 1)
       else
         puts "Invalid filter. Supported filters: today, yesterday, week"
@@ -77,16 +77,10 @@ module Timet
       end
     end
 
-    def filter_by_date(date)
-      start_time = date.to_time.to_i
-      end_time = (date + 1).to_time.to_i
-      @db.execute_sql("select * from items where start >= #{start_time} and start < #{end_time}")
-    end
-
-    def filter_by_date_range(start_date, end_date)
+    def filter_by_date_range(start_date, end_date = nil)
       start_time = start_date.to_time.to_i
-      end_time = end_date.to_time.to_i
-      @db.execute_sql("select * from items where start >= #{start_time} and start < #{end_time}")
+      end_time = end_date ? end_date.to_time.to_i : (start_date + 1).to_time.to_i
+      @db.execute_sql("select * from items where start >= #{start_time} and start < #{end_time} ORDER BY id DESC")
     end
   end
 end

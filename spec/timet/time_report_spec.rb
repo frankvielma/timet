@@ -59,36 +59,33 @@ RSpec.describe Timet::TimeReport do
   end
 
   describe "#filter_items" do
-    it 'calls filter_by_date with today if the filter is "today"' do
-      filter = "today"
-      allow(subject).to receive(:filter_by_date)
-      subject.instance_eval { filter_items(filter) }
-      expect(subject).to have_received(:filter_by_date).with(Date.today)
+    before do
+      allow(subject).to receive(:filter_by_date_range)
     end
 
-    it 'calls filter_by_date with yesterday if the filter is "yesterday"' do
-      filter = "yesterday"
-      allow(subject).to receive(:filter_by_date)
+    it 'calls filter_by_date_range with the correct range for "today"' do
+      filter = "today"
       subject.instance_eval { filter_items(filter) }
-      expect(subject).to have_received(:filter_by_date).with(Date.today - 1)
+      expect(subject).to have_received(:filter_by_date_range).with(Date.today, nil)
+    end
+
+    it 'calls filter_by_date_range with the correct range for "yesterday"' do
+      filter = "yesterday"
+      subject.instance_eval { filter_items(filter) }
+      expect(subject).to have_received(:filter_by_date_range).with(Date.today - 1, nil)
+    end
+
+    it 'calls filter_by_date_range with the correct range for "week"' do
+      filter = "week"
+      subject.instance_eval { filter_items(filter) }
+      expect(subject).to have_received(:filter_by_date_range).with(Date.today - 7, Date.today + 1)
     end
 
     it "prints an error message and returns an empty array if the filter is invalid" do
       filter = "invalid"
       allow(subject).to receive(:puts)
-      subject.instance_eval { filter_items(filter) }
+      expect(subject.instance_eval { filter_items(filter) }).to eq([])
       expect(subject).to have_received(:puts).with("Invalid filter. Supported filters: today, yesterday, week")
-    end
-  end
-
-  describe "#filter_by_date" do
-    it "executes a SQL query on the db with the start and end times for the date" do
-      date = Date.today
-      start_time = date.to_time.to_i
-      end_time = (date + 1).to_time.to_i
-      allow(db).to receive(:execute_sql)
-      subject.instance_eval { filter_by_date(date) }
-      expect(db).to have_received(:execute_sql).with("select * from items where start >= #{start_time} and start < #{end_time}")
     end
   end
 end
