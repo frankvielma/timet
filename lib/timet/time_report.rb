@@ -62,9 +62,10 @@ module Timet
     end
 
     def calculate_duration(start_time, end_time)
-      return Time.now - Time.at(start_time) if end_time.nil?
+      start_time = Time.at(start_time)
+      end_time = end_time ? Time.at(end_time) : Time.now
 
-      Time.at(end_time) - Time.at(start_time)
+      (end_time - start_time).to_i
     end
 
     def filter_items(filter)

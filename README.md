@@ -31,7 +31,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
     timet start task1
     ```
 
-    ```shell
+    ```
     Tracked time report:
     +-------+--------+---------------------+-------------------+------------+
     | Id    | Task   | Start Time          | End Time          | Duration   |
@@ -48,7 +48,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
     timet stop
     ```
 
-    ```shell
+    ```
     Tracked time report:
     +-------+--------+---------------------+---------------------+------------+
     | Id    | Task   | Start Time          | End Time            | Duration   |
@@ -60,7 +60,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
     ```
 
 - **timet resume**: It allows users to quickly resume tracking a task that was previously in progress.
-    ```shell
+    ```
     Tracked time report:
     +-------+--------+---------------------+---------------------+------------+
     | Id    | Task   | Start Time          | End Time            | Duration   |

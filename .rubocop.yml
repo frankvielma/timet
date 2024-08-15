@@ -5,6 +5,9 @@ AllCops:
   Exclude:
     - timet.gemspec
 
+Metrics/MethodLength:
+  Max: 12
+
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 

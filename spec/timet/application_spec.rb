@@ -6,7 +6,7 @@ RSpec.describe Timet::Application do
 
   before do
     allow(Timet::Database).to receive(:new).and_return(db)
-    allow(db).to receive(:all_items).and_return([]) # Mocking the all_items method to return an array
+    allow(db).to receive(:all_items).and_return([])
   end
 
   describe "#report" do
@@ -23,7 +23,7 @@ RSpec.describe Timet::Application do
     end
 
     it "calls display on the TimeReport instance" do
-      allow(report_instance).to receive(:display) # Stub the display method
+      allow(report_instance).to receive(:display)
       application.report(filter)
       expect(report_instance).to have_received(:display)
     end
@@ -44,7 +44,7 @@ RSpec.describe Timet::Application do
       end
 
       it "outputs the correct messages" do
-        allow(db).to receive(:insert_item) # To avoid unexpected call errors
+        allow(db).to receive(:insert_item)
         allow(application).to receive(:report)
         application.start(tag)
         expect(application).to have_received(:report)
@@ -54,9 +54,7 @@ RSpec.describe Timet::Application do
     context "when the database is not in a no_items or complete state" do
       it "does not insert a new item" do
         allow(db).to receive_messages(item_status: :incomplete)
-
         application.start(tag)
-
         expect(db).not_to have_received(:insert_item)
       end
 
@@ -83,7 +81,7 @@ RSpec.describe Timet::Application do
       end
 
       it "outputs the correct messages" do
-        allow(db).to receive(:update) # Still needed to prevent unexpected call errors
+        allow(db).to receive(:update)
         allow(application).to receive(:report)
         application.stop
         expect(application).to have_received(:report)
@@ -122,29 +120,18 @@ RSpec.describe Timet::Application do
         allow(db).to receive(:item_status).and_return(:complete)
       end
 
-      context "when there is a last task" do
-        let(:last_task) { "task_name" }
-
-        before do
-          allow(db).to receive(:last_item).and_return([last_task])
-          allow(application).to receive(:start)
-        end
-
-        it "starts the last task" do
-          expect(application).to receive(:start).with(last_task)
-          application.resume
-        end
+      it "starts the last task if there is one" do
+        allow(db).to receive(:last_item).and_return(["task_name"])
+        allow(application).to receive(:start)
+        application.resume
+        expect(application).to have_received(:start).with("task_name")
       end
 
-      context "when there is no last task" do
-        before do
-          allow(db).to receive(:last_item).and_return(nil)
-        end
-
-        it "does not call start" do
-          expect(application).not_to receive(:start)
-          application.resume
-        end
+      it "does not call start if there is no last task" do
+        allow(db).to receive(:last_item).and_return(nil)
+        allow(application).to receive(:start)
+        application.resume
+        expect(application).not_to have_received(:start)
       end
     end
   end

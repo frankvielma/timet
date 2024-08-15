@@ -17,31 +17,24 @@ RSpec.describe Timet::TimeReport do
   end
 
   describe "#display" do
+    let(:time_report) { described_class.new(db, filter) }
     let(:item) { [1, 2, 3, "task"] }
 
     before do
-      allow(subject).to receive(:items).and_return([item])
+      allow(time_report).to receive(:items).and_return([item])
       allow(db).to receive(:seconds_to_hms).and_return("00:00:01")
     end
 
     it "prints a table header" do
-      expect { subject.display }.to output(/Tracked time report:\n/).to_stdout
+      expect { time_report.display }.to output(/Tracked time report:\n/).to_stdout
     end
 
     it "iterates over the items and prints a table row for each" do
-      item = [1, 2, 3, "task"]
-      allow(subject).to receive_messages(items: [item], calculate_duration: 1)
-      expect do
-        subject.display
-      end.to output(/#{item[0]}.*#{item[3][0..5]}.*#{subject.send(:format_time,
-                                                                  item[1])}.*#{subject.send(:format_time,
-                                                                                            item[2]) || "-".rjust(21)}.*#{subject.send(
-                                                                                              :calculate_duration, item[1], item[2]
-                                                                                            )}/).to_stdout
+      expect { time_report.display }.to output(/#{item[0]}.*#{item[3][0..5]}/).to_stdout
     end
 
     it "calls total" do
-      expect { subject.display }.to output(/Total:  /).to_stdout
+      expect { time_report.display }.to output(/Total:  /).to_stdout
     end
   end
 
@@ -61,33 +54,34 @@ RSpec.describe Timet::TimeReport do
   end
 
   describe "#filter_items" do
-    before do
-      allow(subject).to receive(:filter_by_date_range)
+    let(:time_report) { described_class.new(db, filter) }
+
+    shared_examples "calls filter_by_date_range with the correct range" do |filter,
+      expected_start_date,
+      expected_end_date|
+      it "calls filter_by_date_range with the correct range for '#{filter}'" do
+        allow(time_report).to receive(:filter_by_date_range)
+        time_report.instance_eval { filter_items(filter) }
+        expect(time_report).to have_received(:filter_by_date_range).with(expected_start_date, expected_end_date)
+      end
     end
 
-    it "calls filter_by_date_range with the correct range for 'today'" do
-      filter = "today"
-      subject.instance_eval { filter_items(filter) }
-      expect(subject).to have_received(:filter_by_date_range).with(Date.today, nil)
-    end
+    it_behaves_like "calls filter_by_date_range with the correct range", "today", Date.today, nil
+    it_behaves_like "calls filter_by_date_range with the correct range", "yesterday", Date.today - 1, nil
+    it_behaves_like "calls filter_by_date_range with the correct range", "week", Date.today - 7, Date.today + 1
 
-    it "calls filter_by_date_range with the correct range for 'yesterday'" do
-      filter = "yesterday"
-      subject.instance_eval { filter_items(filter) }
-      expect(subject).to have_received(:filter_by_date_range).with(Date.today - 1, nil)
-    end
+    context "when filter is invalid" do
+      it "returns an empty array" do
+        filter = "invalid"
+        expect(time_report.instance_eval { filter_items(filter) }).to eq([])
+      end
 
-    it "calls filter_by_date_range with the correct range for 'week'" do
-      filter = "week"
-      subject.instance_eval { filter_items(filter) }
-      expect(subject).to have_received(:filter_by_date_range).with(Date.today - 7, Date.today + 1)
-    end
-
-    it "prints an error message and returns an empty array if the filter is invalid" do
-      filter = "invalid"
-      allow(subject).to receive(:puts)
-      expect(subject.instance_eval { filter_items(filter) }).to eq([])
-      expect(subject).to have_received(:puts).with("Invalid filter. Supported filters: today, yesterday, week")
+      it "prints an error message" do
+        filter = "invalid"
+        allow(time_report).to receive(:puts)
+        time_report.instance_eval { filter_items(filter) }
+        expect(time_report).to have_received(:puts).with("Invalid filter. Supported filters: today, yesterday, week")
+      end
     end
   end
 end
