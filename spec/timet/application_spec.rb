@@ -11,6 +11,7 @@ RSpec.describe Timet::Application do
 
   describe "#report" do
     let(:filter) { nil }
+    let(:tag) { nil }
     let(:report_instance) { instance_spy(Timet::TimeReport) }
 
     before do
@@ -18,8 +19,8 @@ RSpec.describe Timet::Application do
     end
 
     it "creates a new TimeReport instance" do
-      application.report(filter)
-      expect(Timet::TimeReport).to have_received(:new).with(db, filter)
+      application.report(filter, tag)
+      expect(Timet::TimeReport).to have_received(:new).with(db, filter, tag)
     end
 
     it "calls display on the TimeReport instance" do

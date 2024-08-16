@@ -39,9 +39,13 @@ module Timet
       end
     end
 
-    desc "report [filter]", "Display a report of tracked time (today), filter => [today, yestarday, week]"
-    def report(filter = nil)
-      report = TimeReport.new(@db, filter)
+    desc "r", "Alias for resume"
+    alias r resume
+
+    desc "report [filter]",
+         "Display a report of tracked time (today), filter => [today (t), yestarday (y), week (w)], [tag]"
+    def report(filter = nil, tag = nil)
+      report = TimeReport.new(@db, filter, tag)
       report.display
     end
 

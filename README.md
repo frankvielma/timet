@@ -7,12 +7,10 @@ Timet utilizes SQLite to store your time tracking data. This means your data is 
 
 While a YAML file might seem like a simple option for storing time tracking data, Timet leverages SQLite for several key advantages:
 
-- **Structured Data**: SQLite allows for structured data storage, making it easier to query and analyze your time entries. You can filter and sort data based on specific criteria, such as project, date, or activity, providing valuable insights into your time usage.
-- **Scalability**: As your time tracking needs grow, YAML files can become unwieldy and difficult to manage. SQLite's database structure scales effectively, allowing you to store large volumes of data without compromising performance.
-- **Data Integrity**: SQLite enforces data integrity, ensuring that your time entries are accurate and consistent. This helps to prevent errors and ensures reliable data analysis.
-- **Querying and Reporting**: SQLite supports powerful SQL queries, enabling you to generate detailed reports and visualizations of your time tracking data. This allows you to gain deeper insights into your time usage patterns.
-
-Timet's use of SQLite provides a robust and efficient solution for managing your time tracking data, making it a powerful tool for productivity and self-reflection.
+- Structured Data
+- Scalability
+- Data Integrity
+- Querying and Reporting
 
 ## Installation
 
@@ -100,6 +98,16 @@ timet report week
 or
 
 timet report w
+```
+
+- **timet report resume (r)**: Resume tracking the last task.
+
+```shell
+timet report resume
+
+or
+
+timet report r
 ```
 
 ## Development

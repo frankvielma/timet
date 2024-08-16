@@ -11,9 +11,9 @@ module Timet
   class TimeReport
     attr_reader :db, :items
 
-    def initialize(db, filter)
+    def initialize(db, filter, tag)
       @db = db
-      @items = filter ? filter_items(filter) : @db.all_items
+      @items = filter ? filter_items(filter, tag) : @db.all_items
     end
 
     def display
@@ -30,11 +30,13 @@ module Timet
     private
 
     def display_time_entry(item)
-      id, start_time_value, end_time_value, task_name = item
+      return if item.nil?
+
+      id, start_time_value, end_time_value, tag_name = item
       duration = TimeHelper.calculate_duration(start_time_value, end_time_value)
       start_time = TimeHelper.format_time(start_time_value)
       end_time = TimeHelper.format_time(end_time_value) || "-".rjust(19)
-      puts format_table_row(id, task_name[0..5], start_time, end_time, duration)
+      puts format_table_row(id, tag_name[0..5], start_time, end_time, duration)
     end
 
     def total
@@ -49,7 +51,7 @@ module Timet
       header = <<~TABLE
         Tracked time report:
         #{format_table_separator}
-        | Id    | Task   | Start Time          | End Time            | Duration   |
+        | Id    | Tag    | Start Time          | End Time            | Duration   |
         #{format_table_separator}
       TABLE
       puts header
@@ -60,31 +62,33 @@ module Timet
     end
 
     def format_table_row(*row)
-      id, task, start_time, end_time, duration = row
-      "| #{id.to_s.rjust(5)} | #{task.ljust(6)} | #{start_time} | #{end_time} | " \
+      id, tag, start_time, end_time, duration = row
+      "| #{id.to_s.rjust(5)} | #{tag.ljust(6)} | #{start_time} | #{end_time} | " \
         "#{@db.seconds_to_hms(duration).rjust(10)} |"
     end
 
-    def filter_items(filter)
+    def filter_items(filter, tag)
       today = Date.today
       case filter
       when "today", "t"
-        filter_by_date_range(today, nil)
+        filter_by_date_range(today, nil, tag)
       when "yesterday", "y"
-        filter_by_date_range(today - 1, nil)
+        filter_by_date_range(today - 1, nil, tag)
       when "week", "w"
-        filter_by_date_range(today - 7, today + 1)
+        filter_by_date_range(today - 7, today + 1, tag)
       else
         puts "Invalid filter. Supported filters: today, yesterday, week"
         []
       end
     end
 
-    def filter_by_date_range(start_date, end_date = nil)
+    def filter_by_date_range(start_date, end_date = nil, tag = nil)
       start_time = TimeHelper.date_to_timestamp(start_date)
       end_time = TimeHelper.calculate_end_time(start_date, end_date)
-
-      @db.execute_sql("select * from items where start >= #{start_time} and start < #{end_time} ORDER BY id DESC")
+      query = "start >= #{start_time} and start < #{end_time} and tag like '%#{tag}%'"
+      @db.execute_sql(
+        "select * from items where #{query} ORDER BY id DESC"
+      )
     end
   end
 end

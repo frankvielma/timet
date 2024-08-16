@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "sqlite3"
+
 module Timet
   # Provides database access for managing time tracking data.
   class Database
@@ -61,7 +62,7 @@ module Timet
       seconds_to_hms(total_seconds)
     end
 
-    def all_items
+    def all_items(_tag = nil)
       execute_sql("SELECT * FROM items where start >= '#{Date.today.to_time.to_i}' ORDER BY id DESC")
     end
 
