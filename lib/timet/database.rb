@@ -46,18 +46,7 @@ module Timet
 
     def item_status
       result = execute_sql("SELECT id, end FROM items ORDER BY id DESC LIMIT 1")
-
-      # Check if there's any item at all
-      return :no_items if result.empty?
-
-      # Extract the last item's data
-      last_item_end = result.first[1]
-
-      # Check if the last item is complete
-      return :incomplete unless last_item_end
-
-      # If there's a last item and it's complete
-      :complete
+      StatusHelper.determine_status(result)
     end
 
     # Calculates the total time elapsed since the last recorded time.

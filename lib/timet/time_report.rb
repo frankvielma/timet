@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
 require "date"
+require_relative "time_helper"
+require_relative "status_helper"
+
 module Timet
-  # This class represents a report of tracked time.
+  # The TimeReport class is responsible for displaying a report of tracked time
+  # entries. It allows filtering the report by time periods (today, yesterday,
+  # week) and displays a formatted table with the relevant information.
   class TimeReport
     attr_reader :db, :items
 
@@ -25,57 +30,50 @@ module Timet
     private
 
     def display_time_entry(item)
-      start_time = format_time(item[1])
-      end_time = format_time(item[2]) || "-".rjust(19)
-      duration = calculate_duration(item[1], item[2])
-      puts format_table_row(item[0], item[3][0..5], start_time, end_time, duration)
+      id, start_time_value, end_time_value, task_name = item
+      duration = TimeHelper.calculate_duration(start_time_value, end_time_value)
+      start_time = TimeHelper.format_time(start_time_value)
+      end_time = TimeHelper.format_time(end_time_value) || "-".rjust(19)
+      puts format_table_row(id, task_name[0..5], start_time, end_time, duration)
     end
 
     def total
       total = @items.map do |item|
-        calculate_duration(item[1], item[2])
+        TimeHelper.calculate_duration(item[1], item[2])
       end.sum
       puts "|                                                    Total:  | #{@db.seconds_to_hms(total).rjust(10)} |"
       puts format_table_separator
     end
 
     def format_table_header
-      puts "Tracked time report:"
-      puts format_table_separator
-      puts "| Id    | Task   | Start Time          | End Time            | Duration   |"
-      puts format_table_separator
+      header = <<~TABLE
+        Tracked time report:
+        #{format_table_separator}
+        | Id    | Task   | Start Time          | End Time            | Duration   |
+        #{format_table_separator}
+      TABLE
+      puts header
     end
 
     def format_table_separator
       "+-------+--------+---------------------+---------------------+------------+"
     end
 
-    def format_table_row(id, task, start_time, end_time, duration)
+    def format_table_row(*row)
+      id, task, start_time, end_time, duration = row
       "| #{id.to_s.rjust(5)} | #{task.ljust(6)} | #{start_time} | #{end_time} | " \
         "#{@db.seconds_to_hms(duration).rjust(10)} |"
     end
 
-    def format_time(timestamp)
-      return nil if timestamp.nil?
-
-      Time.at(timestamp).strftime("%Y-%m-%d %H:%M:%S").ljust(19)
-    end
-
-    def calculate_duration(start_time, end_time)
-      start_time = Time.at(start_time)
-      end_time = end_time ? Time.at(end_time) : Time.now
-
-      (end_time - start_time).to_i
-    end
-
     def filter_items(filter)
+      today = Date.today
       case filter
       when "today", "t"
-        filter_by_date_range(Date.today, nil)
+        filter_by_date_range(today, nil)
       when "yesterday", "y"
-        filter_by_date_range(Date.today - 1, nil)
+        filter_by_date_range(today - 1, nil)
       when "week", "w"
-        filter_by_date_range(Date.today - 7, Date.today + 1)
+        filter_by_date_range(today - 7, today + 1)
       else
         puts "Invalid filter. Supported filters: today, yesterday, week"
         []
@@ -83,8 +81,9 @@ module Timet
     end
 
     def filter_by_date_range(start_date, end_date = nil)
-      start_time = start_date.to_time.to_i
-      end_time = end_date ? end_date.to_time.to_i : (start_date + 1).to_time.to_i
+      start_time = TimeHelper.date_to_timestamp(start_date)
+      end_time = TimeHelper.calculate_end_time(start_date, end_date)
+
       @db.execute_sql("select * from items where start >= #{start_time} and start < #{end_time} ORDER BY id DESC")
     end
   end
