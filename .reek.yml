@@ -2,3 +2,5 @@
 detectors:
   TooManyStatements:
     max_statements: 7
+  UncommunicativeVariableName:
+    enabled: false

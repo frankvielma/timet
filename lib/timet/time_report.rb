@@ -27,10 +27,17 @@ module Timet
       total
     end
 
+    def row(item)
+      format_table_header
+      display_time_entry(item)
+      puts format_table_separator
+      total
+    end
+
     private
 
     def display_time_entry(item)
-      return if item.nil?
+      return puts "Missing time entry data." unless item
 
       id, start_time_value, end_time_value, tag_name = item
       duration = TimeHelper.calculate_duration(start_time_value, end_time_value)

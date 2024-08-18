@@ -35,6 +35,10 @@ module Timet
       execute_sql("UPDATE items SET end = ? WHERE id = ?", [stop, last_id])
     end
 
+    def delete_item(id)
+      execute_sql("DELETE FROM items WHERE id = #{id}")
+    end
+
     # Fetches the ID of the last inserted item
     def fetch_last_id
       result = execute_sql("SELECT id FROM items ORDER BY id DESC LIMIT 1").first
@@ -48,6 +52,10 @@ module Timet
     def item_status
       result = execute_sql("SELECT id, end FROM items ORDER BY id DESC LIMIT 1")
       StatusHelper.determine_status(result)
+    end
+
+    def find_item(id)
+      execute_sql("select * from items where id=#{id}").first
     end
 
     # Calculates the total time elapsed since the last recorded time.

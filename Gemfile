@@ -8,6 +8,7 @@ gem "rake", "~> 13.2"
 gem "rspec", "~> 3.13"
 gem "sqlite3", "~> 2.0"
 gem "thor", "~> 1.3"
+gem "tty-prompt", "~> 0.23.1"
 
 group :development do
   gem "rubocop", "~> 1.65"

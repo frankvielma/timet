@@ -3,4 +3,3 @@
 require_relative "timet/application"
 require_relative "timet/database"
 require_relative "timet/time_report"
-require "byebug"

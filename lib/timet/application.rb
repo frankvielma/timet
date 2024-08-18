@@ -2,6 +2,7 @@
 
 require_relative "version"
 require "thor"
+require "tty-prompt"
 
 module Timet
   # Tracks time spent on various tasks.
@@ -39,7 +40,7 @@ module Timet
       end
     end
 
-    desc "r", "Alias for resume"
+    desc "r", "alias for resume"
     alias r resume
 
     desc "report [filter]",
@@ -48,6 +49,25 @@ module Timet
       report = TimeReport.new(@db, filter, tag)
       report.display
     end
+
+    desc "delete [id]", "delete a task"
+    def delete(id)
+      item = @db.find_item(id)
+      return puts "No tracked time found for id: #{id}" unless item
+
+      # Show the time report for the item being deleted
+      TimeReport.new(@db, nil, nil).row(item)
+
+      # Confirm deletion with the user
+      return unless TTY::Prompt.new.yes?("Are you sure you want to delete this entry?")
+
+      # Delete the item from the database
+      @db.delete_item(id)
+      puts "Deleted #{id}"
+    end
+
+    desc "d", "alias for delete"
+    alias d delete
 
     def self.exit_on_failure?
       true
