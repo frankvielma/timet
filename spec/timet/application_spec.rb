@@ -36,7 +36,7 @@ RSpec.describe Timet::Application do
     context "when the database is in a no_items or complete state" do
       before do
         allow(db).to receive(:insert_item)
-        allow(db).to receive_messages(item_status: :no_items)
+        allow(db).to receive_messages(last_item_status: :no_items)
       end
 
       it "inserts a new item into the database" do
@@ -54,13 +54,13 @@ RSpec.describe Timet::Application do
 
     context "when the database is not in a no_items or complete state" do
       it "does not insert a new item" do
-        allow(db).to receive_messages(item_status: :incomplete)
+        allow(db).to receive_messages(last_item_status: :incomplete)
         application.start(tag)
         expect(db).not_to have_received(:insert_item)
       end
 
       it "prints output to stdout" do
-        allow(db).to receive_messages(item_status: :incomplete)
+        allow(db).to receive_messages(last_item_status: :incomplete)
         allow(application).to receive(:report)
         application.start(tag)
         expect(application).to have_received(:report)
@@ -73,7 +73,7 @@ RSpec.describe Timet::Application do
 
     context "when the database is in an incomplete state" do
       before do
-        allow(db).to receive_messages(item_status: :incomplete, last_item: last_item)
+        allow(db).to receive_messages(last_item_status: :incomplete, last_item: last_item)
       end
 
       it "updates the last item" do
@@ -91,7 +91,7 @@ RSpec.describe Timet::Application do
 
     context "when the database is not in an incomplete state" do
       before do
-        allow(db).to receive_messages(item_status: :complete, last_item: nil)
+        allow(db).to receive_messages(last_item_status: :complete, last_item: nil)
       end
 
       it "does not update any item" do
@@ -108,7 +108,7 @@ RSpec.describe Timet::Application do
   describe "#resume" do
     context "when a task is currently being tracked" do
       before do
-        allow(db).to receive(:item_status).and_return(:incomplete)
+        allow(db).to receive(:last_item_status).and_return(:incomplete)
       end
 
       it "prints a message indicating a task is being tracked" do
@@ -118,7 +118,7 @@ RSpec.describe Timet::Application do
 
     context "when no task is being tracked" do
       before do
-        allow(db).to receive(:item_status).and_return(:complete)
+        allow(db).to receive(:last_item_status).and_return(:complete)
       end
 
       it "starts the last task if there is one" do
@@ -195,6 +195,46 @@ RSpec.describe Timet::Application do
       it "does not attempt to delete the item" do
         application.delete(1)
         expect(db).not_to have_received(:delete_item)
+      end
+    end
+  end
+
+  describe "#cancel" do
+    context "when there is an active time tracking" do
+      before do
+        allow(db).to receive_messages(fetch_last_id: 123, last_item_status: :incomplete)
+        allow(db).to receive(:delete_item)
+      end
+
+      it "deletes the last item from the database" do
+        application.cancel
+        expect(db).to have_received(:delete_item).with(123)
+      end
+
+      it "prints a confirmation message" do
+        expect { application.cancel }.to output("Canceled active time tracking 123\n").to_stdout
+      end
+    end
+
+    context "when there is no active time tracking" do
+      before do
+        allow(db).to receive_messages(fetch_last_id: 123, last_item_status: :complete)
+      end
+
+      it "prints a message indicating there is no active time tracking" do
+        expect { application.cancel }.to output("There is no active time tracking\n").to_stdout
+      end
+
+      it "does not delete any item" do
+        allow(db).to receive(:delete_item) # Create a spy on db.delete_item
+        application.cancel
+        expect(db).not_to have_received(:delete_item) # Check if the spy was called
+      end
+    end
+
+    describe "#c" do
+      it "is an alias for #cancel" do
+        expect(application.method(:c)).to eq(application.method(:cancel))
       end
     end
   end

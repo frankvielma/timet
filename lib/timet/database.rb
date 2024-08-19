@@ -49,7 +49,7 @@ module Timet
       execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
     end
 
-    def item_status
+    def last_item_status
       result = execute_sql("SELECT id, end FROM items ORDER BY id DESC LIMIT 1")
       StatusHelper.determine_status(result)
     end

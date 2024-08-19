@@ -121,6 +121,17 @@ or
 timet d [id]
 ```
 
+- **timet cancel**: Cancel active time tracking
+
+```shell
+timet cancel
+
+or
+
+timet c
+```
+
+
 
 ## Development
 
