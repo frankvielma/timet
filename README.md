@@ -32,7 +32,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
     ```
     Tracked time report:
     +-------+--------+---------------------+-------------------+------------+
-    | Id    | Task   | Start Time          | End Time          | Duration   |
+    | Id    | Tag    | Start Time          | End Time          | Duration   |
     +-------+--------+---------------------+-------------------+------------+
     |     1 | task1  | 2024-08-09 14:55:07 |                 - |   00:00:00 |
     +-------+--------+---------------------+-------------------+------------+
@@ -49,7 +49,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
     ```
     Tracked time report:
     +-------+--------+---------------------+---------------------+------------+
-    | Id    | Task   | Start Time          | End Time            | Duration   |
+    | Id    | Tag    | Start Time          | End Time            | Duration   |
     +-------+--------+---------------------+--------------------+-------------+
     |     1 | task1  | 2024-08-09 14:55:07 | 2024-08-09 14:56:20 |   00:01:13 |
     +-------+--------+---------------------+---------------------+------------+
@@ -61,7 +61,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
     ```
     Tracked time report:
     +-------+--------+---------------------+---------------------+------------+
-    | Id    | Task   | Start Time          | End Time            | Duration   |
+    | Id    | Tag    | Start Time          | End Time            | Duration   |
     +-------+--------+---------------------+--------------------+-------------+
     |     2 | task1  | 2024-08-09 16:45:12 |                   - |   00:00:00 |
     |     1 | task1  | 2024-08-09 14:55:07 | 2024-08-09 14:56:20 |   00:01:13 |
