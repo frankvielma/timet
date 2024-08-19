@@ -5,7 +5,9 @@ require "sqlite3"
 module Timet
   # Provides database access for managing time tracking data.
   class Database
-    def initialize(database_path = "#{Dir.home}/.timet.db")
+    DEFAULT_DATABASE_PATH = File.join(Dir.home, ".timet.db")
+
+    def initialize(database_path = DEFAULT_DATABASE_PATH)
       @db = SQLite3::Database.new(database_path)
       create_table
     end
@@ -70,7 +72,7 @@ module Timet
       seconds_to_hms(total_seconds)
     end
 
-    def all_items(_tag = nil)
+    def all_items
       execute_sql("SELECT * FROM items where start >= '#{Date.today.to_time.to_i}' ORDER BY id DESC")
     end
 
