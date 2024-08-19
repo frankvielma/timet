@@ -55,15 +55,10 @@ module Timet
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
 
-      # Show the time report for the item being deleted
       TimeReport.new(@db, nil, nil).row(item)
-
-      # Confirm deletion with the user
       return unless TTY::Prompt.new.yes?("Are you sure you want to delete this entry?")
 
-      # Delete the item from the database
-      @db.delete_item(id)
-      puts "Deleted #{id}"
+      delete_item_and_print_message(id, "Deleted #{id}")
     end
 
     desc "d", "alias for delete"
@@ -74,8 +69,7 @@ module Timet
       id = @db.fetch_last_id
       return puts "There is no active time tracking" if @db.last_item_status == :complete
 
-      @db.delete_item(id)
-      puts "Canceled active time tracking #{id}"
+      delete_item_and_print_message(id, "Canceled active time tracking #{id}")
     end
 
     desc "cancel", "alias for cancel"
@@ -83,6 +77,13 @@ module Timet
 
     def self.exit_on_failure?
       true
+    end
+
+    private
+
+    def delete_item_and_print_message(id, message)
+      @db.delete_item(id)
+      puts message
     end
   end
 end
