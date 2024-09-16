@@ -72,7 +72,7 @@ module Timet
       delete_item_and_print_message(id, "Canceled active time tracking #{id}")
     end
 
-    desc "cancel", "alias for cancel"
+    desc "c", "alias for cancel"
     alias c cancel
 
     def self.exit_on_failure?

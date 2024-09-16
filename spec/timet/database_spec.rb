@@ -6,6 +6,9 @@ require "tmpdir"
 RSpec.describe Timet::Database do
   let(:db_path) { File.join(Dir.tmpdir, "test_timet.db") }
   let(:db) { described_class.new(db_path) }
+  let(:last_item) do
+    db.execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
+  end
 
   after do
     db.close
@@ -46,8 +49,6 @@ RSpec.describe Timet::Database do
       tag = "work"
 
       db.insert_item(start_time, tag)
-      last_item = db.execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
-
       expect(last_item[1]).to eq(start_time)
     end
 
@@ -56,8 +57,6 @@ RSpec.describe Timet::Database do
       tag = "work"
 
       db.insert_item(start_time, tag)
-      last_item = db.execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
-
       expect(last_item[3]).to eq(tag)
     end
   end
@@ -67,8 +66,6 @@ RSpec.describe Timet::Database do
     it "updates the end time of the last item" do
       db.insert_item(1_678_886_400, "work")
       db.update(1_678_886_460)
-
-      last_item = db.execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
       expect(last_item[2]).to eq(1_678_886_460)
     end
 
