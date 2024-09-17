@@ -9,6 +9,7 @@ RSpec.describe Timet::Database do
   let(:last_item) do
     db.execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
   end
+  let(:test_tag) { "Test Task" }
 
   after do
     db.close
@@ -99,11 +100,10 @@ RSpec.describe Timet::Database do
 
     it "returns the correct start time and tag for the last item" do
       start_time = Time.now.to_i
-      tag = "Test Task"
-      db.insert_item(start_time, tag)
+      db.insert_item(start_time, test_tag)
       last_item = db.last_item
 
-      expect(last_item[3]).to eq(tag)
+      expect(last_item[3]).to eq(test_tag)
     end
 
     it "returns nil if no items exist" do
@@ -125,9 +125,7 @@ RSpec.describe Timet::Database do
     context "when the last item is incomplete" do
       it "returns :incomplete" do
         start_time = Time.now.to_i
-        tag = "Test Task"
-
-        db.insert_item(start_time, tag)
+        db.insert_item(start_time, test_tag)
 
         expect(db.last_item_status).to eq(:incomplete)
       end
@@ -136,9 +134,7 @@ RSpec.describe Timet::Database do
     context "when the last item is complete" do
       it "returns :complete" do
         start_time = Time.now.to_i
-        tag = "Test Task"
-
-        db.insert_item(start_time, tag)
+        db.insert_item(start_time, test_tag)
         db.update(Time.now.to_i)
 
         expect(db.last_item_status).to eq(:complete)
