@@ -1,3 +1,6 @@
+![timet workflow](https://github.com/frankvielma/timet/actions/workflows/ci.yml/badge.svg)
+
+
 # Timet
 
 Timet is a command line time tracking gem with time reports. Using it, you can keep track of how much time you spend on various activities. It's simple to track your hours for work with timet, whether you're curious about how you allocate your time.
