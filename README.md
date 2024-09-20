@@ -7,13 +7,26 @@ Timet is a command line time tracking gem with time reports. Using it, you can k
 
 Timet utilizes SQLite to store your time tracking data. This means your data is stored locally and securely, with no need for external databases or cloud storage. This makes Timet lightweight, fast, and perfect for users who value privacy and control over their data.
 
-
 While a YAML file might seem like a simple option for storing time tracking data, Timet leverages SQLite for several key advantages:
 
 - Structured Data
 - Scalability
 - Data Integrity
 - Querying and Reporting
+
+## Requirements
+
+* Ruby version: >= 3.0.0
+* sqlite3: > 1.7
+
+
+Old versions of Ruby and Sqlite:
+
+* ![Ruby >= 2.7](https://github.com/frankvielma/timet/tree/ruby-2.7.0)
+
+* ![Ruby >= 2.4](https://github.com/frankvielma/timet/tree/ruby-2.4.0)
+
+
 
 ## Installation
 
