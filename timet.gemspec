@@ -12,10 +12,10 @@ Gem::Specification.new do |spec|
   spec.description = "Using timet, you can keep track of how much time you spend on various activities. It's simple to track your hours for work with Timew, whether you're curious about how you allocate your time."
   spec.homepage = "https://github.com/frankvielma/timet/blob/main/README.md"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.0.0"
+  spec.required_ruby_version = ">= 2.6.0"
   spec.add_dependency "thor", "~> 1.2"
   spec.add_dependency "tty-prompt", "~> 0.2"
-  spec.add_dependency "sqlite3", "> 1.7"
+  spec.add_dependency "sqlite3", "> 1.4"
   
 
   spec.metadata["homepage_uri"] = spec.homepage

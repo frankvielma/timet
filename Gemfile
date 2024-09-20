@@ -6,7 +6,7 @@ gemspec
 
 gem "rake", "~> 13.2"
 gem "rspec", "~> 3.13"
-gem "sqlite3", "~> 2.0"
+gem "sqlite3", "~> 1.6.9"
 gem "thor", "~> 1.3"
 gem "tty-prompt", "~> 0.23.1"
 
