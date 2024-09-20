@@ -50,7 +50,7 @@ module Timet
       total = @items.map do |item|
         TimeHelper.calculate_duration(item[1], item[2])
       end.sum
-      puts "|                                                    Total:  | #{@db.seconds_to_hms(total).rjust(10)} |"
+      puts "|#{" " * 52}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(10)} |\033[0m"
       puts format_table_separator
     end
 
@@ -58,7 +58,7 @@ module Timet
       header = <<~TABLE
         Tracked time report:
         #{format_table_separator}
-        | Id    | Tag    | Start Time          | End Time            | Duration   |
+        \033[32m| Id    | Tag    | Start Time          | End Time            | Duration   |\033[0m
         #{format_table_separator}
       TABLE
       puts header
@@ -83,6 +83,8 @@ module Timet
         filter_by_date_range(today - 1, nil, tag)
       when "week", "w"
         filter_by_date_range(today - 7, today + 1, tag)
+      when "month", "m"
+        filter_by_date_range(today - 30, today + 1, tag)
       else
         puts "Invalid filter. Supported filters: today, yesterday, week"
         []

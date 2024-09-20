@@ -11,7 +11,7 @@ RSpec.describe Timet::Application do
     allow(db).to receive(:all_items).and_return([])
   end
 
-  describe "#report" do
+  describe "#summary" do
     let(:report_params) { { filter: nil, tag: nil } }
 
     before do
@@ -19,13 +19,13 @@ RSpec.describe Timet::Application do
     end
 
     it "creates a new TimeReport instance" do
-      application.report(report_params[:filter], report_params[:tag])
+      application.summary(report_params[:filter], report_params[:tag])
       expect(Timet::TimeReport).to have_received(:new).with(db, report_params[:filter], report_params[:tag])
     end
 
     it "calls display on the TimeReport instance" do
       allow(time_report).to receive(:display)
-      application.report(report_params[:filter])
+      application.summary(report_params[:filter])
       expect(time_report).to have_received(:display)
     end
   end
@@ -46,9 +46,9 @@ RSpec.describe Timet::Application do
 
       it "outputs the correct messages" do
         allow(db).to receive(:insert_item)
-        allow(application).to receive(:report)
+        allow(application).to receive(:summary)
         application.start(tag)
-        expect(application).to have_received(:report)
+        expect(application).to have_received(:summary)
       end
     end
 
@@ -61,9 +61,9 @@ RSpec.describe Timet::Application do
 
       it "prints output to stdout" do
         allow(db).to receive_messages(last_item_status: :incomplete)
-        allow(application).to receive(:report)
+        allow(application).to receive(:summary)
         application.start(tag)
-        expect(application).to have_received(:report)
+        expect(application).to have_received(:summary)
       end
     end
   end
@@ -83,9 +83,9 @@ RSpec.describe Timet::Application do
 
       it "outputs the correct messages" do
         allow(db).to receive(:update)
-        allow(application).to receive(:report)
+        allow(application).to receive(:summary)
         application.stop
-        expect(application).to have_received(:report)
+        expect(application).to have_received(:summary)
       end
     end
 
@@ -229,12 +229,6 @@ RSpec.describe Timet::Application do
         allow(db).to receive(:delete_item) # Create a spy on db.delete_item
         application.cancel
         expect(db).not_to have_received(:delete_item) # Check if the spy was called
-      end
-    end
-
-    describe "#c" do
-      it "is an alias for #cancel" do
-        expect(application.method(:c)).to eq(application.method(:cancel))
       end
     end
   end

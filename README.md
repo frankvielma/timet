@@ -86,44 +86,54 @@ If bundler is not being used to manage dependencies, install the gem by executin
     +-------+--------+---------------------+---------------------+------------+
     ```
 
-- **timet report today (t)**: Display a report of tracked time for today.
+- **timet summary today (t)**: Display a report of tracked time for today.
 
 ```shell
-timet report today
+timet summary today
 
 or
 
-timet report t
+timet su t
 ```
 
-- **timet report yesterday (y)**: Display a report of tracked time for yesterday.
+- **timet summary yesterday (y)**: Display a report of tracked time for yesterday.
 
 ```shell
-timet report yesterday
+timet summary yesterday
 
 or
 
-timet report y
+timet su y
 ```
 
-- **timet report week (w)**: Display a report of tracked time for the week.
+- **timet summary week (w)**: Display a report of tracked time for the week.
 
 ```shell
-timet report week
+timet summary week
 
 or
 
-timet report w
+timet su w
 ```
 
-- **timet report resume (r)**: Resume tracking the last task.
+- **timet summary resume (r)**: Resume tracking the last task.
 
 ```shell
-timet report resume
+timet summary resume
 
 or
 
-timet report r
+timet summary r
+```
+
+- **timet summary resume (r)**: Resume tracking the last month.
+
+```shell
+timet summary month
+
+or
+
+timet su m
 ```
 
 
@@ -146,7 +156,6 @@ or
 
 timet c
 ```
-
 
 
 ## Development

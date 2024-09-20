@@ -16,7 +16,7 @@ module Timet
     def start(tag)
       start = Time.now.to_i
       @db.insert_item(start, tag) if %i[no_items complete].include?(@db.last_item_status)
-      report
+      summary
     end
 
     desc "stop", "stop time tracking"
@@ -27,10 +27,10 @@ module Timet
 
       return unless result
 
-      report
+      summary
     end
 
-    desc "resume", "resume last task"
+    desc "resume (r)", "resume last task"
     def resume
       if @db.last_item_status == :incomplete
         puts "A task is currently being tracked."
@@ -40,17 +40,14 @@ module Timet
       end
     end
 
-    desc "r", "alias for resume"
-    alias r resume
-
-    desc "report [filter]",
-         "Display a report of tracked time (today), filter => [today (t), yestarday (y), week (w)], [tag]"
-    def report(filter = nil, tag = nil)
-      report = TimeReport.new(@db, filter, tag)
-      report.display
+    desc "summary (su) [filter]",
+         "Display a summary of tracked time (today), filter => [today (t), yestarday (y), week (w),  month (m)] [tag]"
+    def summary(filter = nil, tag = nil)
+      summary = TimeReport.new(@db, filter, tag)
+      summary.display
     end
 
-    desc "delete [id]", "delete a task"
+    desc "delete (d) [id]", "delete a task"
     def delete(id)
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
@@ -61,19 +58,13 @@ module Timet
       delete_item_and_print_message(id, "Deleted #{id}")
     end
 
-    desc "d", "alias for delete"
-    alias d delete
-
-    desc "cancel", "cancel active time tracking"
+    desc "cancel (c)", "cancel active time tracking"
     def cancel
       id = @db.fetch_last_id
       return puts "There is no active time tracking" if @db.last_item_status == :complete
 
       delete_item_and_print_message(id, "Canceled active time tracking #{id}")
     end
-
-    desc "c", "alias for cancel"
-    alias c cancel
 
     def self.exit_on_failure?
       true
