@@ -69,6 +69,7 @@ module Timet
     end
 
     def format_table_row(*row)
+      row[3] = row[3] == "" ? " " * 19 : row[3]
       id, tag, start_time, end_time, duration = row
       "| #{id.to_s.rjust(5)} | #{tag.ljust(6)} | #{start_time} | #{end_time} | " \
         "#{@db.seconds_to_hms(duration).rjust(10)} |"
