@@ -40,11 +40,14 @@ module Timet
       end
     end
 
-    desc "summary (su) [filter]",
-         "Display a summary of tracked time (today), filter => [today (t), yestarday (y), week (w),  month (m)] [tag]"
+    desc "summary (su) [filter] [tag]",
+         "Display a summary of tracked time filter => [today (t), yesterday (y), week (w), month (m)] [tag] and export to csv"
+    option :csv, type: :string, desc: "Export to CSV file"
     def summary(filter = nil, tag = nil)
-      summary = TimeReport.new(@db, filter, tag)
+      csv_filename = options[:csv]
+      summary = TimeReport.new(@db, filter, tag, csv_filename)
       summary.display
+      summary.export_sheet if csv_filename
     end
 
     desc "delete (d) [id]", "delete a task"

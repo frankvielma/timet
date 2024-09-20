@@ -17,7 +17,7 @@ RSpec.describe Timet::TimeReport do
     end
   end
 
-  let(:time_report) { described_class.new(db, nil, nil) }
+  let(:time_report) { described_class.new(db, nil, nil, nil) }
 
   before do
     db.execute_sql("DELETE FROM items")

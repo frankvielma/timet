@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
+require "csv"
 require_relative "time_helper"
 require_relative "status_helper"
 
@@ -9,10 +10,11 @@ module Timet
   # entries. It allows filtering the report by time periods (today, yesterday,
   # week) and displays a formatted table with the relevant information.
   class TimeReport
-    attr_reader :db, :items
+    attr_reader :db, :items, :filename
 
-    def initialize(db, filter, tag)
+    def initialize(db, filter, tag, csv)
       @db = db
+      @filename = csv
       @items = filter ? filter_items(filter, tag) : @db.all_items
     end
 
@@ -32,6 +34,23 @@ module Timet
       display_time_entry(item)
       puts format_table_separator
       total
+    end
+
+    def export_sheet
+      header = %w[ID Start End Tag]
+
+      CSV.open("#{filename}.csv", "w") do |csv|
+        csv << header
+
+        items.each do |row|
+          # Convert start and end times from timestamps to ISO 8601 format
+          start_time = Time.at(row[1]).strftime("%Y-%m-%d %H:%M:%S")
+          end_time = Time.at(row[2]).strftime("%Y-%m-%d %H:%M:%S")
+
+          # Write the row with formatted times
+          csv << [row[0], start_time, end_time, row[3]]
+        end
+      end
     end
 
     private

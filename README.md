@@ -3,9 +3,11 @@
 
 # Timet
 
-Timet is a command line time tracking gem with time reports. Using it, you can keep track of how much time you spend on various activities. It's simple to track your hours for work with timet, whether you're curious about how you allocate your time.
+Timet is a command line time tracking gem with time reports. Using it, you can keep track of how much time you spend on various activities. It's simple to track your hours for work with Timet, whether you're curious about how you allocate your time.
 
 Timet utilizes SQLite to store your time tracking data. This means your data is stored locally and securely, with no need for external databases or cloud storage. This makes Timet lightweight, fast, and perfect for users who value privacy and control over their data.
+
+In addition, if possible, export your time tracking data to CSV for analysis and sharing.
 
 While a YAML file might seem like a simple option for storing time tracking data, Timet leverages SQLite for several key advantages:
 
@@ -136,6 +138,11 @@ or
 timet su m
 ```
 
+- **timet su t --csv=[filename]**:  Display a report of tracked time for today and export it to filename.csv
+
+```shell
+timet summary today --csv=summary_today.csv
+```
 
 - **timet delete [id]**: Delete a task
 

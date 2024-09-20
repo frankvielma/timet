@@ -12,21 +12,30 @@ RSpec.describe Timet::Application do
   end
 
   describe "#summary" do
-    let(:report_params) { { filter: nil, tag: nil } }
+    let(:report_params) { { filter: nil, tag: nil, csv: nil } }
 
     before do
       allow(Timet::TimeReport).to receive(:new).and_return(time_report)
+      allow(time_report).to receive(:export_sheet)
     end
 
     it "creates a new TimeReport instance" do
       application.summary(report_params[:filter], report_params[:tag])
-      expect(Timet::TimeReport).to have_received(:new).with(db, report_params[:filter], report_params[:tag])
+      expect(Timet::TimeReport).to have_received(:new).with(db, report_params[:filter], report_params[:tag], nil)
     end
 
     it "calls display on the TimeReport instance" do
       allow(time_report).to receive(:display)
       application.summary(report_params[:filter])
       expect(time_report).to have_received(:display)
+    end
+
+    it "exports a CSV file if the :csv option is provided" do
+      csv_filename = "summary.csv"
+      expect(Timet::TimeReport).to receive(:new).with(db, report_params[:filter], report_params[:tag],
+                                                      csv_filename).and_return(time_report)
+      application.invoke(:summary, [report_params[:filter], report_params[:tag]], { csv: csv_filename })
+      expect(time_report).to have_received(:export_sheet)
     end
   end
 
