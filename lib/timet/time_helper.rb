@@ -7,7 +7,7 @@
 # - converting a Date object to a timestamp
 module TimeHelper
   def self.format_time(timestamp)
-    timestamp&.then { |time| Time.at(time).strftime("%Y-%m-%d %H:%M:%S").ljust(19) }
+    timestamp ? Time.at(timestamp).strftime("%Y-%m-%d %H:%M:%S").ljust(19) : ""
   end
 
   def self.calculate_duration(start_time, end_time)
