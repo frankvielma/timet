@@ -22,9 +22,9 @@ While a YAML file might seem like a simple option for storing time tracking data
 
 Old versions of Ruby and Sqlite:
 
-* ![Ruby >= 2.7](https://github.com/frankvielma/timet/tree/ruby-2.7.0)
+* [Ruby >= 2.7](https://github.com/frankvielma/timet/tree/ruby-2.7.0)
 
-* ![Ruby >= 2.4](https://github.com/frankvielma/timet/tree/ruby-2.4.0)
+* [Ruby >= 2.4](https://github.com/frankvielma/timet/tree/ruby-2.4.0)
 
 
 
