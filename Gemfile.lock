@@ -90,4 +90,4 @@ DEPENDENCIES
   tty-prompt (~> 0.23.1)
 
 BUNDLED WITH
-   2.1.4
+   2.1.2
