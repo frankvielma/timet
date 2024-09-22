@@ -1,5 +1,6 @@
 ![timet workflow](https://github.com/frankvielma/timet/actions/workflows/ci.yml/badge.svg)
-
+[![Maintainability](https://api.codeclimate.com/v1/badges/44d57b6c561b9be717f5/maintainability)](https://codeclimate.com/github/frankvielma/timet/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/44d57b6c561b9be717f5/test_coverage)](https://codeclimate.com/github/frankvielma/timet/test_coverage)
 
 # Timet
 
