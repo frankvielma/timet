@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     timet (0.1.0)
-      sqlite3 (> 1.7)
+      sqlite3 (~> 2, >= 1.7)
       thor (~> 1.2)
       tty-prompt (~> 0.2)
 
