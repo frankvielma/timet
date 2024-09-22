@@ -3,11 +3,9 @@
 
 # Timet
 
-Timet is a command line time tracking gem with time reports. Using it, you can keep track of how much time you spend on various activities. It's simple to track your hours for work with Timet, whether you're curious about how you allocate your time.
+Timet is a command line time tracking with reports. It's simple to track your hours for work with Timet, whether you're curious about how you allocate your time.
 
 Timet utilizes SQLite to store your time tracking data. This means your data is stored locally and securely, with no need for external databases or cloud storage. This makes Timet lightweight, fast, and perfect for users who value privacy and control over their data.
-
-In addition, if possible, export your time tracking data to CSV for analysis and sharing.
 
 While a YAML file might seem like a simple option for storing time tracking data, Timet leverages SQLite for several key advantages:
 
@@ -15,6 +13,8 @@ While a YAML file might seem like a simple option for storing time tracking data
 - Scalability
 - Data Integrity
 - Querying and Reporting
+
+In addition, if possible, export your time tracking data to CSV for analysis and sharing.
 
 ## Requirements
 
@@ -42,9 +42,15 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
+Using timet or tt as an alias is possible
+
 - **timet start [tag]**: Starts tracking time for a task labeled with the provided [tag]. Example:
     ```shell
     timet start task1
+
+    or 
+
+    tt start task1
     ```
 
     ```
@@ -95,7 +101,7 @@ timet summary today
 
 or
 
-timet su t
+tt su t
 ```
 
 - **timet summary yesterday (y)**: Display a report of tracked time for yesterday.
@@ -105,7 +111,7 @@ timet summary yesterday
 
 or
 
-timet su y
+tt su y
 ```
 
 - **timet summary week (w)**: Display a report of tracked time for the week.
@@ -115,7 +121,7 @@ timet summary week
 
 or
 
-timet su w
+tt su w
 ```
 
 - **timet summary resume (r)**: Resume tracking the last task.
@@ -125,7 +131,7 @@ timet summary resume
 
 or
 
-timet summary r
+tt su r
 ```
 
 - **timet summary resume (r)**: Resume tracking the last month.
@@ -135,13 +141,13 @@ timet summary month
 
 or
 
-timet su m
+tt su m
 ```
 
 - **timet su t --csv=[filename]**:  Display a report of tracked time for today and export it to filename.csv
 
 ```shell
-timet summary today --csv=summary_today.csv
+tt su t --csv=summary_today.csv
 ```
 
 - **timet delete [id]**: Delete a task
@@ -151,7 +157,7 @@ timet delete [id]
 
 or
 
-timet d [id]
+tt d [id]
 ```
 
 - **timet cancel**: Cancel active time tracking
@@ -161,7 +167,7 @@ timet cancel
 
 or
 
-timet c
+tt c
 ```
 
 
