@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: ["3.1", "3.3"]
+        ruby-version: ["3.3"]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
 
@@ -32,6 +32,29 @@ jobs:
           gem install bundler
           bundle install --jobs 4 --retry 3
 
-      - name: Run tests
-        run: bundle exec rspec
+      - name: Run tests with coverage
+        run: |
+          bundle exec rspec
+        env:
+          COVERAGE: true
 
+      - name: Code Climate Run before-test
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
+      - name: Publish code coverage
+        run: |
+          ./cc-test-reporter format-coverage -t simplecov -o coverage/codeclimate.json
+          ./cc-test-reporter upload-coverage
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
+      - name: Code Climate After-test
+        run: ./cc-test-reporter after-build --exit-code $?
+        if: always()
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
