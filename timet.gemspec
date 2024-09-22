@@ -15,8 +15,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.0.0"
   spec.add_dependency "thor", "~> 1.2"
   spec.add_dependency "tty-prompt", "~> 0.2"
-  spec.add_dependency "sqlite3", "> 1.7"
-  
+  spec.add_dependency "sqlite3", "~> 1.7", "> 1.7"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/frankvielma/timet"
