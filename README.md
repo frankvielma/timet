@@ -33,25 +33,16 @@ Old versions of Ruby and Sqlite:
 
 ## Installation
 
-Install the gem and add to the application's Gemfile by executing:
-
-    $ bundle add timet
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-    $ gem install timet
+Install the gem by executing:
+```bash
+$ gem install timet
+```
 
 ## Usage
 
-Using timet or tt as an alias is possible
-
 - **timet start [tag]**: Starts tracking time for a task labeled with the provided [tag]. Example:
-    ```shell
+    ```bash
     timet start task1
-
-    or 
-
-    tt start task1
     ```
 
     ```
@@ -67,7 +58,7 @@ Using timet or tt as an alias is possible
 
 - **timet stop**: Stops tracking the current task, records the elapsed time, and displays the total time spent on all tasks.
 
-    ```shell
+    ```bash
     timet stop
     ```
 
@@ -97,78 +88,58 @@ Using timet or tt as an alias is possible
 
 - **timet summary today (t)**: Display a report of tracked time for today.
 
-```shell
+```bash
 timet summary today
-
-or
-
-tt su t
 ```
 
 - **timet summary yesterday (y)**: Display a report of tracked time for yesterday.
 
-```shell
+```bash
 timet summary yesterday
-
-or
-
-tt su y
 ```
 
 - **timet summary week (w)**: Display a report of tracked time for the week.
 
-```shell
+```bash
 timet summary week
-
-or
-
-tt su w
 ```
 
 - **timet summary resume (r)**: Resume tracking the last task.
 
-```shell
+```bash
 timet summary resume
-
-or
-
-tt su r
 ```
 
 - **timet summary resume (r)**: Resume tracking the last month.
 
-```shell
+```bash
 timet summary month
-
-or
-
-tt su m
 ```
 
 - **timet su t --csv=[filename]**:  Display a report of tracked time for today and export it to filename.csv
 
-```shell
-tt su t --csv=summary_today.csv
+```bash
+timet su t --csv=summary_today.csv
 ```
 
 - **timet delete [id]**: Delete a task
 
-```shell
+```bash
 timet delete [id]
 
 or
 
-tt d [id]
+timet d [id]
 ```
 
 - **timet cancel**: Cancel active time tracking
 
-```shell
+```bash
 timet cancel
 
 or
 
-tt c
+timet c
 ```
 
 
