@@ -29,15 +29,12 @@ module Timet
     def add_notes
       table_name = "items"
       new_column_name = "notes"
-      result = execute_sql("SELECT count(*) FROM pragma_table_info WHERE name = '#{new_column_name}'")
-
+      result = execute_sql("SELECT count(*) FROM pragma_table_info('items') where name='#{new_column_name}'")
       column_exists = result[0][0].positive?
-      if column_exists
-        puts "Column '#{new_column_name}' already exists in table '#{table_name}'."
-      else
-        execute_sql("ALTER TABLE #{table_name} ADD COLUMN #{new_column_name} string")
-        puts "Column '#{new_column_name}' added to table '#{table_name}'."
-      end
+      return if column_exists
+
+      execute_sql("ALTER TABLE #{table_name} ADD COLUMN #{new_column_name} string")
+      puts "Column '#{new_column_name}' added to table '#{table_name}'."
     end
 
     # Inserts a new item into the items table
