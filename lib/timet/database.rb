@@ -10,6 +10,7 @@ module Timet
     def initialize(database_path = DEFAULT_DATABASE_PATH)
       @db = SQLite3::Database.new(database_path)
       create_table
+      add_notes
     end
 
     # Creates the items table if it doesn't already exist
@@ -22,6 +23,21 @@ module Timet
           tag TEXT
         );
       SQL
+    end
+
+    # Adds a new column named "notes" to the "items" table if it doesn't exist.
+    def add_notes
+      table_name = "items"
+      new_column_name = "notes"
+      result = execute_sql("SELECT count(*) FROM pragma_table_info WHERE name = '#{new_column_name}'")
+
+      column_exists = result[0][0].positive?
+      if column_exists
+        puts "Column '#{new_column_name}' already exists in table '#{table_name}'."
+      else
+        execute_sql("ALTER TABLE #{table_name} ADD COLUMN #{new_column_name} string")
+        puts "Column '#{new_column_name}' added to table '#{table_name}'."
+      end
     end
 
     # Inserts a new item into the items table
