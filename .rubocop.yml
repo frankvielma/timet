@@ -8,10 +8,4 @@ AllCops:
 Metrics/MethodLength:
   Max: 12
 
-Style/StringLiterals:
-  EnforcedStyle: double_quotes
-
-Style/StringLiteralsInInterpolation:
-  EnforcedStyle: double_quotes
-
 require: rubocop-rspec

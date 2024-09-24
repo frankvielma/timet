@@ -1,15 +1,16 @@
 # frozen_string_literal: true
 
-require "sqlite3"
+require 'sqlite3'
 
 module Timet
   # Provides database access for managing time tracking data.
   class Database
-    DEFAULT_DATABASE_PATH = File.join(Dir.home, ".timet.db")
+    DEFAULT_DATABASE_PATH = File.join(Dir.home, '.timet.db')
 
     def initialize(database_path = DEFAULT_DATABASE_PATH)
       @db = SQLite3::Database.new(database_path)
       create_table
+      add_notes
     end
 
     # Creates the items table if it doesn't already exist
@@ -24,9 +25,21 @@ module Timet
       SQL
     end
 
+    # Adds a new column named "notes" to the "items" table if it doesn't exist.
+    def add_notes
+      table_name = 'items'
+      new_column_name = 'notes'
+      result = execute_sql("SELECT count(*) FROM pragma_table_info('items') where name='#{new_column_name}'")
+      column_exists = result[0][0].positive?
+      return if column_exists
+
+      execute_sql("ALTER TABLE #{table_name} ADD COLUMN #{new_column_name} TEXT")
+      puts "Column '#{new_column_name}' added to table '#{table_name}'."
+    end
+
     # Inserts a new item into the items table
-    def insert_item(start, tag)
-      execute_sql("INSERT INTO items (start, tag) VALUES (?, ?)", [start, tag])
+    def insert_item(start, tag, notes)
+      execute_sql('INSERT INTO items (start, tag, notes) VALUES (?, ?, ?)', [start, tag, notes])
     end
 
     # Updates the end time of the last item
@@ -34,7 +47,7 @@ module Timet
       last_id = fetch_last_id
       return unless last_id
 
-      execute_sql("UPDATE items SET end = ? WHERE id = ?", [stop, last_id])
+      execute_sql('UPDATE items SET end = ? WHERE id = ?', [stop, last_id])
     end
 
     def delete_item(id)
@@ -43,16 +56,16 @@ module Timet
 
     # Fetches the ID of the last inserted item
     def fetch_last_id
-      result = execute_sql("SELECT id FROM items ORDER BY id DESC LIMIT 1").first
+      result = execute_sql('SELECT id FROM items ORDER BY id DESC LIMIT 1').first
       result ? result[0] : nil
     end
 
     def last_item
-      execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
+      execute_sql('SELECT * FROM items ORDER BY id DESC LIMIT 1').first
     end
 
     def last_item_status
-      result = execute_sql("SELECT id, end FROM items ORDER BY id DESC LIMIT 1")
+      result = execute_sql('SELECT id, end FROM items ORDER BY id DESC LIMIT 1')
       StatusHelper.determine_status(result)
     end
 
@@ -62,8 +75,8 @@ module Timet
 
     # Calculates the total time elapsed since the last recorded time.
     def total_time
-      last_item = execute_sql("SELECT * FROM items ORDER BY id DESC LIMIT 1").first
-      return "00:00:00" unless last_item
+      last_item = execute_sql('SELECT * FROM items ORDER BY id DESC LIMIT 1').first
+      return '00:00:00' unless last_item
 
       start_time = last_item[1]
       end_time = last_item[2]
@@ -94,7 +107,7 @@ module Timet
       hours, remainder = seconds.divmod(3600)
       minutes, seconds = remainder.divmod(60)
 
-      format "%<hours>02d:%<minutes>02d:%<seconds>02d", hours: hours, minutes: minutes, seconds: seconds
+      format '%<hours>02d:%<minutes>02d:%<seconds>02d', hours: hours, minutes: minutes, seconds: seconds
     end
   end
 end

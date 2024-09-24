@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "date"
-require "csv"
-require_relative "time_helper"
-require_relative "status_helper"
+require 'date'
+require 'csv'
+require_relative 'time_helper'
+require_relative 'status_helper'
 
 module Timet
   # The TimeReport class is responsible for displaying a report of tracked time
@@ -15,15 +15,17 @@ module Timet
     def initialize(db, filter, tag, csv)
       @db = db
       @filename = csv
-      @items = filter ? filter_items(filter, tag) : @db.all_items
+      @filter = formatted_filter(filter)
+      @items = filter ? filter_items(@filter, tag) : @db.all_items
     end
 
     def display
-      return puts "No tracked time found for the specified filter." if items.empty?
+      return puts 'No tracked time found for the specified filter.' if items.empty?
 
       format_table_header
-      items.each do |item|
-        display_time_entry(item)
+      items.each_with_index do |item, idx|
+        date = extract_date(items, idx)
+        display_time_entry(item, date)
       end
       puts format_table_separator
       total
@@ -39,13 +41,13 @@ module Timet
     def export_sheet
       header = %w[ID Start End Tag]
 
-      CSV.open("#{filename}.csv", "w") do |csv|
+      CSV.open("#{filename}.csv", 'w') do |csv|
         csv << header
 
         items.each do |row|
           # Convert start and end times from timestamps to ISO 8601 format
-          start_time = Time.at(row[1]).strftime("%Y-%m-%d %H:%M:%S")
-          end_time = Time.at(row[2]).strftime("%Y-%m-%d %H:%M:%S")
+          start_time = Time.at(row[1]).strftime('%Y-%m-%d %H:%M:%S')
+          end_time = Time.at(row[2]).strftime('%Y-%m-%d %H:%M:%S')
 
           # Write the row with formatted times
           csv << [row[0], start_time, end_time, row[3]]
@@ -55,57 +57,66 @@ module Timet
 
     private
 
-    def display_time_entry(item)
-      return puts "Missing time entry data." unless item
+    def extract_date(items, idx)
+      current_start_date = items[idx][1]
+      date = TimeHelper.timestamp_to_date(current_start_date)
 
-      id, start_time_value, end_time_value, tag_name = item
+      last_start_date = items[idx - 1][1]
+      date if idx.zero? || date != TimeHelper.timestamp_to_date(last_start_date)
+    end
+
+    def display_time_entry(item, date)
+      return puts 'Missing time entry data.' unless item
+
+      id, start_time_value, end_time_value, tag_name, notes = item
       duration = TimeHelper.calculate_duration(start_time_value, end_time_value)
       start_time = TimeHelper.format_time(start_time_value)
-      end_time = TimeHelper.format_time(end_time_value) || "-".rjust(19)
-      puts format_table_row(id, tag_name[0..5], start_time, end_time, duration)
+      end_time = TimeHelper.format_time(end_time_value) || '- -'
+      start_date = date.nil? ? ' ' * 10 : date
+      puts format_table_row(id, tag_name[0..5], start_date, start_time, end_time, duration, notes)
     end
 
     def total
       total = @items.map do |item|
         TimeHelper.calculate_duration(item[1], item[2])
       end.sum
-      puts "|#{" " * 52}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(10)} |\033[0m"
+      puts "|#{' ' * 43}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(8)} |\033[0m                          |"
       puts format_table_separator
     end
 
     def format_table_header
       header = <<~TABLE
-        Tracked time report:
+        Tracked time report \u001b[31m[#{@filter}]\033[0m:
         #{format_table_separator}
-        \033[32m| Id    | Tag    | Start Time          | End Time            | Duration   |\033[0m
+        \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |\033[0m
         #{format_table_separator}
       TABLE
       puts header
     end
 
     def format_table_separator
-      "+-------+--------+---------------------+---------------------+------------+"
+      '+-------+------------+--------+----------+----------+----------+--------------------------+'
     end
 
     def format_table_row(*row)
-      id, tag, start_time, end_time, duration = row
-      "| #{id.to_s.rjust(5)} | #{tag.ljust(6)} | #{start_time} | #{end_time} | " \
-        "#{@db.seconds_to_hms(duration).rjust(10)} |"
+      id, tag, start_date, start_time, end_time, duration, notes = row
+      "| #{id.to_s.rjust(5)} | #{start_date} | #{tag.ljust(6)} | #{start_time.split[1]} | " \
+        "#{end_time.split[1].rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  |"
     end
 
     def filter_items(filter, tag)
       today = Date.today
       case filter
-      when "today", "t"
+      when 'today'
         filter_by_date_range(today, nil, tag)
-      when "yesterday", "y"
+      when 'yesterday'
         filter_by_date_range(today - 1, nil, tag)
-      when "week", "w"
+      when 'week'
         filter_by_date_range(today - 7, today + 1, tag)
-      when "month", "m"
+      when 'month'
         filter_by_date_range(today - 30, today + 1, tag)
       else
-        puts "Invalid filter. Supported filters: today, yesterday, week"
+        puts 'Invalid filter. Supported filters: today, yesterday, week'
         []
       end
     end
@@ -117,6 +128,22 @@ module Timet
       @db.execute_sql(
         "select * from items where #{query} ORDER BY id DESC"
       )
+    end
+
+    def format_notes(notes)
+      return ' ' * 23 if notes.nil?
+
+      notes = "#{notes.slice(0, 20)}..." if notes.length > 20
+      notes.ljust(23)
+    end
+
+    def formatted_filter(filter)
+      return 'today' if %w[today t].include?(filter)
+      return 'yesterday' if %w[yesterday y].include?(filter)
+      return 'week' if %w[week w].include?(filter)
+      return 'month' if %w[month m].include?(filter)
+
+      'today'
     end
   end
 end
