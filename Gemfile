@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'csv', '~> 3.3.0'
 gem 'rake', '~> 13.2'
 gem 'sqlite3', '~> 2.1.0'
 gem 'thor', '~> 1.3'

@@ -24,7 +24,7 @@ module Timet
 
       format_table_header
       items.each_with_index do |item, idx|
-        date = extract_date(items, idx)
+        date = TimeHelper.extract_date(items, idx)
         display_time_entry(item, date)
       end
       puts format_table_separator
@@ -55,14 +55,6 @@ module Timet
     end
 
     private
-
-    def extract_date(items, idx)
-      current_start_date = items[idx][1]
-      date = TimeHelper.timestamp_to_date(current_start_date)
-
-      last_start_date = items[idx - 1][1]
-      date if idx.zero? || date != TimeHelper.timestamp_to_date(last_start_date)
-    end
 
     def display_time_entry(item, date = nil)
       return puts 'Missing time entry data.' unless item

@@ -33,4 +33,13 @@ module TimeHelper
     end_date ||= start_date + 1
     date_to_timestamp(end_date)
   end
+
+  def self.extract_date(items, idx)
+    current_start_date = items[idx][1]
+    date = TimeHelper.timestamp_to_date(current_start_date)
+
+    last_start_date = items[idx - 1][1]
+    date if idx.zero? || date != TimeHelper.timestamp_to_date(last_start_date)
+  end
+
 end
