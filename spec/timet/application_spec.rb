@@ -136,11 +136,11 @@ RSpec.describe Timet::Application do
         allow(db).to receive(:last_item).and_return([1, 1_727_191_918, 1_727_191_923, 'task_name', nil])
         allow(application).to receive(:start)
         application.resume
-        expect(application).to have_received(:start).with('task_name')
+        expect(application).to have_received(:start).with('task_name', nil)
       end
 
       it 'does not call start if there is no last task' do
-        allow(db).to receive(:last_item).and_return(nil)
+        allow(db).to receive(:last_item).and_return([])
         allow(application).to receive(:start)
         application.resume
         expect(application).not_to have_received(:start)

@@ -15,9 +15,10 @@ module Timet
 
     desc "start [tag] --notes='...'", "start time tracking  --notes='my notes...'"
     option :notes, type: :string, desc: 'Add a note'
-    def start(tag)
+    def start(tag, notes = nil)
       start = Time.now.to_i
-      @db.insert_item(start, tag, options[:notes]) if %i[no_items complete].include?(@db.last_item_status)
+      notes = options[:notes] || notes
+      @db.insert_item(start, tag, notes) if %i[no_items complete].include?(@db.last_item_status)
       summary
     end
 
@@ -36,8 +37,10 @@ module Timet
     def resume
       if @db.last_item_status == :incomplete
         puts 'A task is currently being tracked.'
-      elsif (last_task = @db.last_item&.[](3))
-        start last_task
+      elsif @db.last_item.any?
+        tag = @db.last_item[3]
+        notes = @db.last_item[4]
+        start(tag, notes)
       end
     end
 
