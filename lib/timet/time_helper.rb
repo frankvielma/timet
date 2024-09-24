@@ -10,6 +10,14 @@ module TimeHelper
     timestamp&.then { |time| Time.at(time).strftime('%Y-%m-%d %H:%M:%S').ljust(19) }
   end
 
+  def self.timestamp_to_date(timestamp)
+    timestamp&.then { |time| Time.at(time).strftime('%Y-%m-%d') }
+  end
+
+  def self.timestamp_to_time(timestamp)
+    timestamp&.then { |time| Time.at(time).strftime('%H:%M:%S') }
+  end
+
   def self.calculate_duration(start_time, end_time)
     start_time = Time.at(start_time)
     end_time = end_time ? Time.at(end_time) : Time.now

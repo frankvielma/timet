@@ -32,9 +32,11 @@ RSpec.describe Timet::Application do
 
     it 'exports a CSV file if the :csv option is provided' do
       csv_filename = 'summary.csv'
-      expect(Timet::TimeReport).to receive(:new).with(db, report_params[:filter], report_params[:tag],
-                                                      csv_filename).and_return(time_report)
+      allow(Timet::TimeReport).to receive(:new).with(db, report_params[:filter], report_params[:tag],
+                                                     csv_filename).and_return(time_report)
+
       application.invoke(:summary, [report_params[:filter], report_params[:tag]], { csv: csv_filename })
+
       expect(time_report).to have_received(:export_sheet)
     end
   end

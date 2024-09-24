@@ -23,8 +23,9 @@ module Timet
       return puts 'No tracked time found for the specified filter.' if items.empty?
 
       format_table_header
-      items.each do |item|
-        display_time_entry(item)
+      items.each_with_index do |item, idx|
+        date = extract_date(items, idx)
+        display_time_entry(item, date)
       end
       puts format_table_separator
       total
@@ -56,21 +57,30 @@ module Timet
 
     private
 
-    def display_time_entry(item)
+    def extract_date(items, idx)
+      current_start_date = items[idx][1]
+      date = TimeHelper.timestamp_to_date(current_start_date)
+
+      last_start_date = items[idx - 1][1]
+      date if idx.zero? || date != TimeHelper.timestamp_to_date(last_start_date)
+    end
+
+    def display_time_entry(item, date)
       return puts 'Missing time entry data.' unless item
 
       id, start_time_value, end_time_value, tag_name, notes = item
       duration = TimeHelper.calculate_duration(start_time_value, end_time_value)
       start_time = TimeHelper.format_time(start_time_value)
-      end_time = TimeHelper.format_time(end_time_value) || '-'.rjust(19)
-      puts format_table_row(id, tag_name[0..5], start_time, end_time, duration, notes)
+      end_time = TimeHelper.format_time(end_time_value) || '- -'
+      start_date = date.nil? ? ' ' * 10 : date
+      puts format_table_row(id, tag_name[0..5], start_date, start_time, end_time, duration, notes)
     end
 
     def total
       total = @items.map do |item|
         TimeHelper.calculate_duration(item[1], item[2])
       end.sum
-      puts "|#{' ' * 52}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(10)} |\033[0m                          |"
+      puts "|#{' ' * 43}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(8)} |\033[0m                          |"
       puts format_table_separator
     end
 
@@ -78,20 +88,20 @@ module Timet
       header = <<~TABLE
         Tracked time report \u001b[31m[#{@filter}]\033[0m:
         #{format_table_separator}
-        \033[32m| Id    | Tag    | Start Time          | End Time            | Duration   | Notes                    |\033[0m
+        \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |\033[0m
         #{format_table_separator}
       TABLE
       puts header
     end
 
     def format_table_separator
-      '+-------+--------+---------------------+---------------------+------------+--------------------------+'
+      '+-------+------------+--------+----------+----------+----------+--------------------------+'
     end
 
     def format_table_row(*row)
-      id, tag, start_time, end_time, duration, notes = row
-      "| #{id.to_s.rjust(5)} | #{tag.ljust(6)} | #{start_time} | #{end_time} | " \
-        "#{@db.seconds_to_hms(duration).rjust(10)} | #{format_notes(notes)}  |"
+      id, tag, start_date, start_time, end_time, duration, notes = row
+      "| #{id.to_s.rjust(5)} | #{start_date} | #{tag.ljust(6)} | #{start_time.split[1]} | " \
+        "#{end_time.split[1].rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  |"
     end
 
     def filter_items(filter, tag)

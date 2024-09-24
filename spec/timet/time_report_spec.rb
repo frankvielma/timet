@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../helpers'
+require 'byebug'
 
 RSpec.describe Timet::TimeReport do
   let(:db) do
