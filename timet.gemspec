@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Command line time tracking with reports"
   spec.description = "It's a time tracking app that keeps track of how long you spend doing different things." 
-  spec.homepage = "https://github.com/frankvielma/timet/blob/main/README.md"
+  spec.homepage = "https://frankvielma.github.io/posts/timet-a-powerful-command-line-tool-for-tracking-your-time/"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
   spec.add_dependency "thor", "~> 1.2"
