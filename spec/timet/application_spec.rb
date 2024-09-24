@@ -136,11 +136,11 @@ RSpec.describe Timet::Application do
         allow(db).to receive(:last_item).and_return([1, 1_727_191_918, 1_727_191_923, 'task_name', nil])
         allow(application).to receive(:start)
         application.resume
-        expect(application).to have_received(:start).with('task_name')
+        expect(application).to have_received(:start).with('task_name', nil)
       end
 
       it 'does not call start if there is no last task' do
-        allow(db).to receive(:last_item).and_return(nil)
+        allow(db).to receive(:last_item).and_return([])
         allow(application).to receive(:start)
         application.resume
         expect(application).not_to have_received(:start)
@@ -153,7 +153,7 @@ RSpec.describe Timet::Application do
       before do
         allow(db).to receive(:find_item).with(1).and_return(item)
         allow(Timet::TimeReport).to receive(:new).and_return(time_report)
-        allow(time_report).to receive(:row)
+        allow(time_report).to receive(:show_row)
         allow(db).to receive(:delete_item)
       end
 
@@ -170,7 +170,7 @@ RSpec.describe Timet::Application do
         allow(TTY::Prompt).to receive(:new).and_return(prompt)
         allow(prompt).to receive(:yes?).and_return(true)
         application.delete(1)
-        expect(time_report).to have_received(:row).with(item)
+        expect(time_report).to have_received(:show_row).with(item)
       end
 
       it "outputs 'Deleted 1' when the user confirms deletion" do

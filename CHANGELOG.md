@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+## [0.2.1] - 2024-09-24
+
+* **Improved `resume` behavior:**
+    * If no notes are provided, it will attempt to retrieve them from the last tracked task.
+* **Enhanced `export_sheet` functionality:**
+    * A new `notes` column has been added to the exported CSV file.
+* **Minor bug fixes:**
+    * Resolved issues related to resuming tasks with notes and deleting items.
+
+
 ## [0.2.0] - 2024-09-24
 
 * **Improved code quality:**
