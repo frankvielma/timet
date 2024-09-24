@@ -3,6 +3,7 @@
 require_relative 'version'
 require 'thor'
 require 'tty-prompt'
+require 'byebug'
 
 module Timet
   # Tracks time spent on various tasks.
@@ -35,9 +36,8 @@ module Timet
     def resume
       if @db.last_item_status == :incomplete
         puts 'A task is currently being tracked.'
-      else
-        last_task = @db.last_item&.last
-        start last_task if last_task
+      elsif (last_task = @db.last_item&.[](3))
+        start last_task
       end
     end
 
