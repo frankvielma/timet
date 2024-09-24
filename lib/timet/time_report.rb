@@ -39,18 +39,17 @@ module Timet
     end
 
     def export_sheet
-      header = %w[ID Start End Tag]
-
       CSV.open("#{filename}.csv", 'w') do |csv|
-        csv << header
+        csv << %w[ID Start End Tag Notes]
 
-        items.each do |row|
-          # Convert start and end times from timestamps to ISO 8601 format
-          start_time = Time.at(row[1]).strftime('%Y-%m-%d %H:%M:%S')
-          end_time = Time.at(row[2]).strftime('%Y-%m-%d %H:%M:%S')
-
-          # Write the row with formatted times
-          csv << [row[0], start_time, end_time, row[3]]
+        items.each do |id, start_time, end_time, tags, notes|
+          csv << [
+            id,
+            TimeHelper.format_time(start_time),
+            TimeHelper.format_time(end_time),
+            tags,
+            notes
+          ]
         end
       end
     end
