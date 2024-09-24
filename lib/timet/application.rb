@@ -57,7 +57,7 @@ module Timet
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
 
-      TimeReport.new(@db, nil, nil).row(item)
+      TimeReport.new(@db, nil, nil, nil).show_row(item)
       return unless TTY::Prompt.new.yes?('Are you sure you want to delete this entry?')
 
       delete_item_and_print_message(id, "Deleted #{id}")

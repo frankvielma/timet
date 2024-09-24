@@ -31,7 +31,7 @@ module Timet
       total
     end
 
-    def row(item)
+    def show_row(item)
       format_table_header
       display_time_entry(item)
       puts format_table_separator
@@ -64,7 +64,7 @@ module Timet
       date if idx.zero? || date != TimeHelper.timestamp_to_date(last_start_date)
     end
 
-    def display_time_entry(item, date)
+    def display_time_entry(item, date = nil)
       return puts 'Missing time entry data.' unless item
 
       id, start_time_value, end_time_value, tag_name, notes = item
