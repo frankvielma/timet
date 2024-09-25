@@ -41,5 +41,4 @@ module TimeHelper
     last_start_date = items[idx - 1][1]
     date if idx.zero? || date != TimeHelper.timestamp_to_date(last_start_date)
   end
-
 end

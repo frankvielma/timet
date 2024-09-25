@@ -54,6 +54,12 @@ module Timet
       execute_sql("DELETE FROM items WHERE id = #{id}")
     end
 
+    def update_item(item)
+      id = item[0]
+      notes = item[4]
+      execute_sql("UPDATE items SET notes='#{notes}' WHERE id = #{id}")
+    end
+
     # Fetches the ID of the last inserted item
     def fetch_last_id
       result = execute_sql('SELECT id FROM items ORDER BY id DESC LIMIT 1').first

@@ -12,7 +12,7 @@ module Timet
   class TimeReport
     attr_reader :db, :items, :filename
 
-    def initialize(db, filter, tag, csv)
+    def initialize(db, filter = nil, tag = nil, csv = nil)
       @db = db
       @filename = csv
       @filter = formatted_filter(filter)

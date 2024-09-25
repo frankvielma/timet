@@ -55,12 +55,23 @@ module Timet
       summary.export_sheet if csv_filename
     end
 
+    desc 'edit (e) [id]', 'edit a note'
+    def edit(id)
+      item = @db.find_item(id)
+      return puts "No tracked time found for id: #{id}" unless item
+
+      TimeReport.new(@db).show_row(item)
+      updated_notes = prompt_for_update(item[4])
+      update_item_notes(item, updated_notes)
+      summary.display
+    end
+
     desc 'delete (d) [id]', 'delete a task'
     def delete(id)
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
 
-      TimeReport.new(@db, nil, nil, nil).show_row(item)
+      TimeReport.new(@db).show_row(item)
       return unless TTY::Prompt.new.yes?('Are you sure you want to delete this entry?')
 
       delete_item_and_print_message(id, "Deleted #{id}")
@@ -79,6 +90,17 @@ module Timet
     end
 
     private
+
+    def update_item_notes(item, updated_notes)
+      new_item = item.dup
+      new_item[4] = updated_notes
+      @db.update_item(new_item)
+    end
+
+    def prompt_for_update(current_notes)
+      prompt = TTY::Prompt.new(active_color: :green)
+      prompt.ask("Update notes (#{current_notes}):")
+    end
 
     def delete_item_and_print_message(id, message)
       @db.delete_item(id)
