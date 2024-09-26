@@ -13,6 +13,13 @@ module Timet
       @db = Timet::Database.new
     end
 
+    FIELD_INDEX = {
+      'Notes' => 4,
+      'Tag' => 3,
+      'Start' => 1,
+      'End' => 2
+    }.freeze
+
     desc "start [tag] --notes='...'", "start time tracking  --notes='my notes...'"
     option :notes, type: :string, desc: 'Add a note'
     def start(tag, notes = nil)
@@ -61,8 +68,13 @@ module Timet
       return puts "No tracked time found for id: #{id}" unless item
 
       TimeReport.new(@db).show_row(item)
-      updated_notes = prompt_for_update(item[4])
-      update_item_notes(item, updated_notes)
+      prompt = TTY::Prompt.new(active_color: :green)
+      field = prompt.select('Edit Field?', FIELD_INDEX.keys, active_color: :cyan)
+
+      current_value = item[FIELD_INDEX[field]]
+      new_value = prompt.ask("Update #{field} (#{current_value}):")
+
+      @db.update_item(id, field.downcase, new_value)
       summary.display
     end
 
@@ -90,22 +102,6 @@ module Timet
     end
 
     private
-
-    def update_item_notes(item, updated_notes)
-      new_item = item.dup
-      new_item[4] = updated_notes
-      @db.update_item(new_item)
-    end
-
-    def prompt_for_update(current_notes)
-      prompt = TTY::Prompt.new(active_color: :green)
-      field = prompt.select('Edit Field?', %w[Tag Notes Start End], active_color: :cyan)
-      if field == 'Notes'
-        prompt.ask("Update notes (#{current_notes}):")
-      else
-        puts 'N/A'
-      end
-    end
 
     def delete_item_and_print_message(id, message)
       @db.delete_item(id)
