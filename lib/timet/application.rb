@@ -55,7 +55,7 @@ module Timet
       summary.export_sheet if csv_filename
     end
 
-    desc 'edit (e) [id]', 'edit a note'
+    desc 'edit (e) [id]', 'edit a task'
     def edit(id)
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
@@ -99,7 +99,12 @@ module Timet
 
     def prompt_for_update(current_notes)
       prompt = TTY::Prompt.new(active_color: :green)
-      prompt.ask("Update notes (#{current_notes}):")
+      field = prompt.select('Edit Field?', %w[Tag Notes Start End], active_color: :cyan)
+      if field == 'Notes'
+        prompt.ask("Update notes (#{current_notes}):")
+      else
+        puts 'N/A'
+      end
     end
 
     def delete_item_and_print_message(id, message)
