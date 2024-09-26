@@ -55,6 +55,8 @@ module Timet
     end
 
     def update_item(id, field, value)
+      return if %w[start end].include?(field) && value.nil?
+
       execute_sql("UPDATE items SET #{field}='#{value}' WHERE id = #{id}")
     end
 
