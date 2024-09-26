@@ -14,10 +14,10 @@ module Timet
     end
 
     FIELD_INDEX = {
-      'Notes' => 4,
-      'Tag' => 3,
-      'Start' => 1,
-      'End' => 2
+      'notes' => 4,
+      'tag' => 3,
+      'start' => 1,
+      'end' => 2
     }.freeze
 
     desc "start [tag] --notes='...'", "start time tracking  --notes='my notes...'"
@@ -68,13 +68,14 @@ module Timet
       return puts "No tracked time found for id: #{id}" unless item
 
       TimeReport.new(@db).show_row(item)
+
       prompt = TTY::Prompt.new(active_color: :green)
-      field = prompt.select('Edit Field?', FIELD_INDEX.keys, active_color: :cyan)
+      field = prompt.select('Edit Field?', FIELD_INDEX.keys.map(&:capitalize), active_color: :cyan).downcase
 
-      current_value = item[FIELD_INDEX[field]]
+      current_value = field_value(item, field)
       new_value = prompt.ask("Update #{field} (#{current_value}):")
+      validate_and_update(item, field, new_value)
 
-      @db.update_item(id, field.downcase, new_value)
       summary.display
     end
 
@@ -102,6 +103,51 @@ module Timet
     end
 
     private
+
+    def field_value(item, field)
+      if %w[start end].include?(field)
+        TimeHelper.timestamp_to_time(item[FIELD_INDEX[field]])
+      else
+        item[FIELD_INDEX[field]]
+      end
+    end
+
+    def validate_and_update(item, field, new_value)
+      if %w[start end].include?(field)
+        id = item[0]
+        begin
+          return if new_value.nil?
+
+          filter_value = format_time_string(new_value)
+          value = Time.at(item[FIELD_INDEX[field]]).to_s.split
+          value[1] = filter_value
+          new_date = DateTime.strptime(value.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
+          new_value = new_date.to_i
+
+          item_before = @db.find_item(id - 1)
+          item_after = @db.find_item(id + 1)
+
+          condition_start = field == 'start' && new_value >= item_before[FIELD_INDEX['end']] && new_value <= item[FIELD_INDEX['end']]
+          condition_end = field == 'end' && new_value >= item[FIELD_INDEX['start']] && new_value <= item_after[FIELD_INDEX['start']]
+
+          if condition_start || condition_end
+            @db.update_item(id, field, new_value)
+          else
+            puts "\u001b[31mInvalid date: #{new_date}\033[0m"
+          end
+        rescue ArgumentError => e
+          puts "Invalid time format: #{e.message}"
+        end
+      else
+        @db.update_item(id, field, new_value)
+      end
+    end
+
+    def format_time_string(input)
+      cleaned_input = input.gsub(/\D/, '')
+      padded_input = cleaned_input.ljust(6, '0')
+      "#{padded_input[0, 2]}:#{padded_input[2, 2]}:#{padded_input[4, 2]}"
+    end
 
     def delete_item_and_print_message(id, message)
       @db.delete_item(id)
