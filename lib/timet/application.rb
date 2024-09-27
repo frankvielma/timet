@@ -113,22 +113,34 @@ module Timet
     end
 
     def validate_and_update(item, field, new_value)
+      id = item[0]
       if %w[start end].include?(field)
-        id = item[0]
         begin
           return if new_value.nil?
 
-          filter_value = format_time_string(new_value)
+          filter_value = TimeHelper.format_time_string(new_value)
           value = Time.at(item[FIELD_INDEX[field]]).to_s.split
           value[1] = filter_value
           new_date = DateTime.strptime(value.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
           new_value = new_date.to_i
 
-          item_before = @db.find_item(id - 1)
-          item_after = @db.find_item(id + 1)
+          item_value_start = item[FIELD_INDEX['start']]
+          item_value_end = item[FIELD_INDEX['end']]
 
-          condition_start = field == 'start' && new_value >= item_before[FIELD_INDEX['end']] && new_value <= item[FIELD_INDEX['end']]
-          condition_end = field == 'end' && new_value >= item[FIELD_INDEX['start']] && new_value <= item_after[FIELD_INDEX['start']]
+          item_before_value = if @db.find_item(id - 1)
+                                @db.find_item(id - 1)[FIELD_INDEX['end']]
+                              else
+                                @db.find_item(id)[FIELD_INDEX['start']]
+                              end
+
+          item_after_value = if @db.find_item(id + 1)
+                               @db.find_item(id + 1)[FIELD_INDEX['start']]
+                             else
+                               Time.now.to_i
+                             end
+
+          condition_start = field == 'start' && new_value >= item_before_value && new_value <= item_value_end
+          condition_end = field == 'end' && new_value >= item_value_start && new_value <= item_after_value
 
           if condition_start || condition_end
             @db.update_item(id, field, new_value)
@@ -141,12 +153,6 @@ module Timet
       else
         @db.update_item(id, field, new_value)
       end
-    end
-
-    def format_time_string(input)
-      cleaned_input = input.gsub(/\D/, '')
-      padded_input = cleaned_input.ljust(6, '0')
-      "#{padded_input[0, 2]}:#{padded_input[2, 2]}:#{padded_input[4, 2]}"
     end
 
     def delete_item_and_print_message(id, message)

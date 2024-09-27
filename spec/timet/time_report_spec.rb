@@ -38,8 +38,8 @@ RSpec.describe Timet::TimeReport do
       end
 
       it 'prints a formatted time report' do
-        start_time = TimeHelper.format_time(Time.now.to_i)
-        end_time = TimeHelper.format_time(Time.now.to_i + 3600)
+        start_time = Timet::TimeHelper.format_time(Time.now.to_i)
+        end_time = Timet::TimeHelper.format_time(Time.now.to_i + 3600)
 
         expected_output = expected_time_report(start_time, end_time)
         expect { time_report.display }.to output(expected_output).to_stdout

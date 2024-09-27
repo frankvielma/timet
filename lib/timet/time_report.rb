@@ -7,8 +7,8 @@ require_relative 'status_helper'
 
 module Timet
   # The TimeReport class is responsible for displaying a report of tracked time
-  # entries. It allows filtering the report by time periods (today, yesterday,
-  # week) and displays a formatted table with the relevant information.
+  # entries. It allows filtering the report by time periods and displays
+  # a formatted table with the relevant information.
   class TimeReport
     attr_reader :db, :items, :filename
 
@@ -95,21 +95,31 @@ module Timet
         "#{end_time.split[1].rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  |"
     end
 
+    def format_notes(notes)
+      return ' ' * 23 if notes.nil?
+
+      notes = "#{notes.slice(0, 20)}..." if notes.length > 20
+      notes.ljust(23)
+    end
+
     def filter_items(filter, tag)
-      today = Date.today
-      case filter
-      when 'today'
-        filter_by_date_range(today, nil, tag)
-      when 'yesterday'
-        filter_by_date_range(today - 1, nil, tag)
-      when 'week'
-        filter_by_date_range(today - 7, today + 1, tag)
-      when 'month'
-        filter_by_date_range(today - 30, today + 1, tag)
+      if date_ranges.key?(filter)
+        start_date, end_date = date_ranges[filter]
+        filter_by_date_range(start_date, end_date, tag)
       else
-        puts 'Invalid filter. Supported filters: today, yesterday, week'
+        puts 'Invalid filter. Supported filters: today, yesterday, week, month'
         []
       end
+    end
+
+    def date_ranges
+      today = Date.today
+      {
+        'today' => [today, nil],
+        'yesterday' => [today - 1, nil],
+        'week' => [today - 7, today + 1],
+        'month' => [today - 30, today + 1]
+      }
     end
 
     def filter_by_date_range(start_date, end_date = nil, tag = nil)
@@ -119,13 +129,6 @@ module Timet
       @db.execute_sql(
         "select * from items where #{query} ORDER BY id DESC"
       )
-    end
-
-    def format_notes(notes)
-      return ' ' * 23 if notes.nil?
-
-      notes = "#{notes.slice(0, 20)}..." if notes.length > 20
-      notes.ljust(23)
     end
 
     def formatted_filter(filter)
