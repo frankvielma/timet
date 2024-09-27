@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+## [0.2.2] - 2024-09-27
+
+* **Improvements**:
+    * Updated SQLite3 gem version to 2.1.0
+
 ## [0.2.1] - 2024-09-24
 
 * **Improved `resume` behavior:**
