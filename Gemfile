@@ -5,7 +5,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'rake', '~> 13.2'
-gem 'sqlite3', '~> 2.0'
+gem 'sqlite3', '~> 2.1.0'
 gem 'thor', '~> 1.3'
 gem 'tty-prompt', '~> 0.23.1'
 
