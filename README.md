@@ -43,6 +43,10 @@ $ gem install timet
 - **timet start [tag] --notes='...'**: Starts tracking time for a task labeled with the provided [tag] and notes (optional). Example:
     ```bash
     timet start task1 --notes='Meeting with client'
+    
+    or
+
+    timet start task1 'Meeting with client'
     ```
 
     ```
