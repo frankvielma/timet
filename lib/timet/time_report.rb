@@ -4,12 +4,15 @@ require 'date'
 require 'csv'
 require_relative 'time_helper'
 require_relative 'status_helper'
+require_relative 'formatter'
 
 module Timet
   # The TimeReport class is responsible for displaying a report of tracked time
   # entries. It allows filtering the report by time periods and displays
   # a formatted table with the relevant information.
   class TimeReport
+    include Formatter
+
     attr_reader :db, :items, :filename
 
     def initialize(db, filter = nil, tag = nil, csv = nil)
@@ -73,33 +76,6 @@ module Timet
       end.sum
       puts "|#{' ' * 43}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(8)} |\033[0m                          |"
       puts format_table_separator
-    end
-
-    def format_table_header
-      header = <<~TABLE
-        Tracked time report \u001b[31m[#{@filter}]\033[0m:
-        #{format_table_separator}
-        \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |\033[0m
-        #{format_table_separator}
-      TABLE
-      puts header
-    end
-
-    def format_table_separator
-      '+-------+------------+--------+----------+----------+----------+--------------------------+'
-    end
-
-    def format_table_row(*row)
-      id, tag, start_date, start_time, end_time, duration, notes = row
-      "| #{id.to_s.rjust(5)} | #{start_date} | #{tag.ljust(6)} | #{start_time.split[1]} | " \
-        "#{end_time.split[1].rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  |"
-    end
-
-    def format_notes(notes)
-      return ' ' * 23 if notes.nil?
-
-      notes = "#{notes.slice(0, 20)}..." if notes.length > 20
-      notes.ljust(23)
     end
 
     def filter_items(filter, tag)
