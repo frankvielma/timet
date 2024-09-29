@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Frank Vielma"]
   spec.email = ["frankvielma@gmail.com"]
 
-  spec.summary = "Command line time tracking with reports"
-  spec.description = "It's a time tracking app that keeps track of how long you spend doing different things." 
+  spec.summary = "Command line time tracker with reports"
+  spec.description = "Timet is a command-line time tracker that keeps track of your activities." 
   spec.homepage = "https://frankvielma.github.io/posts/timet-a-powerful-command-line-tool-for-tracking-your-time/"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
