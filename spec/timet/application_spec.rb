@@ -24,70 +24,201 @@ RSpec.describe Timet::Application do
   end
 
   describe '#start' do
-    before do
-      allow(app).to receive(:summary)
+    context 'when the database is empty or the most recent item is finished' do
+      before do
+        allow(db).to receive(:last_item_status).and_return(:no_items)
+      end
+
+      it 'inserts a new item into the database' do
+        app.start('tag', 'my notes...')
+        expect(db).to have_received(:insert_item).with(Time.now.to_i, 'tag', 'my notes...')
+      end
+
+      it 'calls summary after inserting the item' do
+        allow(app).to receive(:summary)
+        app.start('tag', 'my notes...')
+        expect(app).to have_received(:summary)
+      end
     end
 
-    it 'inserts a new item when there are no items or last item is complete' do
-      allow(db).to receive(:last_item_status).and_return(:no_items)
-      app.start('test_tag', 'test_notes')
-      expect(db).to have_received(:insert_item)
+    context 'when the last item is still in progress' do
+      before do
+        allow(db).to receive(:last_item_status).and_return(:in_progress)
+      end
+
+      it 'does not insert a new item into the database' do
+        app.start('tag', 'my notes...')
+        expect(db).not_to have_received(:insert_item)
+      end
+
+      it 'calls summary' do
+        allow(app).to receive(:summary)
+        app.start('tag', 'my notes...')
+        expect(app).to have_received(:summary)
+      end
     end
 
-    it 'does not insert a new item when last item is incomplete' do
-      allow(db).to receive(:last_item_status).and_return(:incomplete)
-      app.start('test_tag', 'test_notes')
-      expect(db).not_to have_received(:insert_item)
+    context 'when notes are provided via --notes option' do
+      before do
+        allow(db).to receive(:last_item_status).and_return(:no_items)
+      end
+
+      it 'inserts a new item into the database with the provided notes from options' do
+        start_time = Time.now.to_i
+        notes = 'my notes from option'
+
+        allow(app).to receive(:options).and_return({ notes: notes })
+        allow(Time).to receive(:now).and_return(Time.at(start_time))
+
+        app.start('tag')
+
+        expect(db).to have_received(:insert_item).with(start_time, 'tag', notes)
+      end
     end
   end
 
   describe '#stop' do
-    before do
-      allow(app).to receive(:summary)
+    context 'when the last item is in progress' do
+      before do
+        start_time = Time.now.to_i - 3600
+        allow(db).to receive_messages(last_item_status: :in_progress,
+                                      last_item: { 'start' => start_time,
+                                                   'stop' => nil })
+      end
+
+      it 'updates the last item with the stop time' do
+        app.stop
+        expect(db).to have_received(:update).with(Time.now.to_i)
+      end
+
+      it 'calls summary' do
+        allow(app).to receive(:summary)
+        app.stop
+        expect(app).to have_received(:summary)
+      end
     end
 
-    it 'updates the last item when it is incomplete' do
-      allow(db).to receive(:last_item_status).and_return(:incomplete)
-      app.stop
-      expect(db).to have_received(:update)
-    end
+    context 'when the last item is complete' do
+      before do
+        allow(db).to receive_messages(last_item_status: :complete)
+      end
 
-    it 'does not update when last item is complete' do
-      allow(db).to receive(:last_item_status).and_return(:complete)
-      app.stop
-      expect(db).not_to have_received(:update)
+      it 'does not update the database' do
+        app.stop
+        expect(db).not_to have_received(:update)
+      end
+
+      it 'returns nil' do
+        expect(app.stop).to be_nil
+      end
     end
   end
 
   describe '#resume' do
-    before do
-      allow(app).to receive(:summary)
-      allow(app).to receive(:start)
+    context 'when a task is currently being tracked' do
+      let(:status) { :in_progress }
+
+      it 'prints a message indicating that a task is being tracked' do
+        allow(db).to receive(:last_item_status).and_return(status)
+        expect { app.resume }.to output(/A task is currently being tracked./).to_stdout
+      end
+
+      it 'does not call start' do
+        allow(app).to receive(:start)
+        app.resume
+
+        expect(app).not_to have_received(:start)
+      end
     end
 
-    it 'starts a new task with last item details when last item is complete' do
-      allow(db).to receive_messages(last_item_status: :complete, last_item: [nil, nil, nil, 'last_tag', 'last_notes'])
-      app.resume
-      expect(app).to have_received(:start).with('last_tag', 'last_notes')
+    context 'when there is a last task' do
+      let(:item) { ['task', '2024-01-01', '12:00', 'tag', 'notes'] }
+      let(:status) { :complete }
+      let(:tag) { 'tag' }
+      let(:notes) { 'notes' }
+
+      before do
+        allow(db).to receive_messages(last_item_status: status, last_item: item)
+      end
+
+      it 'retrieves the last item status from the database' do
+        app.resume
+        expect(db).to have_received(:last_item_status).twice
+      end
+
+      it 'retrieves the last item from the database' do
+        app.resume
+        expect(db).to have_received(:last_item)
+      end
+
+      it 'calls start with the tag and notes' do
+        allow(app).to receive(:start)
+        app.resume
+        expect(app).to have_received(:start).with(tag, notes)
+      end
     end
 
-    it 'does not start a new task when a task is currently being tracked' do
-      allow(db).to receive(:last_item_status).and_return(:incomplete)
-      expect { app.resume }.to output("A task is currently being tracked.\n").to_stdout
-      expect(app).not_to have_received(:start)
+    context 'when there are no items' do
+      let(:status) { :no_items }
+
+      before do
+        allow(db).to receive_messages(last_item_status: status, last_item: nil)
+      end
+
+      it 'retrieves the last item status from the database' do
+        app.resume
+        expect(db).to have_received(:last_item_status)
+      end
+
+      it 'does not retrieve the last item from the database' do
+        app.resume
+        expect(db).not_to have_received(:last_item)
+      end
+
+      it 'does not call start' do
+        allow(app).to receive(:start)
+        app.resume
+        expect(app).not_to have_received(:start)
+      end
     end
   end
 
   describe '#summary' do
-    it 'displays the summary' do
-      app.summary
-      expect(time_report).to have_received(:display)
+    context 'when no arguments are passed' do
+      it 'displays a summary of today' do
+        app.summary
+        expect(time_report).to have_received(:display)
+      end
     end
 
-    it 'exports to CSV when filename is provided' do
-      app.options = { csv: 'test.csv' }
-      app.summary
-      expect(time_report).to have_received(:export_sheet)
+    context 'when a filter is passed' do
+      it 'displays a summary for the given filter' do
+        app.summary('week')
+        expect(time_report).to have_received(:display)
+      end
+    end
+
+    context 'when a tag is passed' do
+      it 'displays a summary for the given tag' do
+        app.summary(nil, 'work')
+        expect(time_report).to have_received(:display)
+      end
+    end
+
+    context 'when a csv filename is passed' do
+      it 'exports the summary to the given csv filename' do
+        app.options = { csv: 'output.csv' }
+        app.summary
+        expect(time_report).to have_received(:display)
+        expect(time_report).to have_received(:export_sheet)
+      end
+    end
+
+    context 'when both filter and tag are passed' do
+      it 'displays a summary for the given filter and tag' do
+        app.summary('month', 'personal')
+        expect(time_report).to have_received(:display)
+      end
     end
   end
 
@@ -147,7 +278,7 @@ RSpec.describe Timet::Application do
 
   describe '#cancel' do
     it 'cancels active time tracking' do
-      allow(db).to receive_messages(last_item_status: :incomplete, fetch_last_id: '1')
+      allow(db).to receive_messages(last_item_status: :in_progress, fetch_last_id: '1')
       expect { app.cancel }.to output("Canceled active time tracking 1\n").to_stdout
       expect(db).to have_received(:delete_item).with('1')
     end

@@ -147,13 +147,13 @@ RSpec.describe Timet::Database do
       end
     end
 
-    context 'when the last item is incomplete' do
-      it 'returns :incomplete' do
+    context 'when the last item is in progress' do
+      it 'returns :in_progress' do
         start_time = Time.now.to_i
         notes = ''
         db.insert_item(start_time, test_tag, notes)
 
-        expect(db.last_item_status).to eq(:incomplete)
+        expect(db.last_item_status).to eq(:in_progress)
       end
     end
 
@@ -171,7 +171,7 @@ RSpec.describe Timet::Database do
 
   # Test Total Time Calculation
   describe '#total_time' do
-    it 'returns the correct total time for an incomplete item' do
+    it 'returns the correct total time for an in progress item' do
       start_time = Time.now.to_i - 3600
       db.insert_item(start_time, 'work', '')
       expect(db.total_time).to eq('01:00:00')
