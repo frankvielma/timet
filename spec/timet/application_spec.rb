@@ -132,13 +132,14 @@ RSpec.describe Timet::Application do
     end
 
     context 'when there is a last task' do
-      let(:item) { ['task', '2024-01-01', '12:00', 'tag', 'notes'] }
-      let(:status) { :complete }
-      let(:tag) { 'tag' }
-      let(:notes) { 'notes' }
+      let(:last_item) { ['task', '2024-01-01', '12:00', 'tag', 'notes'] }
+      let(:last_item_status) { :complete }
 
       before do
-        allow(db).to receive_messages(last_item_status: status, last_item: item)
+        allow(db).to receive_messages(
+          last_item_status: last_item_status,
+          last_item: last_item
+        )
       end
 
       it 'retrieves the last item status from the database' do
@@ -154,7 +155,7 @@ RSpec.describe Timet::Application do
       it 'calls start with the tag and notes' do
         allow(app).to receive(:start)
         app.resume
-        expect(app).to have_received(:start).with(tag, notes)
+        expect(app).to have_received(:start).with('tag', 'notes')
       end
     end
 
@@ -223,7 +224,7 @@ RSpec.describe Timet::Application do
   end
 
   describe '#edit' do
-    let(:item) { [1, 1_600_000_000, 1_600_003_600, 'test_tag', 'test_notes'] }
+    let(:item) { [1, 1_700_000_000, 1_700_003_600, 'test_tag', 'test_notes'] }
     let(:prompt) { instance_double(TTY::Prompt) }
 
     before do
