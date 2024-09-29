@@ -3,11 +3,21 @@
 require_relative 'version'
 require 'thor'
 require 'tty-prompt'
+require_relative 'validation_edit_helper'
 require 'byebug'
 
 module Timet
-  # Tracks time spent on various tasks.
+  # Application class that defines CLI commands for time tracking:
+  # - start: Start time tracking with optional notes
+  # - stop: Stop time tracking
+  # - resume: Resume the last task
+  # - summary: Display a summary of tracked time and export to CSV
+  # - edit: Edit a task
+  # - delete: Delete a task
+  # - cancel: Cancel active time tracking
   class Application < Thor
+    include ValidationEditHelper
+
     def initialize(*args)
       super
       @db = Timet::Database.new
@@ -128,49 +138,6 @@ module Timet
         TimeHelper.timestamp_to_time(item[FIELD_INDEX[field]])
       else
         item[FIELD_INDEX[field]]
-      end
-    end
-
-    def validate_and_update(item, field, new_value)
-      id = item[0]
-      if %w[start end].include?(field)
-        begin
-          return if new_value.nil?
-
-          filter_value = TimeHelper.format_time_string(new_value)
-          value = Time.at(item[FIELD_INDEX[field]]).to_s.split
-          value[1] = filter_value
-          new_date = DateTime.strptime(value.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
-          new_value = new_date.to_i
-
-          item_value_start = item[FIELD_INDEX['start']]
-          item_value_end = item[FIELD_INDEX['end']]
-
-          item_before_value = if @db.find_item(id - 1)
-                                @db.find_item(id - 1)[FIELD_INDEX['end']]
-                              else
-                                @db.find_item(id)[FIELD_INDEX['start']]
-                              end
-
-          item_after_value = if @db.find_item(id + 1)
-                               @db.find_item(id + 1)[FIELD_INDEX['start']]
-                             else
-                               current_timestamp
-                             end
-
-          condition_start = field == 'start' && new_value >= item_before_value && new_value <= item_value_end
-          condition_end = field == 'end' && new_value >= item_value_start && new_value <= item_after_value
-
-          if condition_start || condition_end
-            @db.update_item(id, field, new_value)
-          else
-            puts "\u001b[31mInvalid date: #{new_date}\033[0m"
-          end
-        rescue ArgumentError => e
-          puts "Invalid time format: #{e.message}"
-        end
-      else
-        @db.update_item(id, field, new_value)
       end
     end
 
