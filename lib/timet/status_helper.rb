@@ -6,7 +6,7 @@ module StatusHelper
     return :no_items if result.empty?
 
     last_item_end = result.first[1]
-    return :incomplete unless last_item_end
+    return :in_progress unless last_item_end
 
     :complete
   end

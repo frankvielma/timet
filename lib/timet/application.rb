@@ -20,19 +20,22 @@ module Timet
       'end' => 2
     }.freeze
 
+    VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
+
     desc "start [tag] --notes='...'", "start time tracking  --notes='my notes...'"
     option :notes, type: :string, desc: 'Add a note'
     def start(tag, notes = nil)
-      start = Time.now.to_i
+      start_time = current_timestamp
       notes = options[:notes] || notes
-      @db.insert_item(start, tag, notes) if %i[no_items complete].include?(@db.last_item_status)
+
+      insert_item_if_valid(start_time, tag, notes)
       summary
     end
 
     desc 'stop', 'stop time tracking'
     def stop
-      stop = Time.now.to_i
-      @db.update(stop) if @db.last_item_status == :incomplete
+      stop = current_timestamp
+      @db.update(stop) if @db.last_item_status == :in_progress
       result = @db.last_item
 
       return unless result
@@ -42,12 +45,18 @@ module Timet
 
     desc 'resume (r)', 'resume last task'
     def resume
-      if @db.last_item_status == :incomplete
+      status = @db.last_item_status
+
+      case status
+      when :in_progress
         puts 'A task is currently being tracked.'
-      elsif @db.last_item.any?
-        tag = @db.last_item[3]
-        notes = @db.last_item[4]
-        start(tag, notes)
+      when :complete
+        last_item = @db.last_item
+        if last_item
+          tag = last_item[FIELD_INDEX['tag']]
+          notes = last_item[FIELD_INDEX['notes']]
+          start(tag, notes)
+        end
       end
     end
 
@@ -104,6 +113,16 @@ module Timet
 
     private
 
+    def current_timestamp
+      Time.now.to_i
+    end
+
+    def insert_item_if_valid(start_time, tag, notes)
+      return unless VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
+
+      @db.insert_item(start_time, tag, notes)
+    end
+
     def field_value(item, field)
       if %w[start end].include?(field)
         TimeHelper.timestamp_to_time(item[FIELD_INDEX[field]])
@@ -136,7 +155,7 @@ module Timet
           item_after_value = if @db.find_item(id + 1)
                                @db.find_item(id + 1)[FIELD_INDEX['start']]
                              else
-                               Time.now.to_i
+                               current_timestamp
                              end
 
           condition_start = field == 'start' && new_value >= item_before_value && new_value <= item_value_end
