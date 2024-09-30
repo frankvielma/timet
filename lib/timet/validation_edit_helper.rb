@@ -52,10 +52,11 @@ module ValidationEditHelper
     item_before_end = fetch_item_before_end(id, item_start)
     item_after_start = fetch_item_after_start(id)
 
-    valid_start = validate_start_field(field, new_value_epoch, item_before_end, item_end)
-    valid_end = validate_end_field(field, new_value_epoch, item_start, item_after_start)
-
-    valid_start || valid_end
+    if field == 'start'
+      new_value_epoch >= item_before_end && new_value_epoch <= item_end
+    else
+      new_value_epoch >= item_start && new_value_epoch <= item_after_start
+    end
   end
 
   def fetch_item_start(item)
@@ -72,14 +73,6 @@ module ValidationEditHelper
 
   def fetch_item_after_start(id)
     @db.find_item(id + 1)&.dig(Timet::Application::FIELD_INDEX['start']) || current_timestamp
-  end
-
-  def validate_start_field(field, new_value_epoch, item_before_end, item_end)
-    field == 'start' && new_value_epoch >= item_before_end && new_value_epoch <= item_end
-  end
-
-  def validate_end_field(field, new_value_epoch, item_start, item_after_start)
-    field == 'end' && new_value_epoch >= item_start && new_value_epoch <= item_after_start
   end
 
   def current_timestamp
