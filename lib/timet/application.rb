@@ -4,6 +4,7 @@ require_relative 'version'
 require 'thor'
 require 'tty-prompt'
 require_relative 'validation_edit_helper'
+require_relative 'application_helper'
 require 'byebug'
 
 module Timet
@@ -17,6 +18,7 @@ module Timet
   # - cancel: Cancel active time tracking
   class Application < Thor
     include ValidationEditHelper
+    include ApplicationHelper
 
     def initialize(*args)
       super
@@ -80,7 +82,7 @@ module Timet
       summary.display
       if csv_filename && summary.items.any?
         summary.export_sheet
-      else
+      elsif summary.items.empty?
         puts 'No items found to export'
       end
     end
@@ -90,13 +92,9 @@ module Timet
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
 
-      TimeReport.new(@db).show_row(item)
-
-      prompt = TTY::Prompt.new(active_color: :green)
-      field = prompt.select('Edit Field?', FIELD_INDEX.keys.map(&:capitalize), active_color: :cyan).downcase
-
-      current_value = field_value(item, field)
-      new_value = prompt.ask("Update #{field} (#{current_value}):")
+      display_item(item)
+      field = select_field_to_edit
+      new_value = prompt_for_new_value(item, field)
       validate_and_update(item, field, new_value)
 
       summary.display
@@ -135,14 +133,6 @@ module Timet
       return unless VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
 
       @db.insert_item(start_time, tag, notes)
-    end
-
-    def field_value(item, field)
-      if %w[start end].include?(field)
-        TimeHelper.timestamp_to_time(item[FIELD_INDEX[field]])
-      else
-        item[FIELD_INDEX[field]]
-      end
     end
 
     def delete_item_and_print_message(id, message)

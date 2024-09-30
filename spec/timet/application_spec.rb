@@ -21,6 +21,7 @@ RSpec.describe Timet::Application do
     allow(time_report).to receive(:display)
     allow(time_report).to receive(:export_sheet)
     allow(time_report).to receive(:show_row)
+    allow(time_report).to receive(:items).and_return(['item'])
   end
 
   describe '#start' do
