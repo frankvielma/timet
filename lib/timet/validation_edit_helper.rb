@@ -21,11 +21,7 @@ module ValidationEditHelper
   def validate_and_update_time_field(item, field, new_value, id)
     return if new_value.nil?
 
-    begin
-      process_and_update_time_field(item, field, new_value, id)
-    rescue ArgumentError => e
-      puts "Invalid time format: #{e.message}"
-    end
+    process_and_update_time_field(item, field, new_value, id)
   end
 
   def process_and_update_time_field(item, field, new_value, id)
@@ -67,7 +63,7 @@ module ValidationEditHelper
   end
 
   def fetch_item_end(item)
-    item[Timet::Application::FIELD_INDEX['end']]
+    item[Timet::Application::FIELD_INDEX['end']] || current_timestamp
   end
 
   def fetch_item_before_end(id, item_start)
