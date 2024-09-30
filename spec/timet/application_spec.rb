@@ -61,18 +61,14 @@ RSpec.describe Timet::Application do
     context 'when notes are provided via --notes option' do
       before do
         allow(db).to receive(:last_item_status).and_return(:no_items)
+        allow(app).to receive(:options).and_return({ notes: 'my notes from option' })
+        allow(Time).to receive(:now).and_return(Time.at(1_700_000_000))
       end
 
       it 'inserts a new item into the database with the provided notes from options' do
-        start_time = Time.now.to_i
-        notes = 'my notes from option'
-
-        allow(app).to receive(:options).and_return({ notes: notes })
-        allow(Time).to receive(:now).and_return(Time.at(start_time))
-
         app.start('tag')
 
-        expect(db).to have_received(:insert_item).with(start_time, 'tag', notes)
+        expect(db).to have_received(:insert_item).with(1_700_000_000, 'tag', 'my notes from option')
       end
     end
   end
@@ -207,11 +203,31 @@ RSpec.describe Timet::Application do
     end
 
     context 'when a csv filename is passed' do
-      it 'exports the summary to the given csv filename' do
+      before do
+        allow(time_report).to receive(:items).and_return(['item'])
+      end
+
+      it 'displays the summary' do
         app.options = { csv: 'output.csv' }
         app.summary
         expect(time_report).to have_received(:display)
+      end
+
+      it 'exports the summary to the given csv filename' do
+        app.options = { csv: 'output.csv' }
+        app.summary
         expect(time_report).to have_received(:export_sheet)
+      end
+    end
+
+    context 'when no items are found' do
+      before do
+        allow(time_report).to receive(:items).and_return([])
+      end
+
+      it 'prints a message indicating no items to export' do
+        app.options = { csv: 'output.csv' }
+        expect { app.summary }.to output("No items found to export\n").to_stdout
       end
     end
 
@@ -256,7 +272,7 @@ RSpec.describe Timet::Application do
   end
 
   describe '#delete' do
-    let(:item) { [1, 1_600_000_000, 1_600_003_600, 'test_tag', 'test_notes'] }
+    let(:item) { [1, 1_700_000_000, 1_700_003_600, 'test_tag', 'test_notes'] }
     let(:prompt) { instance_double(TTY::Prompt) }
 
     before do
@@ -265,9 +281,14 @@ RSpec.describe Timet::Application do
       allow(db).to receive(:find_item).and_return(item)
     end
 
-    it 'deletes the item when confirmed' do
-      expect { app.delete('1') }.to output("Deleted 1\n").to_stdout
+    it 'deletes the item' do
+      app.delete('1')
       expect(db).to have_received(:delete_item).with('1')
+    end
+
+    it 'outputs a confirmation message' do
+      allow(db).to receive(:delete_item)
+      expect { app.delete('1') }.to output("Deleted 1\n").to_stdout
     end
 
     it 'does not delete the item when not confirmed' do
@@ -278,9 +299,14 @@ RSpec.describe Timet::Application do
   end
 
   describe '#cancel' do
-    it 'cancels active time tracking' do
+    it 'cancels active time tracking and outputs message' do
       allow(db).to receive_messages(last_item_status: :in_progress, fetch_last_id: '1')
       expect { app.cancel }.to output("Canceled active time tracking 1\n").to_stdout
+    end
+
+    it 'deletes the last item from the database' do
+      allow(db).to receive_messages(last_item_status: :in_progress, fetch_last_id: '1')
+      app.cancel
       expect(db).to have_received(:delete_item).with('1')
     end
 

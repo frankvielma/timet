@@ -35,14 +35,12 @@ RSpec.describe Timet::Database do
 
   # Test Item Insertion
   describe '#insert_item' do
-    let(:start_time) { 1_678_886_400 }
+    let(:start_time) { 1_700_000_000 }
     let(:tag) { 'work' }
 
     context 'without notes' do
-      let(:notes) { '' }
-
       before do
-        db.insert_item(start_time, tag, notes)
+        db.insert_item(start_time, tag, '')
       end
 
       it 'inserts an item into the table' do
@@ -88,20 +86,20 @@ RSpec.describe Timet::Database do
   ## Test End Time Update
   describe '#update' do
     it 'updates the end time of the last item' do
-      db.insert_item(1_678_886_400, 'work', '')
-      db.update(1_678_886_460)
-      expect(last_item[2]).to eq(1_678_886_460)
+      db.insert_item(1_700_000_000, 'work', '')
+      db.update(1_700_001_000)
+      expect(last_item[2]).to eq(1_700_001_000)
     end
 
     it "does nothing if there's no last item" do
-      expect { db.update(1_678_886_460) }.not_to(change(db, :fetch_last_id))
+      expect { db.update(1_700_001_000) }.not_to(change(db, :fetch_last_id))
     end
   end
 
   # Test Fetching Last ID
   describe '#fetch_last_id' do
     it 'returns the ID of the last inserted item' do
-      db.insert_item(1_678_886_400, 'work', '')
+      db.insert_item(1_700_000_000, 'work', '')
       expect(db.fetch_last_id).to eq(1)
     end
 
@@ -178,8 +176,8 @@ RSpec.describe Timet::Database do
     end
 
     it 'returns the correct total time for a complete item' do
-      start_time = 1_678_886_400
-      end_time = 1_678_886_460
+      start_time = 1_700_000_000
+      end_time = 1_700_000_060
       db.insert_item(start_time, 'work', '')
       db.update(end_time)
       expect(db.total_time).to eq('00:01:00')

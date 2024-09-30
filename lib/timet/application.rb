@@ -78,7 +78,11 @@ module Timet
       csv_filename = options[:csv]
       summary = TimeReport.new(@db, filter, tag, csv_filename)
       summary.display
-      summary.export_sheet if csv_filename
+      if csv_filename && summary.items.any?
+        summary.export_sheet
+      else
+        puts 'No items found to export'
+      end
     end
 
     desc 'edit (e) [id]', 'edit a task'
