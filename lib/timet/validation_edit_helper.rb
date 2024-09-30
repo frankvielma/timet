@@ -41,7 +41,11 @@ module ValidationEditHelper
   end
 
   def update_time_field(item, field, formatted_value)
-    current_time = Time.at(item[Timet::Application::FIELD_INDEX[field]]).to_s.split
+    current_time = if item[Timet::Application::FIELD_INDEX[field]].nil?
+                     Time.at(current_timestamp).to_s.split
+                   else
+                     Time.at(item[Timet::Application::FIELD_INDEX[field]]).to_s.split
+                   end
     current_time[1] = formatted_value
     DateTime.strptime(current_time.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
   end
