@@ -2,7 +2,6 @@
 
 require 'date'
 require 'csv'
-require_relative 'time_helper'
 require_relative 'status_helper'
 require_relative 'formatter'
 

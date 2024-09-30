@@ -87,7 +87,7 @@ module Timet
       start_time = last_item[1]
       end_time = last_item[2]
 
-      total_seconds = end_time ? end_time - start_time : Time.now.to_i - start_time
+      total_seconds = end_time ? end_time - start_time : TimeHelper.current_timestamp - start_time
       seconds_to_hms(total_seconds)
     end
 

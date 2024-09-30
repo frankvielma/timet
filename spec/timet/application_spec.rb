@@ -32,7 +32,7 @@ RSpec.describe Timet::Application do
 
       it 'inserts a new item into the database' do
         app.start('tag', 'my notes...')
-        expect(db).to have_received(:insert_item).with(Time.now.to_i, 'tag', 'my notes...')
+        expect(db).to have_received(:insert_item).with(Time.now.utc.to_i, 'tag', 'my notes...')
       end
 
       it 'calls summary after inserting the item' do
@@ -77,7 +77,7 @@ RSpec.describe Timet::Application do
   describe '#stop' do
     context 'when the last item is in progress' do
       before do
-        start_time = Time.now.to_i - 3600
+        start_time = Time.now.utc.to_i - 3600
         allow(db).to receive_messages(last_item_status: :in_progress,
                                       last_item: { 'start' => start_time,
                                                    'stop' => nil })
@@ -85,7 +85,7 @@ RSpec.describe Timet::Application do
 
       it 'updates the last item with the stop time' do
         app.stop
-        expect(db).to have_received(:update).with(Time.now.to_i)
+        expect(db).to have_received(:update).with(Time.now.utc.to_i)
       end
 
       it 'calls summary' do

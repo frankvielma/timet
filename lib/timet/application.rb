@@ -5,6 +5,7 @@ require 'thor'
 require 'tty-prompt'
 require_relative 'validation_edit_helper'
 require_relative 'application_helper'
+require_relative 'time_helper'
 require 'byebug'
 
 module Timet
@@ -37,7 +38,7 @@ module Timet
     desc "start [tag] --notes='...'", "start time tracking  --notes='my notes...'"
     option :notes, type: :string, desc: 'Add a note'
     def start(tag, notes = nil)
-      start_time = current_timestamp
+      start_time = TimeHelper.current_timestamp
       notes = options[:notes] || notes
 
       insert_item_if_valid(start_time, tag, notes)
@@ -46,7 +47,7 @@ module Timet
 
     desc 'stop', 'stop time tracking'
     def stop
-      stop = current_timestamp
+      stop = TimeHelper.current_timestamp
       @db.update(stop) if @db.last_item_status == :in_progress
       result = @db.last_item
 
@@ -124,10 +125,6 @@ module Timet
     end
 
     private
-
-    def current_timestamp
-      Time.now.to_i
-    end
 
     def insert_item_if_valid(start_time, tag, notes)
       return unless VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
