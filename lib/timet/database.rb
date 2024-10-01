@@ -54,6 +54,12 @@ module Timet
       execute_sql("DELETE FROM items WHERE id = #{id}")
     end
 
+    def update_item(id, field, value)
+      return if %w[start end].include?(field) && value.nil?
+
+      execute_sql("UPDATE items SET #{field}='#{value}' WHERE id = #{id}")
+    end
+
     # Fetches the ID of the last inserted item
     def fetch_last_id
       result = execute_sql('SELECT id FROM items ORDER BY id DESC LIMIT 1').first
@@ -81,7 +87,7 @@ module Timet
       start_time = last_item[1]
       end_time = last_item[2]
 
-      total_seconds = end_time ? end_time - start_time : Time.now.to_i - start_time
+      total_seconds = end_time ? end_time - start_time : TimeHelper.current_timestamp - start_time
       seconds_to_hms(total_seconds)
     end
 

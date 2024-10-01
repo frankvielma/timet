@@ -35,14 +35,12 @@ RSpec.describe Timet::Database do
 
   # Test Item Insertion
   describe '#insert_item' do
-    let(:start_time) { 1_678_886_400 }
+    let(:start_time) { 1_700_000_000 }
     let(:tag) { 'work' }
 
     context 'without notes' do
-      let(:notes) { '' }
-
       before do
-        db.insert_item(start_time, tag, notes)
+        db.insert_item(start_time, tag, '')
       end
 
       it 'inserts an item into the table' do
@@ -88,20 +86,20 @@ RSpec.describe Timet::Database do
   ## Test End Time Update
   describe '#update' do
     it 'updates the end time of the last item' do
-      db.insert_item(1_678_886_400, 'work', '')
-      db.update(1_678_886_460)
-      expect(last_item[2]).to eq(1_678_886_460)
+      db.insert_item(1_700_000_000, 'work', '')
+      db.update(1_700_001_000)
+      expect(last_item[2]).to eq(1_700_001_000)
     end
 
     it "does nothing if there's no last item" do
-      expect { db.update(1_678_886_460) }.not_to(change(db, :fetch_last_id))
+      expect { db.update(1_700_001_000) }.not_to(change(db, :fetch_last_id))
     end
   end
 
   # Test Fetching Last ID
   describe '#fetch_last_id' do
     it 'returns the ID of the last inserted item' do
-      db.insert_item(1_678_886_400, 'work', '')
+      db.insert_item(1_700_000_000, 'work', '')
       expect(db.fetch_last_id).to eq(1)
     end
 
@@ -112,7 +110,7 @@ RSpec.describe Timet::Database do
 
   describe '#last_item' do
     it 'returns the last item from the items table' do
-      start_time = Time.now.to_i
+      start_time = Time.now.utc.to_i
       tag = 'Test Task'
       notes = ''
       db.insert_item(start_time, tag, notes)
@@ -123,7 +121,7 @@ RSpec.describe Timet::Database do
     end
 
     it 'returns the correct start time and tag for the last item' do
-      start_time = Time.now.to_i
+      start_time = Time.now.utc.to_i
       notes = ''
       db.insert_item(start_time, test_tag, notes)
       last_item = db.last_item
@@ -147,22 +145,22 @@ RSpec.describe Timet::Database do
       end
     end
 
-    context 'when the last item is incomplete' do
-      it 'returns :incomplete' do
-        start_time = Time.now.to_i
+    context 'when the last item is in progress' do
+      it 'returns :in_progress' do
+        start_time = Time.now.utc.to_i
         notes = ''
         db.insert_item(start_time, test_tag, notes)
 
-        expect(db.last_item_status).to eq(:incomplete)
+        expect(db.last_item_status).to eq(:in_progress)
       end
     end
 
     context 'when the last item is complete' do
       it 'returns :complete' do
-        start_time = Time.now.to_i
+        start_time = Time.now.utc.to_i
         notes = ''
         db.insert_item(start_time, test_tag, notes)
-        db.update(Time.now.to_i)
+        db.update(Time.now.utc.to_i)
 
         expect(db.last_item_status).to eq(:complete)
       end
@@ -171,15 +169,15 @@ RSpec.describe Timet::Database do
 
   # Test Total Time Calculation
   describe '#total_time' do
-    it 'returns the correct total time for an incomplete item' do
-      start_time = Time.now.to_i - 3600
+    it 'returns the correct total time for an in progress item' do
+      start_time = Time.now.utc.to_i - 3600
       db.insert_item(start_time, 'work', '')
       expect(db.total_time).to eq('01:00:00')
     end
 
     it 'returns the correct total time for a complete item' do
-      start_time = 1_678_886_400
-      end_time = 1_678_886_460
+      start_time = 1_700_000_000
+      end_time = 1_700_000_060
       db.insert_item(start_time, 'work', '')
       db.update(end_time)
       expect(db.total_time).to eq('00:01:00')
