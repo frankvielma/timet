@@ -85,24 +85,48 @@ RSpec.describe Timet::TimeHelper do
   end
 
   describe '.format_time_string' do
-    it 'formats a valid time string' do
+    it 'returns an empty string for nil input' do
+      expect(described_class.format_time_string(nil)).to be_nil
+    end
+
+    it 'returns format "00:00:00" for an empty string' do
+      expect(described_class.format_time_string('')).to be_nil
+    end
+
+    it 'returns format "00:00:00" for a single digit' do
+      expect(described_class.format_time_string('1')).to eq('01:00:00')
+      expect(described_class.format_time_string('01')).to eq('01:00:00')
+      expect(described_class.format_time_string('09')).to eq('09:00:00')
+    end
+
+    it 'returns format "00:00:00" for two digits' do
+      expect(described_class.format_time_string('12')).to eq('12:00:00')
+    end
+
+    it 'returns format "00:00:00" for three digits' do
+      expect(described_class.format_time_string('123')).to eq('12:30:00')
+    end
+
+    it 'returns format "00:00:00" for four digits' do
+      expect(described_class.format_time_string('1234')).to eq('12:34:00')
+    end
+
+    it 'returns format "00:00:00" for five digits' do
+      expect(described_class.format_time_string('12345')).to eq('12:34:50')
+    end
+
+    it 'returns format "00:00:00" for six digits' do
       expect(described_class.format_time_string('123456')).to eq('12:34:56')
     end
 
-    it 'pads single-digit input' do
-      expect(described_class.format_time_string('1')).to eq('01:00:00')
+    it 'returns format "00:00:00" for six digits with non-digit characters' do
+      expect(described_class.format_time_string('1a2b3c4d5e6f')).to eq('12:34:56')
     end
 
-    it 'removes non-digit characters' do
-      expect(described_class.format_time_string('12:34:56')).to eq('12:34:56')
-    end
-
-    it 'handles nil input' do
-      expect(described_class.format_time_string(nil)).to eq('')
-    end
-
-    it 'pads incomplete input' do
-      expect(described_class.format_time_string('12')).to eq('12:00:00')
+    it 'returns nil for invalid time values' do
+      expect(described_class.format_time_string('240000')).to be_nil
+      expect(described_class.format_time_string('126000')).to be_nil
+      expect(described_class.format_time_string('123460')).to be_nil
     end
   end
 end

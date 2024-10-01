@@ -47,13 +47,46 @@ module Timet
       date if idx.zero? || date != TimeHelper.timestamp_to_date(last_start_date)
     end
 
+    # Formats a time string into a standard HH:MM:SS format.
+    #
+    # @param input [String] The input string to format.
+    # @return [String] The formatted time string in HH:MM:SS format, or nil if the input is invalid.
+    #
+    # @example
+    #  TimeHelper.format_time_string('123456') # => "12:34:56"
+    #  TimeHelper.format_time_string('1234567') # => "12:34:56"
+    #  TimeHelper.format_time_string('1234') # => "12:34:00"
+    #  TimeHelper.format_time_string('123') # => "12:30:00"
+    #  TimeHelper.format_time_string('12') # => "12:00:00"
+    #  TimeHelper.format_time_string('1') # => "01:00:00"
+    #  TimeHelper.format_time_string('127122') # => nil
+    #  TimeHelper.format_time_string('abc') # => nil
     def self.format_time_string(input)
-      return '' if input.nil?
+      return nil if input.nil? || input.empty?
 
-      cleaned_input = input.gsub(/\D/, '')
-      cleaned_input = "0#{cleaned_input}" if cleaned_input.size == 1
-      padded_input = cleaned_input.ljust(6, '0')
-      "#{padded_input[0, 2]}:#{padded_input[2, 2]}:#{padded_input[4, 2]}"
+      digits = input.gsub(/\D/, '')[0..5]
+      return nil if digits.empty?
+
+      hours, minutes, seconds = parse_time_components(digits)
+      return nil unless valid_time?(hours, minutes, seconds)
+
+      format('%<hours>02d:%<minutes>02d:%<seconds>02d', hours: hours, minutes: minutes, seconds: seconds)
+    end
+
+    def self.parse_time_components(digits)
+      padded_digits = case digits.size
+                      when 1 then "0#{digits}0000"
+                      when 2 then "#{digits}0000"
+                      when 3 then "#{digits}000"
+                      when 4 then "#{digits}00"
+                      else digits.ljust(6, '0')
+                      end
+
+      padded_digits.scan(/.{2}/).map(&:to_i)
+    end
+
+    def self.valid_time?(hours, minutes, seconds)
+      hours < 24 && minutes < 60 && seconds < 60
     end
 
     def self.current_timestamp

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Determines the status of a time tracking result based on the presence and end time of items.
 module Timet
+  # Determines the status of a time tracking result based on the presence and end time of items.
   module StatusHelper
     def self.determine_status(result)
       return :no_items if result.empty?

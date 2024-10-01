@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# This module is responsible for formatting the output of the `timet` application.
-# It provides methods for formatting the table header, separators, and rows.
 module Timet
+  # This module is responsible for formatting the output of the `timet` application.
+  # It provides methods for formatting the table header, separators, and rows.
   module Formatter
     def format_table_header
       header = <<~TABLE
