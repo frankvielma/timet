@@ -35,7 +35,7 @@ Old versions of Ruby and Sqlite:
 
 Install the gem by executing:
 ```bash
-$ gem install timet
+gem install timet
 ```
 
 ## Usage
@@ -90,61 +90,44 @@ $ gem install timet
     +-------+------------+--------+----------+----------+----------+--------------------------+
     ```
 
-- **timet summary today (t)**: Display a report of tracked time for today.
 
-```bash
-timet summary today
-```
+- **timet edit**: It allows users update a task's notes, tag, start or end fields. 
+    ```bash
+    timet e 1
+    ```
 
-- **timet summary yesterday (y)**: Display a report of tracked time for yesterday.
+    ```
+    Tracked time report [today]:
+    +-------+------------+--------+----------+----------+----------+--------------------------+
+    | Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |
+    +-------+------------+--------+----------+----------+----------+--------------------------+
+    |     2 | 2024-08-09 | task1  | 16:15:07 |        - | 00:00:00 | Meeting with client      |
+    |     1 |            | task1  | 14:55:07 | 15:55:07 | 01:00:00 | Meeting with client      |
+    +-------+------------+--------+----------+----------+----------+--------------------------+
+    |                                           Total:  | 01:00:00 |                          |
+    +-------+------------+--------+----------+----------+----------+--------------------------+
+    Edit Field? (Press ↑/↓ arrow to move and Enter to select)
+    ‣ Notes
+      Tag
+      Start
+      End
+    ```
 
-```bash
-timet summary yesterday
-```
+## Command Reference
 
-- **timet summary week (w)**: Display a report of tracked time for the week.
-
-```bash
-timet summary week
-```
-
-- **timet summary resume (r)**: Resume tracking the last task.
-
-```bash
-timet summary resume
-```
-
-- **timet summary resume (r)**: Resume tracking the last month.
-
-```bash
-timet summary month
-```
-
-- **timet su t --csv=[filename]**:  Display a report of tracked time for today and export it to filename.csv
-
-```bash
-timet su t --csv=summary_today.csv
-```
-
-- **timet delete [id]**: Delete a task
-
-```bash
-timet delete [id]
-
-or
-
-timet d [id]
-```
-
-- **timet cancel**: Cancel active time tracking
-
-```bash
-timet cancel
-
-or
-
-timet c
-```
+| Command                                      | Description                                                                 | Example Usage                                      |
+|----------------------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
+| `timet start [tag] --notes='...'`            | Start tracking time for a task labeled [tag] and notes (optional).          | `timet start Task "My notes"`                  |
+| `timet stop`                                 | Stop tracking time.                                                         | `timet start Task "My notes"`                  |
+| `timet summary today (t)`                    | Display a report of tracked time for today.                                 | `timet su t` or `timet su`         |
+| `timet summary yesterday (y)`                | Display a report of tracked time for yesterday.                             | `timet su y`                         |
+| `timet summary week (w)`                     | Display a report of tracked time for the week.                              | `timet su w`                              |
+| `timet summary month (m)`                    | Resume tracking the last month.                                             | `timet su m`                             |
+| `timet su t --csv=[filename]`                | Display a report of tracked time for today and export it to `filename.csv`. | `timet su t --csv=file.csv`              |
+| `timet summary resume (r)`                   | Resume tracking the last task.                                              | `timet su r`                            |
+| `timet delete [id]`                          | Delete a task by its ID.                                                    | `timet d [id]`       |
+| `timet cancel`                               | Cancel active time tracking.                                                | `timet c`                 |
+| `timet edit [id]`                            | Update a task's notes, tag, start or end fields.                            | `timet e [1]`                 |
 
 
 ## Data
