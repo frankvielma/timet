@@ -20,7 +20,9 @@ module Timet
     end
 
     def self.timestamp_to_time(timestamp)
-      timestamp&.then { |time| Time.at(time).strftime('%H:%M:%S') }
+      return nil if timestamp.nil?
+
+      Time.at(timestamp).strftime('%H:%M:%S')
     end
 
     def self.calculate_duration(start_time, end_time)

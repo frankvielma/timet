@@ -3,7 +3,7 @@
 RSpec.describe Timet::TimeHelper do
   describe '.format_time' do
     it 'formats timestamp to YYYY-MM-DD HH:MM:SS' do
-      expect(described_class.format_time(1_704_081_600)).to eq('2024-01-01 00:00:00')
+      expect(described_class.format_time(1_704_067_200)).to eq('2024-01-01 00:00:00')
     end
 
     it 'returns nil for nil input' do
@@ -13,7 +13,7 @@ RSpec.describe Timet::TimeHelper do
 
   describe '.timestamp_to_date' do
     it 'converts timestamp to YYYY-MM-DD' do
-      expect(described_class.timestamp_to_date(1_704_081_600)).to eq('2024-01-01')
+      expect(described_class.timestamp_to_date(1_704_067_200)).to eq('2024-01-01')
     end
 
     it 'returns nil for nil input' do
@@ -23,7 +23,7 @@ RSpec.describe Timet::TimeHelper do
 
   describe '.timestamp_to_time' do
     it 'converts timestamp to HH:MM:SS' do
-      expect(described_class.timestamp_to_time(1_704_081_600)).to eq('00:00:00')
+      expect(described_class.timestamp_to_time(1_704_067_200)).to eq('00:00:00')
     end
 
     it 'returns nil for nil input' do
@@ -45,7 +45,7 @@ RSpec.describe Timet::TimeHelper do
   describe '.date_to_timestamp' do
     it 'converts Date to timestamp' do
       date = Date.new(2024, 1, 1)
-      expect(described_class.date_to_timestamp(date)).to eq(1_704_081_600)
+      expect(described_class.date_to_timestamp(date)).to eq(1_704_067_200)
     end
   end
 
@@ -53,12 +53,12 @@ RSpec.describe Timet::TimeHelper do
     it 'calculates end time when end_date is provided' do
       start_date = Date.new(2024, 1, 1)
       end_date = Date.new(2024, 1, 2)
-      expect(described_class.calculate_end_time(start_date, end_date)).to eq(1_704_168_000)
+      expect(described_class.calculate_end_time(start_date, end_date)).to eq(1_704_153_600)
     end
 
     it 'calculates end time as next day when end_date is nil' do
       start_date = Date.new(2024, 1, 1)
-      expect(described_class.calculate_end_time(start_date, nil)).to eq(1_704_168_000)
+      expect(described_class.calculate_end_time(start_date, nil)).to eq(1_704_153_600)
     end
   end
 
