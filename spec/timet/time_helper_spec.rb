@@ -3,7 +3,7 @@
 RSpec.describe Timet::TimeHelper do
   describe '.format_time' do
     it 'formats timestamp to YYYY-MM-DD HH:MM:SS' do
-      expect(described_class.format_time(1_704_081_600)).to eq('2024-01-01 00:00:00 ')
+      expect(described_class.format_time(1_704_081_600)).to eq('2024-01-01 00:00:00')
     end
 
     it 'returns nil for nil input' do
