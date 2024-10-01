@@ -13,7 +13,7 @@ gem 'tty-prompt', '~> 0.23.1'
 group :development do
   gem 'byebug', '~> 11.1.3'
   gem 'rubocop', '~> 1.65'
-  gem 'rubocop-rspec', '~> 3.0', require: false
+  gem 'rubocop-rspec', '~> 3.1', require: false
 end
 
 group :test do

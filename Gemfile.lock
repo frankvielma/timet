@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    timet (0.2.2)
+    timet (0.8.0)
       sqlite3 (~> 2, >= 1.7)
       thor (~> 1.2)
       tty-prompt (~> 0.2)
@@ -51,7 +51,7 @@ GEM
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.32.3)
       parser (>= 3.3.1.0)
-    rubocop-rspec (3.0.5)
+    rubocop-rspec (3.1.0)
       rubocop (~> 1.61)
     ruby-progressbar (1.13.0)
     simplecov (0.22.0)
@@ -102,7 +102,7 @@ DEPENDENCIES
   rake (~> 13.2)
   rspec (~> 3.13)
   rubocop (~> 1.65)
-  rubocop-rspec (~> 3.0)
+  rubocop-rspec (~> 3.1)
   simplecov (~> 0.22)
   sqlite3 (~> 2.1.0)
   thor (~> 1.3)
