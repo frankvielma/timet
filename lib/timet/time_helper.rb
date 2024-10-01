@@ -20,8 +20,6 @@ module Timet
     end
 
     def self.calculate_duration(start_time, end_time)
-      # debugger
-      # start_time = Time.at(start_time)
       end_time = end_time ? Time.at(end_time) : current_timestamp
       (end_time - start_time).to_i
     end
