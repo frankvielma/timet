@@ -41,22 +41,33 @@ module Timet
     end
 
     def export_sheet
-      CSV.open("#{filename}.csv", 'w') do |csv|
-        csv << %w[ID Start End Tag Notes]
+      file_name = "#{filename}.csv"
+      write_csv(file_name)
 
-        items.each do |id, start_time, end_time, tags, notes|
-          csv << [
-            id,
-            TimeHelper.format_time(start_time),
-            TimeHelper.format_time(end_time),
-            tags,
-            notes
-          ]
+      puts "The #{file_name} has been exported."
+    end
+
+    private
+
+    def write_csv(file_name)
+      CSV.open(file_name, 'w') do |csv|
+        csv << %w[ID Start End Tag Notes]
+        items.each do |item|
+          csv << format_item(item)
         end
       end
     end
 
-    private
+    def format_item(item)
+      id, start_time, end_time, tags, notes = item
+      [
+        id,
+        TimeHelper.format_time(start_time),
+        TimeHelper.format_time(end_time),
+        tags,
+        notes
+      ]
+    end
 
     def display_time_entry(item, date = nil)
       return puts 'Missing time entry data.' unless item

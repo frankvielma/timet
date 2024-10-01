@@ -78,7 +78,7 @@ module Timet
           and export to csv_filename"
     option :csv, type: :string, desc: 'Export to CSV file'
     def summary(filter = nil, tag = nil)
-      csv_filename = options[:csv]
+      csv_filename = options[:csv].split('.')[0] if options[:csv]
       summary = TimeReport.new(@db, filter, tag, csv_filename)
       summary.display
       if csv_filename && summary.items.any?
