@@ -83,19 +83,6 @@ RSpec.describe Timet::Database do
     end
   end
 
-  ## Test End Time Update
-  describe '#update' do
-    it 'updates the end time of the last item' do
-      db.insert_item(1_700_000_000, 'work', '')
-      db.update(1_700_001_000)
-      expect(last_item[2]).to eq(1_700_001_000)
-    end
-
-    it "does nothing if there's no last item" do
-      expect { db.update(1_700_001_000) }.not_to(change(db, :fetch_last_id))
-    end
-  end
-
   # Test Fetching Last ID
   describe '#fetch_last_id' do
     it 'returns the ID of the last inserted item' do
@@ -160,7 +147,8 @@ RSpec.describe Timet::Database do
         start_time = Time.now.utc.to_i
         notes = ''
         db.insert_item(start_time, test_tag, notes)
-        db.update(Time.now.utc.to_i)
+        last_id = db.fetch_last_id
+        db.update_item(last_id, 'end', Time.now.utc.to_i)
 
         expect(db.last_item_status).to eq(:complete)
       end

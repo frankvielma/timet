@@ -22,7 +22,7 @@ module Timet
 
     def initialize(*args)
       super
-      @db = Timet::Database.new
+      @db = Database.new
     end
 
     FIELD_INDEX = {
@@ -46,8 +46,10 @@ module Timet
 
     desc 'stop', 'stop time tracking'
     def stop
-      stop = TimeHelper.current_timestamp
-      @db.update(stop) if @db.last_item_status == :in_progress
+      if @db.last_item_status == :in_progress
+        last_id = @db.fetch_last_id
+        @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
+      end
       result = @db.last_item
 
       return unless result

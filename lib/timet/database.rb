@@ -42,22 +42,14 @@ module Timet
       execute_sql('INSERT INTO items (start, tag, notes) VALUES (?, ?, ?)', [start, tag, notes])
     end
 
-    # Updates the end time of the last item
-    def update(stop)
-      last_id = fetch_last_id
-      return unless last_id
-
-      execute_sql('UPDATE items SET end = ? WHERE id = ?', [stop, last_id])
-    end
-
-    def delete_item(id)
-      execute_sql("DELETE FROM items WHERE id = #{id}")
-    end
-
     def update_item(id, field, value)
       return if %w[start end].include?(field) && value.nil?
 
       execute_sql("UPDATE items SET #{field}='#{value}' WHERE id = #{id}")
+    end
+
+    def delete_item(id)
+      execute_sql("DELETE FROM items WHERE id = #{id}")
     end
 
     # Fetches the ID of the last inserted item
