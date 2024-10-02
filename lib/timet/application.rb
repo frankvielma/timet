@@ -87,7 +87,8 @@ module Timet
       end
     end
 
-    desc 'edit (e) [id]', 'edit a task'
+    desc 'edit (e) [id] [field] [value]',
+         'edit a task, [field] (notes, tag, start or end) and [value] are optional parameters'
     def edit(id, field = nil, new_value = nil)
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
