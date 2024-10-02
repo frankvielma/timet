@@ -81,6 +81,7 @@ module Timet
     def summary(filter = nil, tag = nil)
       csv_filename = options[:csv].split('.')[0] if options[:csv]
       summary = TimeReport.new(@db, filter, tag, csv_filename)
+
       summary.display
       if csv_filename && summary.items.any?
         summary.export_sheet
@@ -103,7 +104,8 @@ module Timet
 
       validate_and_update(item, field, new_value)
 
-      summary.display
+      item = @db.find_item(id)
+      display_item(item)
     end
 
     desc 'delete (d) [id]', 'delete a task'
