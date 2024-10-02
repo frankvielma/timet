@@ -79,13 +79,14 @@ module Timet
           and export to csv_filename"
     option :csv, type: :string, desc: 'Export to CSV file'
     def summary(filter = nil, tag = nil)
-      csv_filename = options[:csv].split('.')[0] if options[:csv]
+      csv_filename = options[:csv]&.split('.')&.first
       summary = TimeReport.new(@db, filter, tag, csv_filename)
 
       summary.display
-      if csv_filename && summary.items.any?
+      items = summary.items
+      if csv_filename && items.any?
         summary.export_sheet
-      elsif summary.items.empty?
+      elsif items.empty?
         puts 'No items found to export'
       end
     end
@@ -102,10 +103,8 @@ module Timet
         new_value = prompt_for_new_value(item, field)
       end
 
-      validate_and_update(item, field, new_value)
-
-      item = @db.find_item(id)
-      display_item(item)
+      updated_item = validate_and_update(item, field, new_value)
+      display_item(updated_item)
     end
 
     desc 'delete (d) [id]', 'delete a task'
