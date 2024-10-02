@@ -6,7 +6,6 @@ require 'tty-prompt'
 require_relative 'validation_edit_helper'
 require_relative 'application_helper'
 require_relative 'time_helper'
-require 'byebug'
 
 module Timet
   # Application class that defines CLI commands for time tracking:

@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.8.1] - 2024-10-02
+**Bug fixes:**
+  - Fixed a LoadError caused by the byebug gem being required after its removal.
+
 ## [0.8.0] - 2024-10-01
 
 **Improvements:**
