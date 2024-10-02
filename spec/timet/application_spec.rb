@@ -248,6 +248,8 @@ RSpec.describe Timet::Application do
       allow(TTY::Prompt).to receive(:new).and_return(prompt)
       allow(prompt).to receive_messages(select: 'Notes', ask: 'new_notes')
       allow(app).to receive(:summary)
+      allow(app).to receive_messages(select_field_to_edit: 'notes', prompt_for_new_value: 'new_notes')
+      allow(db).to receive(:update_item)
     end
 
     context 'when item is found' do
@@ -255,9 +257,20 @@ RSpec.describe Timet::Application do
         allow(db).to receive(:find_item).and_return(item)
       end
 
-      it 'updates the item with new value' do
-        app.edit('1')
-        expect(db).to have_received(:update_item).with(1, 'notes', 'new_notes')
+      context 'when field and new_value are provided' do
+        it 'updates the item with new value' do
+          app.edit('1', 'notes', 'new_notes')
+          expect(db).to have_received(:update_item).with(1, 'notes', 'new_notes')
+        end
+      end
+
+      context 'when field and new_value are not provided' do
+        it 'prompts for field and new value and updates the item' do
+          app.edit('1')
+          expect(app).to have_received(:select_field_to_edit)
+          expect(app).to have_received(:prompt_for_new_value).with(item, 'notes')
+          expect(db).to have_received(:update_item).with(1, 'notes', 'new_notes')
+        end
       end
     end
 

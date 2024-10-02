@@ -88,13 +88,16 @@ module Timet
     end
 
     desc 'edit (e) [id]', 'edit a task'
-    def edit(id)
+    def edit(id, field = nil, new_value = nil)
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
 
       display_item(item)
-      field = select_field_to_edit
-      new_value = prompt_for_new_value(item, field)
+      unless FIELD_INDEX.keys.include?(field&.downcase) || new_value
+        field = select_field_to_edit
+        new_value = prompt_for_new_value(item, field)
+      end
+
       validate_and_update(item, field, new_value)
 
       summary.display
