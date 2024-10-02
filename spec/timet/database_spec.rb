@@ -167,27 +167,6 @@ RSpec.describe Timet::Database do
     end
   end
 
-  # Test Total Time Calculation
-  describe '#total_time' do
-    it 'returns the correct total time for an in progress item' do
-      start_time = Time.now.utc.to_i - 3600
-      db.insert_item(start_time, 'work', '')
-      expect(db.total_time).to eq('01:00:00')
-    end
-
-    it 'returns the correct total time for a complete item' do
-      start_time = 1_700_000_000
-      end_time = 1_700_000_060
-      db.insert_item(start_time, 'work', '')
-      db.update(end_time)
-      expect(db.total_time).to eq('00:01:00')
-    end
-
-    it 'returns 00:00:00 for an empty database' do
-      expect(db.total_time).to eq('00:00:00')
-    end
-  end
-
   describe '#execute_sql' do
     it 'executes a SQL query and returns the result' do
       result = db.execute_sql('SELECT * FROM items')

@@ -79,18 +79,6 @@ module Timet
       execute_sql("select * from items where id=#{id}").first
     end
 
-    # Calculates the total time elapsed since the last recorded time.
-    def total_time
-      last_item = execute_sql('SELECT * FROM items ORDER BY id DESC LIMIT 1').first
-      return '00:00:00' unless last_item
-
-      start_time = last_item[1]
-      end_time = last_item[2]
-
-      total_seconds = end_time ? end_time - start_time : TimeHelper.current_timestamp - start_time
-      seconds_to_hms(total_seconds)
-    end
-
     def all_items
       execute_sql("SELECT * FROM items where start >= '#{Date.today.to_time.to_i}' ORDER BY id DESC")
     end
