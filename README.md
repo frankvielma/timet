@@ -91,7 +91,9 @@ gem install timet
     ```
 
 
-- **timet edit**: It allows users update a task's notes, tag, start or end fields. 
+- **timet edit**: It allows users to update a task's notes, tag, start, or end fields. Users can either interactively select the field and provide a new value or specify them directly in the command.
+
+- **Interactive Mode:**
     ```bash
     timet e 1
     ```
@@ -112,6 +114,26 @@ gem install timet
       Start
       End
     ```
+
+
+- **Direct Specification Mode:**
+    ```bash
+    timet e 1 notes "New Meeting Notes"
+    ```
+
+    ```
+    Tracked time report [today]:
+    +-------+------------+--------+----------+----------+----------+--------------------------+
+    | Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |
+    +-------+------------+--------+----------+----------+----------+--------------------------+
+    |     2 | 2024-08-09 | task1  | 16:15:07 |        - | 00:00:00 | Meeting with client      |
+    |     1 |            | task1  | 14:55:07 | 15:55:07 | 01:00:00 | New Meeting Note         |
+    +-------+------------+--------+----------+----------+----------+--------------------------+
+    |                                           Total:  | 01:00:00 |                          |
+    +-------+------------+--------+----------+----------+----------+--------------------------+
+    ```
+
+
 
 ## Command Reference
 

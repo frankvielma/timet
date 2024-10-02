@@ -1,5 +1,16 @@
 ## [Unreleased]
 
+## [0.8.2] - 2024-10-02
+
+**Improvements:**
+- Added optional field and new_value parameters to the edit command.
+- Updated the edit method logic to prompt for field and new_value if they are not provided.
+- Enhanced test coverage to include scenarios where field and new_value are provided directly and when they are not.
+- Updated the README to reflect the new features of the edit command, including both interactive and direct specification modes.
+
+**Additional Considerations:**
+- The changes ensure that the edit command is more versatile and user-friendly, catering to both interactive users and those who prefer scripting or automation.
+
 ## [0.8.1] - 2024-10-02
 **Bug fixes:**
   - Fixed a LoadError caused by the byebug gem being required after its removal.
