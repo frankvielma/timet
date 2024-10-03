@@ -121,10 +121,16 @@ module Timet
     end
 
     def formatted_filter(filter)
-      return 'today' if %w[today t].include?(filter)
-      return 'yesterday' if %w[yesterday y].include?(filter)
-      return 'week' if %w[week w].include?(filter)
-      return 'month' if %w[month m].include?(filter)
+      filter_map = {
+        'today' => %w[today t],
+        'yesterday' => %w[yesterday y],
+        'week' => %w[week w],
+        'month' => %w[month m]
+      }
+
+      filter_map.each do |key, values|
+        return key if values.include?(filter)
+      end
 
       return filter if filter && valid_date_format?(filter)
 
