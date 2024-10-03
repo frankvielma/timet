@@ -34,7 +34,7 @@ module Timet
 
     VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
 
-    desc "start [tag] --notes='...'", "start time tracking  --notes='my notes...'"
+    desc "start [tag] --notes=''", "start time tracking  --notes='my notes...'"
     option :notes, type: :string, desc: 'Add a note'
     def start(tag, notes = nil)
       start_time = TimeHelper.current_timestamp
@@ -75,8 +75,7 @@ module Timet
     end
 
     desc 'summary (su) [filter] [tag] --csv=csv_filename',
-         "Display a summary of tracked time filter => [today (t), yesterday (y), week (w), month (m)] [tag]
-          and export to csv_filename"
+         '  [filter] => [today (t), yesterday (y), week (w), month (m), [start_date]..[end_date]]  [tag]'
     option :csv, type: :string, desc: 'Export to CSV file'
     def summary(filter = nil, tag = nil)
       csv_filename = options[:csv]&.split('.')&.first
