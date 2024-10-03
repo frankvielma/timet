@@ -1,23 +1,59 @@
 ## [Unreleased]
 
+## [0.9.0] - 2024-10-03
+
+**Improvements:**
+
+- Enhanced the gemspec metadata by adding a documentation URI for better discoverability and reference.
+- Improved the `summary` and `edit` methods for better readability and functionality.
+- Simplified the `summary` method by using safe navigation operators and improved conditional checks.
+- Modified the `edit` method to use the return value of `validate_and_update` for displaying the updated item.
+- Updated the `validate_and_update` method to return the updated item after performing the update.
+- Enhanced the `TimeReport` class and added comprehensive RSpec tests.
+- Enhanced the `filter_items` method to support valid date range filters.
+- Added a `valid_date_format?` method to validate date formats.
+- Updated the `formatted_filter` method to handle valid date range filters.
+- Removed the `helpers.rb` file as it was no longer needed.
+- Added comprehensive RSpec tests for the `TimeReport` class, covering initialization, filtering, and date format validation.
+- Modified the `stop` method in `Timet::Application` to use the `update_item` method from `Database` instead of the deprecated `update` method.
+- Updated the `stop` method to fetch the last item's ID and update the 'end' field directly.
+- Updated test cases in `application_spec.rb` to reflect the changes in the `stop` method.
+- Removed test cases for the deprecated `update` method in `database_spec.rb`.
+
+**Bug fixes:**
+
+- Fix bug in calculate_end_time method
+
+**Additional Considerations:**
+
+- The changes in this PR aim to improve code quality, maintainability, and test coverage.
+- The removal of the `helpers.rb` file and unused methods helps to streamline the codebase and reduce technical debt.
+- The updated `stop` method now uses the `update_item` method, ensuring consistency across the codebase.
+- Comprehensive tests have been added for the `TimeReport` class to ensure robust functionality and prevent regressions.
+
 ## [0.8.2] - 2024-10-02
 
 **Improvements:**
+
 - Added optional field and new_value parameters to the edit command.
 - Updated the edit method logic to prompt for field and new_value if they are not provided.
 - Enhanced test coverage to include scenarios where field and new_value are provided directly and when they are not.
 - Updated the README to reflect the new features of the edit command, including both interactive and direct specification modes.
 
 **Additional Considerations:**
+
 - The changes ensure that the edit command is more versatile and user-friendly, catering to both interactive users and those who prefer scripting or automation.
 
 ## [0.8.1] - 2024-10-02
+
 **Bug fixes:**
-  - Fixed a LoadError caused by the byebug gem being required after its removal.
+
+- Fixed a LoadError caused by the byebug gem being required after its removal.
 
 ## [0.8.0] - 2024-10-01
 
 **Improvements:**
+
 - Introduced TimeHelper module to encapsulate time-related functionalities.
 - Replaced direct calls to Time.now.to_i with TimeHelper.current_timestamp for consistency and modularity.
 - Moved current_timestamp method to TimeHelper to centralize time-related logic.
@@ -50,6 +86,7 @@
 - Added a confirmation message when the CSV file is successfully exported.
 
 **Bug fixes:**
+
 - Updated timestamp_to_time method to return nil if the input timestamp is nil.
 - Removed unnecessary &.then syntax for clarity and consistency.
 - Corrected the test expectations to use the correct Unix timestamp.
@@ -61,6 +98,7 @@
 - Added validation to prevent updating start or end times with nil values.
 
 **Tasks:**
+
 - Added ENV['TZ'] = 'UTC' to spec_helper.rb to ensure that all RSpec tests run in the UTC time zone.
 - Updated tests to reflect the new structure and ensure items are returned for export.
 - Updated and added tests to cover the new export logic.
@@ -78,6 +116,7 @@
 - Updated database_spec.rb to reflect the correct status for in-progress items.
 
 **Additional Considerations:**
+
 - Ensured that all timestamps are handled in UTC to avoid timezone issues across different environments.
 - Updated the test to reflect the correct UTC time zone.
 - Ensured consistency in timestamp handling across methods.
@@ -85,6 +124,7 @@
 - Made the application easier to maintain and extend in the future.
 
 **Refactor and enhance time formatting methods**
+
 - Refactored `format_time_string` method in `TimeHelper` to improve readability and maintainability.
 - Added detailed documentation for the `format_time_string` method.
 - Simplified the logic for parsing and validating time components.
@@ -96,31 +136,30 @@
 
 ## [0.2.2] - 2024-09-27
 
-* **Improvements**:
-    * Updated SQLite3 gem version to 2.1.0
+- **Improvements**:
+  - Updated SQLite3 gem version to 2.1.0
 
 ## [0.2.1] - 2024-09-24
 
-* **Improved `resume` behavior:**
-    * If no notes are provided, it will attempt to retrieve them from the last tracked task.
-* **Enhanced `export_sheet` functionality:**
-    * A new `notes` column has been added to the exported CSV file.
-* **Minor bug fixes:**
-    * Resolved issues related to resuming tasks with notes and deleting items.
-
+- **Improved `resume` behavior:**
+  - If no notes are provided, it will attempt to retrieve them from the last tracked task.
+- **Enhanced `export_sheet` functionality:**
+  - A new `notes` column has been added to the exported CSV file.
+- **Minor bug fixes:**
+  - Resolved issues related to resuming tasks with notes and deleting items.
 
 ## [0.2.0] - 2024-09-24
 
-* **Improved code quality:**
-    * Enforces consistent quoting style with `RuboCop` integration.
-    * Removes unused gems (`mini_portile2`) from the `Gemfile`.
-* **Database enhancements:**
-    * Adds a new column named "notes" to the `items` table to store additional information about tracked time entries.
-* **Command-line improvements:**
-    * Allows adding notes to a new time entry using the `start` command with the `--notes` option (e.g., `timet start work --notes="meeting with client"`).
-    * Improves formatting and clarity of some command descriptions.
-* **General code formatting:**
-    * Uses single quotes (`'`) for strings and source paths in the `Gemfile`.
+- **Improved code quality:**
+  - Enforces consistent quoting style with `RuboCop` integration.
+  - Removes unused gems (`mini_portile2`) from the `Gemfile`.
+- **Database enhancements:**
+  - Adds a new column named "notes" to the `items` table to store additional information about tracked time entries.
+- **Command-line improvements:**
+  - Allows adding notes to a new time entry using the `start` command with the `--notes` option (e.g., `timet start work --notes="meeting with client"`).
+  - Improves formatting and clarity of some command descriptions.
+- **General code formatting:**
+  - Uses single quotes (`'`) for strings and source paths in the `Gemfile`.
 
 ## [0.1.0] - 2024-08-01
 

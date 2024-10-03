@@ -150,6 +150,25 @@ gem install timet
 | `timet delete [id]`                          | Delete a task by its ID.                                                    | `timet d [id]`       |
 | `timet cancel`                               | Cancel active time tracking.                                                | `timet c`                 |
 | `timet edit [id]`                            | Update a task's notes, tag, start or end fields.                            | `timet e [1]`                 |
+| `timet su [date]`                            | Display a report of tracked time for a specific date.                       | `timet su 2024-01-03`                        |
+| `timet su [start_date]..[end_date]`          | Display a report of tracked time for a date range.                          | `timet su 2024-01-02..2024-01-03`            |
+
+
+
+### Date Range in Summary
+
+The `timet summary` command now supports specifying a date range for generating reports. This allows users to filter and summarize data within specific date intervals. The date format is in ISO 8601 format (YYYY-MM-DD).
+
+#### Examples:
+- **Single Date**: Display a report for a specific date.
+  ```sh
+  timet su 2024-01-03
+  ```
+
+- **Date Range**: Display a report for a date range.
+  ```sh
+  timet su 2024-01-02..2024-01-03
+  ```
 
 
 ## Data

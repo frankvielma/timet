@@ -53,7 +53,7 @@ RSpec.describe Timet::TimeHelper do
     it 'calculates end time when end_date is provided' do
       start_date = Date.new(2024, 1, 1)
       end_date = Date.new(2024, 1, 2)
-      expect(described_class.calculate_end_time(start_date, end_date)).to eq(1_704_153_600)
+      expect(described_class.calculate_end_time(start_date, end_date)).to eq(1_704_240_000)
     end
 
     it 'calculates end time as next day when end_date is nil' do

@@ -42,22 +42,14 @@ module Timet
       execute_sql('INSERT INTO items (start, tag, notes) VALUES (?, ?, ?)', [start, tag, notes])
     end
 
-    # Updates the end time of the last item
-    def update(stop)
-      last_id = fetch_last_id
-      return unless last_id
-
-      execute_sql('UPDATE items SET end = ? WHERE id = ?', [stop, last_id])
-    end
-
-    def delete_item(id)
-      execute_sql("DELETE FROM items WHERE id = #{id}")
-    end
-
     def update_item(id, field, value)
       return if %w[start end].include?(field) && value.nil?
 
       execute_sql("UPDATE items SET #{field}='#{value}' WHERE id = #{id}")
+    end
+
+    def delete_item(id)
+      execute_sql("DELETE FROM items WHERE id = #{id}")
     end
 
     # Fetches the ID of the last inserted item
@@ -77,18 +69,6 @@ module Timet
 
     def find_item(id)
       execute_sql("select * from items where id=#{id}").first
-    end
-
-    # Calculates the total time elapsed since the last recorded time.
-    def total_time
-      last_item = execute_sql('SELECT * FROM items ORDER BY id DESC LIMIT 1').first
-      return '00:00:00' unless last_item
-
-      start_time = last_item[1]
-      end_time = last_item[2]
-
-      total_seconds = end_time ? end_time - start_time : TimeHelper.current_timestamp - start_time
-      seconds_to_hms(total_seconds)
     end
 
     def all_items

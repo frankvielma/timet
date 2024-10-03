@@ -35,7 +35,7 @@ module Timet
     end
 
     def self.calculate_end_time(start_date, end_date)
-      end_date ||= start_date + 1
+      end_date = end_date ? end_date + 1 : start_date + 1
       date_to_timestamp(end_date)
     end
 

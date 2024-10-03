@@ -18,6 +18,8 @@ module Timet
       else
         @db.update_item(id, field, new_value)
       end
+
+      @db.find_item(id)
     end
 
     private

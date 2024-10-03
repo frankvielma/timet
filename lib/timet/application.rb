@@ -22,7 +22,7 @@ module Timet
 
     def initialize(*args)
       super
-      @db = Timet::Database.new
+      @db = Database.new
     end
 
     FIELD_INDEX = {
@@ -34,7 +34,7 @@ module Timet
 
     VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
 
-    desc "start [tag] --notes='...'", "start time tracking  --notes='my notes...'"
+    desc "start [tag] --notes=''", "start time tracking  --notes='my notes...'"
     option :notes, type: :string, desc: 'Add a note'
     def start(tag, notes = nil)
       start_time = TimeHelper.current_timestamp
@@ -46,8 +46,10 @@ module Timet
 
     desc 'stop', 'stop time tracking'
     def stop
-      stop = TimeHelper.current_timestamp
-      @db.update(stop) if @db.last_item_status == :in_progress
+      if @db.last_item_status == :in_progress
+        last_id = @db.fetch_last_id
+        @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
+      end
       result = @db.last_item
 
       return unless result
@@ -73,16 +75,17 @@ module Timet
     end
 
     desc 'summary (su) [filter] [tag] --csv=csv_filename',
-         "Display a summary of tracked time filter => [today (t), yesterday (y), week (w), month (m)] [tag]
-          and export to csv_filename"
+         '  [filter] => [today (t), yesterday (y), week (w), month (m), [start_date]..[end_date]]  [tag]'
     option :csv, type: :string, desc: 'Export to CSV file'
     def summary(filter = nil, tag = nil)
-      csv_filename = options[:csv].split('.')[0] if options[:csv]
+      csv_filename = options[:csv]&.split('.')&.first
       summary = TimeReport.new(@db, filter, tag, csv_filename)
+
       summary.display
-      if csv_filename && summary.items.any?
+      items = summary.items
+      if csv_filename && items.any?
         summary.export_sheet
-      elsif summary.items.empty?
+      elsif items.empty?
         puts 'No items found to export'
       end
     end
@@ -99,9 +102,8 @@ module Timet
         new_value = prompt_for_new_value(item, field)
       end
 
-      validate_and_update(item, field, new_value)
-
-      summary.display
+      updated_item = validate_and_update(item, field, new_value)
+      display_item(updated_item)
     end
 
     desc 'delete (d) [id]', 'delete a task'

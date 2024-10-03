@@ -8,7 +8,6 @@ RSpec.describe Timet::Application do
   before do
     allow(Timet::Database).to receive(:new).and_return(db)
     allow(db).to receive(:insert_item)
-    allow(db).to receive(:update)
     allow(db).to receive(:last_item)
     allow(db).to receive(:last_item_status)
     allow(db).to receive(:find_item)
@@ -85,7 +84,7 @@ RSpec.describe Timet::Application do
 
       it 'updates the last item with the stop time' do
         app.stop
-        expect(db).to have_received(:update).with(Time.now.utc.to_i)
+        expect(db).to have_received(:update_item).with(nil, 'end', Time.now.utc.to_i)
       end
 
       it 'calls summary' do
@@ -102,7 +101,7 @@ RSpec.describe Timet::Application do
 
       it 'does not update the database' do
         app.stop
-        expect(db).not_to have_received(:update)
+        expect(db).not_to have_received(:update_item)
       end
 
       it 'returns nil' do

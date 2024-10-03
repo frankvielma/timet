@@ -92,6 +92,9 @@ module Timet
       if date_ranges.key?(filter)
         start_date, end_date = date_ranges[filter]
         filter_by_date_range(start_date, end_date, tag)
+      elsif valid_date_format?(filter)
+        start_date, end_date = filter.split('..').map { |x| Date.parse(x) }
+        filter_by_date_range(start_date, end_date, tag)
       else
         puts 'Invalid filter. Supported filters: today, yesterday, week, month'
         []
@@ -118,12 +121,27 @@ module Timet
     end
 
     def formatted_filter(filter)
-      return 'today' if %w[today t].include?(filter)
-      return 'yesterday' if %w[yesterday y].include?(filter)
-      return 'week' if %w[week w].include?(filter)
-      return 'month' if %w[month m].include?(filter)
+      filter_map = {
+        'today' => %w[today t],
+        'yesterday' => %w[yesterday y],
+        'week' => %w[week w],
+        'month' => %w[month m]
+      }
+
+      filter_map.each do |key, values|
+        return key if values.include?(filter)
+      end
+
+      return filter if filter && valid_date_format?(filter)
 
       'today'
+    end
+
+    def valid_date_format?(date_string)
+      date_format_single = /^\d{4}-\d{2}-\d{2}$/
+      date_format_range = /^\d{4}-\d{2}-\d{2}\.\.\d{4}-\d{2}-\d{2}$/
+
+      date_string.match?(date_format_single) || date_string.match?(date_format_range)
     end
   end
 end
