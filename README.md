@@ -5,7 +5,7 @@
 
 # Timet
 
-Timet is a command line time tracking with reports. It's simple to track your hours for work with Timet, whether you're curious about how you allocate your time.
+Timet refers to a command-line tool designed to track your activities by recording the time spent on each task, allowing you to monitor your work hours and productivity directly from your terminal without needing a graphical interface; essentially, it's a way to log your time spent on different projects or tasks using simple text commands
 
 Timet utilizes SQLite to store your time tracking data. This means your data is stored locally and securely, with no need for external databases or cloud storage. This makes Timet lightweight, fast, and perfect for users who value privacy and control over their data.
 
@@ -153,7 +153,6 @@ gem install timet
 | `timet edit [id]`                            | Update a task's notes, tag, start or end fields.                            | `timet e [1]`                 |
 | `timet su [date]`                            | Display a report of tracked time for a specific date.                       | `timet su 2024-01-03`                        |
 | `timet su [start_date]..[end_date]`          | Display a report of tracked time for a date range.                          | `timet su 2024-01-02..2024-01-03`            |
-
 
 
 ### Date Range in Summary
