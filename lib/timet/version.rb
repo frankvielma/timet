@@ -6,6 +6,6 @@ module Timet
   # @return [String] The version number in the format 'major.minor.patch'.
   #
   # @example Get the version of the Timet application
-  #   Timet::VERSION # => '0.9.0'
-  VERSION = '0.9.0'
+  #   Timet::VERSION # => '0.9.1'
+  VERSION = '0.9.1'
 end
