@@ -35,7 +35,7 @@ module Timet
 
     VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
 
-    desc "start [tag] --notes=''", "start time tracking  --notes='my notes...'"
+    desc "start [tag] --notes='[notes]'", 'Start time tracking for a specific tag with optional notes'
     option :notes, type: :string, desc: 'Add a note'
     # Starts a new tracking session with the given tag and optional notes.
     #
@@ -178,7 +178,7 @@ module Timet
       end
 
       updated_item = validate_and_update(item, field, new_value)
-      display_item(updated_item)
+      display_item(updated_item || item)
     end
 
     desc 'delete (d) [id]', 'delete a task'
