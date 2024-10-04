@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+## [0.9.1] - 2024-10-04
+
+**Improvements:**
+
+- Added YARD documentation
+- Refactored the `start` method to use `@db.insert_item` directly if the last item status is valid for insertion.
+- Removed the `insert_item_if_valid` private method as it is no longer needed.
+- Updated the README.md to reflect the latest changes and improvements.
+- Added a badge displaying the current gem version in the README.md.
+
 ## [0.9.0] - 2024-10-03
 
 **Improvements:**
