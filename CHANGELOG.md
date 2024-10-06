@@ -1,5 +1,14 @@
 ## [Unreleased]
 
+## [0.9.2] - 2024-10-06
+
+**Improvements:**
+- Improved the description of the 'start' command to clarify the usage of optional notes.
+
+**Bug fixes:**
+- Modified the 'display_item' method to handle cases where 'updated_item' is nil, ensuring that the original 'item' is displayed instead.
+
+
 ## [0.9.1] - 2024-10-04
 
 **Improvements:**
