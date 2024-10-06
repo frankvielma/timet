@@ -7,5 +7,5 @@ module Timet
   #
   # @example Get the version of the Timet application
   #   Timet::VERSION # => '0.9.1'
-  VERSION = '0.9.1'
+  VERSION = '0.9.2'
 end
