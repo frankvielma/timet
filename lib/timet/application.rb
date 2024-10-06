@@ -62,11 +62,11 @@ module Timet
     def start(tag, notes = nil, pomodoro = nil)
       start_time = TimeHelper.current_timestamp
       notes = options[:notes] || notes
-      pomodoro = options[:pomodoro] || pomodoro
+      pomodoro = (options[:pomodoro] || pomodoro).to_i
 
       if VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
         @db.insert_item(start_time, tag, notes)
-        play_sound_and_notify(pomodoro * 60, tag) if pomodoro
+        play_sound_and_notify(pomodoro * 60, tag) if pomodoro > 0
       end
       summary
     end
