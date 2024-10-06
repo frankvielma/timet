@@ -37,26 +37,37 @@ module Timet
 
     desc "start [tag] --notes='[notes]'", 'Start time tracking for a specific tag with optional notes'
     option :notes, type: :string, desc: 'Add a note'
+    option :pomodoro, type: :numeric, desc: 'Pomodoro time in minutes'
     # Starts a new tracking session with the given tag and optional notes.
+    #
+    # This method initializes a new tracking session by inserting a new item into the database
+    # with the provided tag and optional notes. If a Pomodoro time is specified, it will also
+    # trigger a sound and notification after the specified time has elapsed.
     #
     # @param tag [String] The tag associated with the tracking session. This is a required parameter.
     # @param notes [String, nil] Optional notes to be associated with the tracking session. If not provided, it defaults to the value in `options[:notes]`.
+    # @param pomodoro [Numeric, nil] Optional Pomodoro time in minutes. If not provided, it defaults to the value in `options[:pomodoro]`.
     #
-    # @return [void] This method does not return a value; it performs side effects such as inserting a tracking item and generating a summary.
+    # @return [void] This method does not return a value; it performs side effects such as inserting a tracking item, playing a sound, sending a notification, and generating a summary.
     #
     # @example Start a tracking session with a tag and notes
-    #   start('work', 'Starting work on project X')
+    #   start('work', 'Starting work on project X', 25)
     #
     # @example Start a tracking session with only a tag
     #   start('break')
     #
     # @note The method uses `TimeHelper.current_timestamp` to get the current timestamp for the start time.
+    # @note The method calls `play_sound_and_notify` if a Pomodoro time is provided.
     # @note The method calls `summary` to generate a summary after inserting the tracking item.
-    def start(tag, notes = nil)
+    def start(tag, notes = nil, pomodoro = nil)
       start_time = TimeHelper.current_timestamp
       notes = options[:notes] || notes
+      pomodoro = options[:pomodoro] || pomodoro
 
-      @db.insert_item(start_time, tag, notes) if VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
+      if VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
+        @db.insert_item(start_time, tag, notes)
+        play_sound_and_notify(pomodoro * 60, tag) if pomodoro
+      end
       summary
     end
 
@@ -71,16 +82,13 @@ module Timet
     # @note The method checks if the last tracking item is in progress by calling `@db.last_item_status`.
     # @note If the last item is in progress, it fetches the last item's ID using `@db.fetch_last_id` and updates it with the current timestamp.
     # @note The method then fetches the last item using `@db.last_item` and generates a summary if the result is not nil.
-    def stop
-      if @db.last_item_status == :in_progress
-        last_id = @db.fetch_last_id
-        @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
-      end
-      result = @db.last_item
+    def stop(display = nil)
+      return unless @db.last_item_status == :in_progress
 
-      return unless result
+      last_id = @db.fetch_last_id
+      @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
 
-      summary
+      summary unless display
     end
 
     desc 'resume (r)', 'resume last task'
