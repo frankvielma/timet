@@ -1,13 +1,40 @@
 ## [Unreleased]
 
+## [1.0.0] - 2024-10-07
+
+**Improvements:**
+
+- Added a `pomodoro` option to the `start` command to specify Pomodoro time in minutes.
+- Updated the `start` method to accept an optional `pomodoro` parameter and call `play_sound_and_notify` if Pomodoro time is provided.
+- Improved the `stop` method to accept an optional `display` parameter and conditionally call `summary`.
+- Added `play_sound_and_notify` method to `application_helper.rb` for playing a sound and sending a notification after a specified time.
+- Updated RSpec tests to reflect the new `pomodoro` parameter and `display` parameter in the `start` and `stop` methods, respectively.
+- Converted Pomodoro time from minutes to seconds before passing it to `play_sound_and_notify`.
+
+### Bug fixes:
+
+- Ensured Pomodoro time is a positive integer before invoking `play_sound_and_notify`.
+
+#### Tasks:
+
+- Update README.md to document the new Pomodoro feature.
+
+### Additional Considerations:
+
+- The `pomodoro` option is designed to be flexible, allowing users to specify any duration in minutes for their Pomodoro sessions. This flexibility caters to users who may prefer different interval lengths based on their work habits and preferences.
+- The `play_sound_and_notify` method is a new addition to the `application_helper.rb` file, providing a mechanism for notifying users when their Pomodoro session ends. This feature includes both a sound notification and a system notification to ensure users are aware of the end of their work interval.
+- The `stop` method has been improved to accept an optional `display` parameter, which allows users to conditionally call the `summary` method. This enhancement provides more control over when the summary of the time tracking session is displayed.
+- The RSpec tests have been updated to reflect the new parameters and functionality introduced in this pull request, ensuring that the code remains robust and reliable.
+
 ## [0.9.2] - 2024-10-06
 
 **Improvements:**
+
 - Improved the description of the 'start' command to clarify the usage of optional notes.
 
 **Bug fixes:**
-- Modified the 'display_item' method to handle cases where 'updated_item' is nil, ensuring that the original 'item' is displayed instead.
 
+- Modified the 'display_item' method to handle cases where 'updated_item' is nil, ensuring that the original 'item' is displayed instead.
 
 ## [0.9.1] - 2024-10-04
 
