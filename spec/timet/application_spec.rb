@@ -30,14 +30,20 @@ RSpec.describe Timet::Application do
       end
 
       it 'inserts a new item into the database' do
-        app.start('tag', 'my notes...')
+        app.start('tag', 'my notes...', 25)
         expect(db).to have_received(:insert_item).with(Time.now.utc.to_i, 'tag', 'my notes...')
       end
 
       it 'calls summary after inserting the item' do
         allow(app).to receive(:summary)
-        app.start('tag', 'my notes...')
+        app.start('tag', 'my notes...', 25)
         expect(app).to have_received(:summary)
+      end
+
+      it 'calls play_sound_and_notify if pomodoro time is provided' do
+        allow(app).to receive(:play_sound_and_notify)
+        app.start('tag', 'my notes...', 25)
+        expect(app).to have_received(:play_sound_and_notify).with(1500, 'tag')
       end
     end
 
@@ -47,21 +53,27 @@ RSpec.describe Timet::Application do
       end
 
       it 'does not insert a new item into the database' do
-        app.start('tag', 'my notes...')
+        app.start('tag', 'my notes...', 25)
         expect(db).not_to have_received(:insert_item)
       end
 
       it 'calls summary' do
         allow(app).to receive(:summary)
-        app.start('tag', 'my notes...')
+        app.start('tag', 'my notes...', 25)
         expect(app).to have_received(:summary)
+      end
+
+      it 'does not call play_sound_and_notify' do
+        allow(app).to receive(:play_sound_and_notify)
+        app.start('tag', 'my notes...', 25)
+        expect(app).not_to have_received(:play_sound_and_notify)
       end
     end
 
     context 'when notes are provided via --notes option' do
       before do
         allow(db).to receive(:last_item_status).and_return(:no_items)
-        allow(app).to receive(:options).and_return({ notes: 'my notes from option' })
+        allow(app).to receive(:options).and_return({ notes: 'my notes from option', pomodoro: 25 })
         allow(Time).to receive(:now).and_return(Time.at(1_700_000_000))
       end
 
@@ -69,6 +81,12 @@ RSpec.describe Timet::Application do
         app.start('tag')
 
         expect(db).to have_received(:insert_item).with(1_700_000_000, 'tag', 'my notes from option')
+      end
+
+      it 'calls play_sound_and_notify with the provided pomodoro time' do
+        allow(app).to receive(:play_sound_and_notify)
+        app.start('tag')
+        expect(app).to have_received(:play_sound_and_notify).with(1500, 'tag')
       end
     end
   end
@@ -80,17 +98,24 @@ RSpec.describe Timet::Application do
         allow(db).to receive_messages(last_item_status: :in_progress,
                                       last_item: { 'start' => start_time,
                                                    'stop' => nil })
+        allow(db).to receive(:fetch_last_id).and_return(1)
       end
 
       it 'updates the last item with the stop time' do
         app.stop
-        expect(db).to have_received(:update_item).with(nil, 'end', Time.now.utc.to_i)
+        expect(db).to have_received(:update_item).with(1, 'end', Time.now.utc.to_i)
       end
 
       it 'calls summary' do
         allow(app).to receive(:summary)
         app.stop
         expect(app).to have_received(:summary)
+      end
+
+      it 'does not call summary if display is true' do
+        allow(app).to receive(:summary)
+        app.stop(true)
+        expect(app).not_to have_received(:summary)
       end
     end
 

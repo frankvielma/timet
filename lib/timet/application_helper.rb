@@ -68,5 +68,36 @@ module Timet
 
       value
     end
+
+    # Plays a sound and sends a notification after a specified time.
+    #
+    # This method is designed to work on Linux and macOS. It triggers a sound and a notification
+    # after the specified time has elapsed. On Linux, it also stops a Pomodoro session and sends
+    # a desktop notification. On macOS, it plays a system sound and displays a notification.
+    #
+    # @param time [Integer] The duration in seconds to wait before playing the sound and sending the notification.
+    # @param tag [String] The tag associated with the Pomodoro session.
+    #
+    # @example
+    #   play_sound_and_notify(1500, 'work')
+    #
+    # @note This method uses platform-specific commands and assumes the presence of certain utilities
+    #       (e.g., `notify-send` on Linux, `afplay` on macOS). Ensure these utilities are available
+    #       on the respective operating systems.
+    #
+    # @raise [RuntimeError] If the operating system is not supported.
+    #
+    # @return [void]
+    def play_sound_and_notify(time, tag)
+      if RUBY_PLATFORM.downcase.include?('linux')
+        pid = spawn("sleep #{time} && tput bel && /home/frank/Software/frankvielma/gems/timet/bin/timet stop 0 && notify-send --icon=clock 'Pomodoro session complete! (tag: #{tag}) Time for a break.' &")
+        Process.wait(pid)
+      elsif RUBY_PLATFORM.downcase.include?('darwin')
+        pid = spawn("(sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && osascript -e 'display notification \"Pomodoro session complete! Time for a break.\"') &")
+        Process.wait(pid)
+      else
+        puts 'Unsupported operating system'
+      end
+    end
   end
 end
