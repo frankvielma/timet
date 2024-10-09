@@ -32,7 +32,8 @@ Gem::Specification.new do |spec|
     end
   end
   spec.bindir = "bin"
-  spec.executables = ["timet"]
+  spec.executables << "timet"
+  spec.executables << "tt"
   spec.require_paths = ["lib"]
 
   # For more information and examples about making a new gem, check out our

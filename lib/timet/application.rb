@@ -245,6 +245,18 @@ module Timet
       true
     end
 
+    #   Displays the current version of the Timet gem.
+    #
+    #   @example
+    #     $ timet version
+    #     1.0.0
+    #
+    #   @return [void] This method does not return a value; it prints the version to the standard output.
+    desc 'version', 'version'
+    def version
+      puts Timet::VERSION
+    end
+
     private
 
     # Deletes a tracking item from the database by its ID and prints a confirmation message.
