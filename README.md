@@ -39,14 +39,20 @@ gem install timet
 
 ## Usage
 
-- timet start [tag] --notes="" --pomodoro=[minutes]**: Starts tracking time for a task labeled with the provided [tag],  notes and "pomodoro time" in minutes (optional). Example:
+### Command Aliases
+
+- `timet`: The primary command for interacting with the Timet application.
+- `tt`: An alias for the `timet` command, providing a shorter alternative.
+
+---
+- **timet start [tag] --notes="" --pomodoro=[minutes]**: Starts tracking time for a task labeled with the provided [tag],  notes and "pomodoro time" in minutes (optional). Example:
 
   ```bash
   timet start task1 --notes="Meeting with client" --pomodoro=25
 
   or
 
-  timet start task1 "Meeting with client" 25
+  tt start task1 "Meeting with client" 25
   ```
 
   ```
@@ -110,7 +116,7 @@ gem install timet
 - **Interactive Mode:**
 
   ```bash
-  timet e 1
+  timet edit 1
   ```
 
   ```

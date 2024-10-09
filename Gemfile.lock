@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    timet (1.0.0)
+    timet (1.1.0)
       sqlite3 (~> 2, >= 1.7)
       thor (~> 1.2)
       tty-prompt (~> 0.2)
@@ -34,7 +34,7 @@ GEM
     rspec-expectations (3.13.3)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-mocks (3.13.1)
+    rspec-mocks (3.13.2)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-support (3.13.1)
