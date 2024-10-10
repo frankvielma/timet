@@ -14,7 +14,7 @@ module Timet
     # @note The method constructs a string representing the table header and prints it.
     def format_table_header
       header = <<~TABLE
-        Tracked time report \u001b[31m[#{@filter}]\033[0m:
+        Tracked time report \e[5m\u001b[31m[#{@filter}]\033[0m:
         #{format_table_separator}
         \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |\033[0m
         #{format_table_separator}
@@ -63,6 +63,121 @@ module Timet
 
       notes = "#{notes.slice(0, 20)}..." if notes.length > 20
       notes.ljust(23)
+    end
+
+    # @!method format_tag_distribution(duration_by_tag)
+    #   Formats and displays the tag distribution.
+    #
+    #   @example
+    #     duration_by_tag = { "timet" => 3600, "nextjs" => 1800 }
+    #     Formatter.format_tag_distribution(duration_by_tag)
+    #     # Output:
+    #     #    timet:   66.67%  \u001b[38;5;42m====================\u001b[0m
+    #     #   nextjs:   33.33%  \u001b[38;5;42m==========\u001b[0m
+    #
+    #   @param duration_by_tag [Hash<String, Integer>] A hash where keys are tags and values are durations in seconds.
+    #   @return [void] This method outputs the formatted tag distribution to the console.
+    def format_tag_distribution(duration_by_tag)
+      block = '▅'
+      total = duration_by_tag.values.sum
+      return unless total.positive?
+
+      factor = duration_by_tag.size < 3 ? 2 : 1
+      sorted_duration_by_tag = duration_by_tag.sort_by { |_, duration| -duration }
+
+      sorted_duration_by_tag.each do |tag, duration|
+        value = (duration.to_f / total * 100).round(2)
+        puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  \u001b[38;5;#{rand(256)}m#{block * (value / factor).to_i}\u001b[0m"
+      end
+    end
+
+    # Prints the entire time block chart.
+    #
+    # This method orchestrates the printing of the entire time block chart by calling
+    # the `print_header` and `print_blocks` methods. It also prints the separator line
+    # between the header and the blocks, and adds a double newline at the end for
+    # separation.
+    #
+    # @param time_block [Hash] A hash where the keys are formatted hour strings
+    #                          (e.g., "00", "01") and the values are the corresponding
+    #                          values to determine the block character.
+    # @example
+    #   time_block = { "00" => 100, "01" => 200, ..., "23" => 300 }
+    #   print_time_block_chart(time_block)
+    #   # Output:
+    #   # ⏳ ↦ ┏ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23
+    #   #      ┗ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █
+    #   #
+    #   # (followed by two newlines)
+    #
+    def print_time_block_chart(time_block)
+      print_header
+      print '     ┗ '
+      print_blocks(time_block)
+    end
+
+    # Prints the header of the time block chart.
+    #
+    # This method outputs the header line of the chart, which includes the hours
+    # from 00 to 23, formatted and aligned for readability.
+    #
+    # @example
+    #   print_header
+    #   # Output:
+    #   # ⏳ ↦ ┏ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23
+    #
+    def print_header
+      puts
+      print '⏳ ↦ ┏ '
+      (0..23).each { |hour| print format('%02d', hour).ljust(4) }
+      puts
+    end
+
+    # Prints the block characters for each hour in the time block chart.
+    #
+    # This method iterates over each hour from 0 to 23, retrieves the corresponding
+    # block character using the `get_block_char` method, and prints it aligned for
+    # readability. It also adds a double newline at the end for separation.
+    #
+    # @param time_block [Hash] A hash where the keys are formatted hour strings
+    #                          (e.g., "00", "01") and the values are the corresponding
+    #                          values to determine the block character.
+    # @example
+    #   time_block = { "00" => 100, "01" => 200, ..., "23" => 300 }
+    #   print_blocks(time_block)
+    #   # Output:
+    #   # ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █
+    #   #
+    #   # (followed by two newlines)
+    #
+    def print_blocks(time_block)
+      return unless time_block
+
+      (0..23).each do |hour|
+        block_char = get_block_char(time_block[format('%02d', hour)])
+        print (block_char * 2).ljust(4)
+      end
+      puts "\n\n"
+    end
+
+    # Determines the block character based on the value.
+    #
+    # @param value [Integer] The value to determine the block character for.
+    # @return [String] The block character corresponding to the value.
+    def get_block_char(value)
+      range_to_char = {
+        0..120 => ' ',
+        121..450 => '▁',
+        451..900 => '▂',
+        901..1350 => '▃',
+        1351..1800 => '▄',
+        1801..2250 => '▅',
+        2251..2700 => '▆',
+        2701..3150 => '▇',
+        3151..3600 => '█'
+      }
+
+      range_to_char.find { |range, _| range.include?(value) }&.last || ' '
     end
   end
 end
