@@ -1,5 +1,58 @@
 ## [Unreleased]
 
+## [1.2.0] - 2024-10-11
+
+**Improvements:**
+
+- Enhanced the README to provide more detailed and user-friendly information about the tool.
+- Added a visually appealing title and logo to make the README more engaging.
+- Organized key features into bullet points for better readability.
+- Provided clear and concise installation instructions.
+- Made the command reference more user-friendly by adding a table of contents.
+- Added more details about data storage and development guidelines.
+- Encouraged contributions and provided guidelines for contributing.
+- Made the support section more prominent.
+- Ensured the license and code of conduct are clearly stated.
+- Updated the `timet` gem version to 1.2.0 in `Gemfile.lock`.
+- Refactored the `play_sound_and_notify` condition to use the `positive?` method for better readability.
+- Enhanced table header formatting with a blinking effect for better user interaction.
+- Added new methods for tag distribution and time block chart visualization:
+  - `format_tag_distribution`: Displays tag distribution with progress bars.
+  - `print_time_block_chart`: Prints the entire time block chart.
+  - `print_header`: Prints the header of the time block chart.
+  - `print_blocks`: Prints the block characters for each hour.
+  - `get_block_char`: Determines the block character based on value.
+- Added `count_seconds_per_hour_block` method to count seconds per hour block.
+- Added `aggregate_hash_values` method to aggregate hash values.
+- Integrated new methods into `time_report` to enhance time tracking visualization.
+- Updated the version number in `lib/timet/version.rb` to 1.2.0.
+
+**Additional Considerations:**
+
+- The enhancements made in this pull request aim to improve the user experience and provide more powerful visualization and reporting capabilities for time tracking.
+- Reviewers are encouraged to test the new visualization methods and provide feedback on their effectiveness and usability.
+- The README updates should make it easier for new users to understand and use the `timet` tool.
+
+## [1.1.0] - 2024-10-09
+
+**Improvements:**
+
+- Added a new `version` command to display the current version of the Timet gem.
+- Introduced an alias `tt` for the `timet` command, providing a shorter alternative.
+- Updated the README to include the `tt` alias and provide examples for both `timet` and `tt` commands.
+- Updated the gem version to `1.1.0`.
+- Added the `tt` executable to the gemspec.
+- Updated the `rspec-mocks` dependency to version `3.13.2`.
+
+**Tasks:**
+
+- Update `Gemfile.lock` to reflect the new gem version and updated dependencies.
+- Add the `tt` executable script to the `bin` directory.
+- Update the `version` command in `lib/timet/application.rb` with Yardoc documentation.
+- Update the `VERSION` constant in `lib/timet/version.rb` to `1.1.0`.
+- Update the `timet.gemspec` to include the `tt` executable.
+- Update the README to reflect the new `tt` alias and provide examples for both `timet` and `tt` commands.
+
 ## [1.0.0] - 2024-10-07
 
 **Improvements:**

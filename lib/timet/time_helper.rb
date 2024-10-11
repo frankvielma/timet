@@ -168,5 +168,71 @@ module Timet
     def self.current_timestamp
       Time.now.utc.to_i
     end
+
+    # Counts the number of seconds for each hour block between the given start and end times.
+    #
+    # This method calculates the number of seconds each event spans within each hour block
+    # and aggregates the results in a hash where the keys are the hour blocks (in 'HH' format)
+    # and the values are the total number of seconds for each hour block.
+    #
+    # @param start_time [Integer] The start time in seconds since the Unix epoch.
+    # @param end_time [Integer] The end time in seconds since the Unix epoch. If not provided,
+    #                           the current time will be used.
+    # @return [Hash] A hash where the keys are the hour blocks (in 'HH' format) and the values
+    #                are the total number of seconds for each hour block.
+    # @example
+    #   start_time = 1728577349  # 8:30 AM
+    #   end_time = 1728579200    # 11:20 AM
+    #   result = count_seconds_per_hour_block(start_time, end_time)
+    #   # Output: {"08"=>1800, "09"=>1800, "10"=>3600, "11"=>1200}
+    #
+    def self.count_seconds_per_hour_block(start_time, end_time)
+      hour_blocks = Hash.new(0)
+
+      current_time = Time.at(start_time)
+      end_time = Time.at(end_time || current_timestamp)
+
+      while current_time < end_time
+        current_hour = current_time.hour
+        next_hour_boundary = Time.new(current_time.year, current_time.month, current_time.day, current_hour + 1)
+
+        block_end_time = [next_hour_boundary, end_time].min
+        seconds_in_block = (block_end_time - current_time).to_i
+
+        hour_block = current_time.strftime('%H')
+        hour_blocks[hour_block] += seconds_in_block
+
+        current_time = block_end_time
+      end
+
+      hour_blocks
+    end
+
+    # Aggregates the values of the same keys from an array of hashes.
+    #
+    # This method takes an array of hashes, reverses it, and then aggregates the values
+    # for the same keys into a single hash. If a key appears in multiple hashes, its
+    # values are summed.
+    #
+    # @param time_block [Array<Hash>] An array of hashes where each hash contains key-value pairs.
+    # @return [Hash] A hash where the keys are the aggregated keys from the input hashes
+    #                and the values are the summed values for each key.
+    # @example
+    #   time_block = [
+    #     {"01": 10},
+    #     {"01": 30},
+    #     {"02": 50}
+    #   ]
+    #   result = aggregate_hash_values(time_block)
+    #   # Output: {"01"=>40, "02"=>50}
+    #
+    def self.aggregate_hash_values(time_block)
+      time_block.reverse.each_with_object({}) do |hash, acc|
+        hash.each do |key, value|
+          acc[key] ||= 0
+          acc[key] += value
+        end
+      end
+    end
   end
 end

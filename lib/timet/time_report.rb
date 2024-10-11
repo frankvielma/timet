@@ -51,12 +51,23 @@ module Timet
       return puts 'No tracked time found for the specified filter.' if items.empty?
 
       format_table_header
+      duration_by_tag = Hash.new(0)
+      time_block = []
       items.each_with_index do |item, idx|
         date = TimeHelper.extract_date(items, idx)
         display_time_entry(item, date)
+        time_block << TimeHelper.count_seconds_per_hour_block(item[1], item[2])
+        duration_by_tag[item[3]] += TimeHelper.calculate_duration(item[1], item[2])
       end
       puts format_table_separator
       total
+
+      if Time.now.to_i - items.map { |x| x[1] }.min < 86_400
+        time_block_reverse = TimeHelper.aggregate_hash_values(time_block)
+        print_time_block_chart(time_block_reverse)
+      end
+
+      format_tag_distribution(duration_by_tag)
     end
 
     # Displays a single row of the report.

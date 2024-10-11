@@ -5,18 +5,42 @@
 
 # Timet
 
+![Timet](timet.webp)
+
 Timet refers to a command-line tool designed to track your activities by recording the time spent on each task, allowing you to monitor your work hours and productivity directly from your terminal without needing a graphical interface; essentially, it's a way to log your time spent on different projects or tasks using simple text commands
 
-Timet utilizes SQLite to store your time tracking data. This means your data is stored locally and securely, with no need for external databases or cloud storage. This makes Timet lightweight, fast, and perfect for users who value privacy and control over their data.
+**Key Features:**
 
-While a YAML file might seem like a simple option for storing time tracking data, Timet leverages SQLite for several key advantages:
+- **Local Data Storage:** Timet utilizes SQLite to store your time tracking data locally, ensuring privacy and security.
+- **Lightweight and Fast:** Its efficient design and local data storage make Timet a speedy and responsive tool.
+- **Structured Data:** SQLite ensures your data is organized and easily accessible.
+- **Scalability:** Timet can handle growing time tracking needs.
+- **Data Integrity:** SQLite maintains the accuracy and consistency of your data.
+- **Querying and Reporting:** Generate detailed reports for specific periods.
+- **CSV Export:** Easily export your time tracking data to CSV format for further analysis or sharing.
+- **Pomodoro Integration:** The pomodoro option in the start command enhances time tracking by integrating the Pomodoro Technique.
+- **Block Time Plot:** Visualizes the distribution of tracked time across a 24-hour period, with bars in each column representing the amount of time tracked during that specific hour.
+- **Tag Distribution Plot:** Illustrates the proportion of total tracked time allocated to each tag, showing the relative contribution of each tag to the overall time tracked.
 
-- Structured Data
-- Scalability
-- Data Integrity
-- Querying and Reporting
+Example:
 
-In addition, if possible, export your time tracking data to CSV for analysis and sharing.
+```bash
+Tracked time report [today]:
++-------+------------+--------+----------+----------+----------+--------------------------+
+| Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |
++-------+------------+--------+----------+----------+----------+--------------------------+
+|    20 | 2024-10-10 | Tag8   | 19:26:58 | 20:26:58 | 01:00:00 | Notes 2                  |
+|    19 |            | Tag3   | 07:52:26 | 08:52:26 | 01:00:00 | Notes 7                  |
++-------+------------+--------+----------+----------+----------+--------------------------+
+|                                           Total:  | 02:00:00 |                          |
++-------+------------+--------+----------+----------+----------+--------------------------+
+
+⏳ ↦ ┏ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23  
+     ┗                             ▂▂  ▇▇                                          ▅▅  ▄▄              
+
+    Tag8:    50.0%  ▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅
+    Tag3:    50.0%  ▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅
+```
 
 ## Requirements
 
@@ -207,9 +231,14 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/frankv
 
 Many people have contacted me asking how to contribute. Any contribution, from a virtual coffee to a kind word, is greatly appreciated and helps me continue my work. Please only donate if you're able, as there are no refunds. Your support is entirely voluntary, and I thank you for your consideration.
 
+**Bitcoin Address:**
+```sh
+bc1qkg9me2jsuhpzu2hp9kkpxagwtf9ewnyfl4kszl 
+```
+
 ![Buy me a coffee!](btc.png)
 
-bc1qkg9me2jsuhpzu2hp9kkpxagwtf9ewnyfl4kszl
+---
 
 ## License
 
