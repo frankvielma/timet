@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+## [1.2.1] - 2024-10-18
+
+**Improvements:**
+- Updated the time block chart formatting to use square brackets for better visual representation.
+- Refactored the `play_sound_and_notify` method to avoid redundant platform checks and introduced platform-specific session runners.
+- Improved readability and maintainability of the `format_tag_distribution` method by extracting logic into a new private method.
+- Updated the `rubocop` gem from `~> 1.65` to `~> 1.67`.
+
+### Bug fixes:
+- Fixed a `NoMethodError` caused by an undefined method `process_and_print_tags` in the `format_tag_distribution` method.
+- Fixed line length violations in several files to comply with `rubocop` rules.
+
+### Additional Considerations:
+- The changes in this pull request should be thoroughly tested to ensure that they do not introduce any regressions.
+- Future improvements could include further refactoring to extract more logic into separate methods or classes, depending on the complexity and requirements of the application.
+
 ## [1.2.0] - 2024-10-11
 
 **Improvements:**
