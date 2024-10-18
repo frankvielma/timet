@@ -24,11 +24,13 @@ module Timet
     # Initializes a new instance of the TimeReport class.
     #
     # @param db [Database] The database instance to use for fetching data.
-    # @param filter [String, nil] The filter to apply when fetching items. Possible values include 'today', 'yesterday', 'week', 'month', or a date range in the format 'YYYY-MM-DD..YYYY-MM-DD'.
+    # @param filter [String, nil] The filter to apply when fetching items. Possible values include 'today',
+    # 'yesterday', 'week', 'month', or a date range in the format 'YYYY-MM-DD..YYYY-MM-DD'.
     # @param tag [String, nil] The tag to filter the items by.
     # @param csv [String, nil] The filename to use when exporting the report to CSV.
     #
-    # @return [void] This method does not return a value; it performs side effects such as initializing the instance variables.
+    # @return [void] This method does not return a value; it performs side effects such as initializing the
+    # instance variables.
     #
     # @example Initialize a new TimeReport instance with a filter and tag
     #   TimeReport.new(db, 'today', 'work', 'report.csv')
@@ -178,7 +180,7 @@ module Timet
       total = @items.map do |item|
         TimeHelper.calculate_duration(item[1], item[2])
       end.sum
-      puts "|#{' ' * 43}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(8)} |\033[0m                          |"
+      puts "|#{' ' * 37}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(8)} |\033[0m                          |"
       puts format_table_separator
     end
 
