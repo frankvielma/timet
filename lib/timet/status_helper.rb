@@ -7,7 +7,8 @@ module Timet
     #
     # @param result [Array] The result set containing time tracking items.
     #
-    # @return [Symbol] The status of the time tracking result. Possible values are :no_items, :in_progress, or :complete.
+    # @return [Symbol] The status of the time tracking result. Possible values are
+    # :no_items, :in_progress, or :complete.
     #
     # @example Determine the status of an empty result set
     #   StatusHelper.determine_status([]) # => :no_items
