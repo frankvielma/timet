@@ -14,7 +14,8 @@ module Timet
     #
     # @param database_path [String] The path to the SQLite database file. Defaults to DEFAULT_DATABASE_PATH.
     #
-    # @return [void] This method does not return a value; it performs side effects such as initializing the database connection and creating the necessary tables.
+    # @return [void] This method does not return a value; it performs side effects such as initializing the database
+    # connection and creating the necessary tables.
     #
     # @example Initialize a new Database instance with the default path
     #   Database.new
@@ -22,7 +23,8 @@ module Timet
     # @example Initialize a new Database instance with a custom path
     #   Database.new('/path/to/custom.db')
     #
-    # @note The method creates a new SQLite3 database connection and initializes the necessary tables if they do not already exist.
+    # @note The method creates a new SQLite3 database connection and initializes the necessary tables if they
+    # do not already exist.
     def initialize(database_path = DEFAULT_DATABASE_PATH)
       @db = SQLite3::Database.new(database_path)
       create_table
@@ -31,7 +33,8 @@ module Timet
 
     # Creates the items table if it doesn't already exist.
     #
-    # @return [void] This method does not return a value; it performs side effects such as executing SQL to create the table.
+    # @return [void] This method does not return a value; it performs side effects such as executing SQL to
+    # create the table.
     #
     # @example Create the items table
     #   create_table
@@ -50,7 +53,8 @@ module Timet
 
     # Adds a new column named "notes" to the "items" table if it doesn't exist.
     #
-    # @return [void] This method does not return a value; it performs side effects such as executing SQL to add the column.
+    # @return [void] This method does not return a value; it performs side effects such as executing SQL to add
+    # the column.
     #
     # @example Add the notes column to the items table
     #   add_notes
@@ -73,7 +77,8 @@ module Timet
     # @param tag [String] The tag associated with the item.
     # @param notes [String] The notes associated with the item.
     #
-    # @return [void] This method does not return a value; it performs side effects such as executing SQL to insert the item.
+    # @return [void] This method does not return a value; it performs side effects such as executing SQL
+    # to insert the item.
     #
     # @example Insert a new item into the items table
     #   insert_item(1633072800, 'work', 'Completed task X')
@@ -89,7 +94,8 @@ module Timet
     # @param field [String] The field to be updated.
     # @param value [String, Integer, nil] The new value for the specified field.
     #
-    # @return [void] This method does not return a value; it performs side effects such as executing SQL to update the item.
+    # @return [void] This method does not return a value; it performs side effects such as executing SQL
+    # to update the item.
     #
     # @example Update the tag of an item with ID 1
     #   update_item(1, 'tag', 'updated_work')
@@ -105,7 +111,8 @@ module Timet
     #
     # @param id [Integer] The ID of the item to be deleted.
     #
-    # @return [void] This method does not return a value; it performs side effects such as executing SQL to delete the item.
+    # @return [void] This method does not return a value; it performs side effects such as executing SQL
+    # to delete the item.
     #
     # @example Delete an item with ID 1
     #   delete_item(1)
@@ -174,7 +181,8 @@ module Timet
     # @example Fetch all items from today
     #   all_items
     #
-    # @note The method executes SQL to fetch all items from the 'items' table that have a start time greater than or equal to today.
+    # @note The method executes SQL to fetch all items from the 'items' table that have a start time greater than
+    # or equal to today.
     def all_items
       execute_sql("SELECT * FROM items where start >= '#{Date.today.to_time.to_i}' ORDER BY id DESC")
     end
@@ -199,7 +207,8 @@ module Timet
 
     # Closes the database connection.
     #
-    # @return [void] This method does not return a value; it performs side effects such as closing the database connection.
+    # @return [void] This method does not return a value; it performs side effects such as closing the
+    # database connection.
     #
     # @example Close the database connection
     #   close
@@ -218,7 +227,8 @@ module Timet
     # @example Convert 3661 seconds to HH:MM:SS format
     #   seconds_to_hms(3661) # => '01:01:01'
     #
-    # @note The method converts the given number of seconds into hours, minutes, and seconds, and formats them as HH:MM:SS.
+    # @note The method converts the given number of seconds into hours, minutes, and seconds, and formats
+    # them as HH:MM:SS.
     def seconds_to_hms(seconds)
       hours, remainder = seconds.divmod(3600)
       minutes, seconds = remainder.divmod(60)

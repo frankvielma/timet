@@ -45,10 +45,13 @@ module Timet
     # trigger a sound and notification after the specified time has elapsed.
     #
     # @param tag [String] The tag associated with the tracking session. This is a required parameter.
-    # @param notes [String, nil] Optional notes to be associated with the tracking session. If not provided, it defaults to the value in `options[:notes]`.
-    # @param pomodoro [Numeric, nil] Optional Pomodoro time in minutes. If not provided, it defaults to the value in `options[:pomodoro]`.
+    # @param notes [String, nil] Optional notes to be associated with the tracking session. If not provided, it
+    # defaults to the value in `options[:notes]`.
+    # @param pomodoro [Numeric, nil] Optional Pomodoro time in minutes. If not provided, it defaults to the value in
+    # `options[:pomodoro]`.
     #
-    # @return [void] This method does not return a value; it performs side effects such as inserting a tracking item, playing a sound, sending a notification, and generating a summary.
+    # @return [void] This method does not return a value; it performs side effects such as inserting a tracking item,
+    # playing a sound, sending a notification, and generating a summary.
     #
     # @example Start a tracking session with a tag and notes
     #   start('work', 'Starting work on project X', 25)
@@ -74,14 +77,17 @@ module Timet
     desc 'stop', 'stop time tracking'
     # Stops the current tracking session if there is one in progress.
     #
-    # @return [void] This method does not return a value; it performs side effects such as updating the tracking item and generating a summary.
+    # @return [void] This method does not return a value; it performs side effects such as updating the tracking item
+    # and generating a summary.
     #
     # @example Stop the current tracking session
     #   stop
     #
     # @note The method checks if the last tracking item is in progress by calling `@db.last_item_status`.
-    # @note If the last item is in progress, it fetches the last item's ID using `@db.fetch_last_id` and updates it with the current timestamp.
-    # @note The method then fetches the last item using `@db.last_item` and generates a summary if the result is not nil.
+    # @note If the last item is in progress, it fetches the last item's ID using `@db.fetch_last_id` and updates it
+    # with the current timestamp.
+    # @note The method then fetches the last item using `@db.last_item` and generates a summary if the result
+    # is not nil.
     def stop(display = nil)
       return unless @db.last_item_status == :in_progress
 
@@ -94,14 +100,16 @@ module Timet
     desc 'resume (r)', 'resume last task'
     # Resumes the last tracking session if it was completed.
     #
-    # @return [void] This method does not return a value; it performs side effects such as resuming a tracking session or providing feedback.
+    # @return [void] This method does not return a value; it performs side effects such as resuming a tracking session
+    # or providing feedback.
     #
     # @example Resume the last tracking session
     #   resume
     #
     # @note The method checks the status of the last tracking item using `@db.last_item_status`.
     # @note If the last item is in progress, it prints a message indicating that a task is currently being tracked.
-    # @note If the last item is complete, it fetches the last item using `@db.last_item`, retrieves the tag and notes, and calls the `start` method to resume the tracking session.
+    # @note If the last item is complete, it fetches the last item using `@db.last_item`, retrieves the tag and notes,
+    # and calls the `start` method to resume the tracking session.
     def resume
       status = @db.last_item_status
 
@@ -121,12 +129,15 @@ module Timet
     desc 'summary (su) [filter] [tag] --csv=csv_filename',
          '  [filter] => [today (t), yesterday (y), week (w), month (m), [start_date]..[end_date]]  [tag]'
     option :csv, type: :string, desc: 'Export to CSV file'
-    # Generates a summary of tracking items based on the provided filter and tag, and optionally exports the summary to a CSV file.
+    # Generates a summary of tracking items based on the provided filter and tag, and optionally exports the summary
+    # to a CSV file.
     #
-    # @param filter [String, nil] The filter to apply when generating the summary. Possible values include 'today', 'yesterday', 'week', 'month', or a date range in the format '[start_date]..[end_date]'.
+    # @param filter [String, nil] The filter to apply when generating the summary. Possible values include 'today',
+    # 'yesterday', 'week', 'month', or a date range in the format '[start_date]..[end_date]'.
     # @param tag [String, nil] The tag to filter the tracking items by.
     #
-    # @return [void] This method does not return a value; it performs side effects such as displaying the summary and exporting to CSV if specified.
+    # @return [void] This method does not return a value; it performs side effects such as displaying the summary and
+    # exporting to CSV if specified.
     #
     # @example Generate a summary for today
     #   summary('today')
@@ -139,7 +150,8 @@ module Timet
     #
     # @note The method initializes a `TimeReport` object with the database, filter, tag, and optional CSV filename.
     # @note The method calls `display` on the `TimeReport` object to show the summary.
-    # @note If a CSV filename is provided and there are items to export, the method calls `export_sheet` to export the summary to a CSV file.
+    # @note If a CSV filename is provided and there are items to export, the method calls `export_sheet` to export the
+    # summary to a CSV file.
     # @note If no items are found to export, it prints a message indicating that no items were found.
     def summary(filter = nil, tag = nil)
       csv_filename = options[:csv]&.split('.')&.first
@@ -156,13 +168,17 @@ module Timet
 
     desc 'edit (e) [id] [field] [value]',
          'edit a task, [field] (notes, tag, start or end) and [value] are optional parameters'
-    # Edits a specific tracking item by its ID, allowing the user to modify fields such as notes, tag, start time, or end time.
+    # Edits a specific tracking item by its ID, allowing the user to modify fields such as notes, tag, start time, or
+    # end time.
     #
     # @param id [Integer] The ID of the tracking item to be edited.
-    # @param field [String, nil] The field to be edited. Possible values include 'notes', 'tag', 'start', or 'end'. If not provided, the user will be prompted to select a field.
-    # @param new_value [String, nil] The new value to be set for the specified field. If not provided, the user will be prompted to enter a new value.
+    # @param field [String, nil] The field to be edited. Possible values include 'notes', 'tag', 'start', or 'end'.
+    # If not provided, the user will be prompted to select a field.
+    # @param new_value [String, nil] The new value to be set for the specified field. If not provided, the user will be
+    # prompted to enter a new value.
     #
-    # @return [void] This method does not return a value; it performs side effects such as updating the tracking item and displaying the updated item.
+    # @return [void] This method does not return a value; it performs side effects such as updating the tracking item
+    # and displaying the updated item.
     #
     # @example Edit the notes of a tracking item with ID 1
     #   edit(1, 'notes', 'Updated notes')
@@ -172,7 +188,8 @@ module Timet
     #
     # @note The method first attempts to find the tracking item by its ID using `@db.find_item(id)`.
     # @note If the item is found, it displays the current item details using `display_item(item)`.
-    # @note If the field or new value is not provided, the user is prompted to select a field to edit and enter a new value.
+    # @note If the field or new value is not provided, the user is prompted to select a field to edit and enter
+    # a new value.
     # @note The method then validates and updates the item using `validate_and_update(item, field, new_value)`.
     # @note Finally, it displays the updated item details using `display_item(updated_item)`.
     def edit(id, field = nil, new_value = nil)
@@ -194,15 +211,18 @@ module Timet
     #
     # @param id [Integer] The ID of the tracking item to be deleted.
     #
-    # @return [void] This method does not return a value; it performs side effects such as deleting the tracking item and displaying a confirmation message.
+    # @return [void] This method does not return a value; it performs side effects such as deleting the tracking item
+    # and displaying a confirmation message.
     #
     # @example Delete a tracking item with ID 1
     #   delete(1)
     #
     # @note The method first attempts to find the tracking item by its ID using `@db.find_item(id)`.
     # @note If the item is found, it displays the item details using `TimeReport.new(@db).show_row(item)`.
-    # @note The method then prompts the user for confirmation using `TTY::Prompt.new.yes?('Are you sure you want to delete this entry?')`.
-    # @note If the user confirms, the method deletes the item and prints a confirmation message using `delete_item_and_print_message(id, "Deleted #{id}")`.
+    # @note The method then prompts the user for confirmation using `TTY::Prompt.new.yes?('Are you sure you want
+    # to delete this entry?')`.
+    # @note If the user confirms, the method deletes the item and prints a confirmation message using
+    # `delete_item_and_print_message(id, "Deleted #{id}")`.
     def delete(id)
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
@@ -216,14 +236,16 @@ module Timet
     desc 'cancel (c)', 'cancel active time tracking'
     # Cancels the active time tracking session by deleting the last tracking item.
     #
-    # @return [void] This method does not return a value; it performs side effects such as deleting the active tracking item and displaying a confirmation message.
+    # @return [void] This method does not return a value; it performs side effects such as deleting the active tracking
+    # item and displaying a confirmation message.
     #
     # @example Cancel the active time tracking session
     #   cancel
     #
     # @note The method fetches the ID of the last tracking item using `@db.fetch_last_id`.
     # @note It checks if the last item is in progress by comparing `@db.last_item_status` with `:complete`.
-    # @note If the last item is in progress, it deletes the item and prints a confirmation message using `delete_item_and_print_message(id, "Canceled active time tracking #{id}")`.
+    # @note If the last item is in progress, it deletes the item and prints a confirmation message using
+    # `delete_item_and_print_message(id, "Canceled active time tracking #{id}")`.
     # @note If there is no active time tracking, it prints a message indicating that there is no active time tracking.
     def cancel
       id = @db.fetch_last_id
@@ -240,7 +262,8 @@ module Timet
     #   MyClass.exit_on_failure? # => true
     #
     # @note This method is typically used in command-line applications to control the behavior when a command fails.
-    # @note Returning `true` means that the application will exit immediately if a command fails, which is useful for ensuring that errors are handled gracefully.
+    # @note Returning `true` means that the application will exit immediately if a command fails, which is useful for
+    # ensuring that errors are handled gracefully.
     def self.exit_on_failure?
       true
     end
@@ -264,7 +287,8 @@ module Timet
     # @param id [Integer] The ID of the tracking item to be deleted.
     # @param message [String] The message to be printed after the item is deleted.
     #
-    # @return [void] This method does not return a value; it performs side effects such as deleting the tracking item and printing a message.
+    # @return [void] This method does not return a value; it performs side effects such as deleting the tracking item
+    # and printing a message.
     #
     # @example Delete a tracking item with ID 1 and print a confirmation message
     #   delete_item_and_print_message(1, 'Deleted item 1')
