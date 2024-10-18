@@ -12,7 +12,8 @@ module Timet
     # @example Display the details of a tracking item
     #   display_item(item)
     #
-    # @note The method initializes a `TimeReport` object with the database and calls `show_row` to display the item details.
+    # @note The method initializes a `TimeReport` object with the database and calls `show_row` to display the
+    # item details.
     def display_item(item)
       TimeReport.new(@db).show_row(item)
     end
@@ -28,7 +29,8 @@ module Timet
     #   prompt_for_new_value(item, 'notes')
     #
     # @note The method retrieves the current value of the field using `field_value`.
-    # @note The method uses `TTY::Prompt.new` to prompt the user for a new value, displaying the current value in the prompt.
+    # @note The method uses `TTY::Prompt.new` to prompt the user for a new value, displaying the current value
+    # in the prompt.
     def prompt_for_new_value(item, field)
       current_value = field_value(item, field)
       prompt = TTY::Prompt.new(active_color: :green)
@@ -54,13 +56,15 @@ module Timet
     # @param item [Hash] The tracking item.
     # @param field [String] The field to retrieve the value for.
     #
-    # @return [String, Time] The value of the specified field. If the field is 'start' or 'end', it returns the value as a Time object.
+    # @return [String, Time] The value of the specified field. If the field is 'start' or 'end', it returns the value
+    # as a Time object.
     #
     # @example Retrieve the value of the 'notes' field
     #   field_value(item, 'notes')
     #
     # @note The method retrieves the index of the field from `Timet::Application::FIELD_INDEX`.
-    # @note If the field is 'start' or 'end', the method converts the value to a Time object using `TimeHelper.timestamp_to_time`.
+    # @note If the field is 'start' or 'end', the method converts the value to a Time object
+    # using `TimeHelper.timestamp_to_time`.
     def field_value(item, field)
       index = Timet::Application::FIELD_INDEX[field]
       value = item[index]
@@ -89,15 +93,38 @@ module Timet
     #
     # @return [void]
     def play_sound_and_notify(time, tag)
-      if RUBY_PLATFORM.downcase.include?('linux')
-        pid = spawn("sleep #{time} && tput bel && /home/frank/Software/frankvielma/gems/timet/bin/timet stop 0 && notify-send --icon=clock 'Pomodoro session complete! (tag: #{tag}) Time for a break.' &")
-        Process.wait(pid)
-      elsif RUBY_PLATFORM.downcase.include?('darwin')
-        pid = spawn("(sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && osascript -e 'display notification \"Pomodoro session complete! Time for a break.\"') &")
-        Process.wait(pid)
+      platform = RUBY_PLATFORM.downcase
+      if platform.include?('linux')
+        run_linux_session(time, tag)
+      elsif platform.include?('darwin')
+        run_mac_session(time, tag)
       else
         puts 'Unsupported operating system'
       end
+    end
+
+    # Runs a Pomodoro session on a Linux system.
+    #
+    # @param time [Integer] The duration of the Pomodoro session in seconds.
+    # @param tag [String] A tag or label for the session, used in the notification message.
+    # @return [void]
+    def run_linux_session(time, tag)
+      notification_command = "notify-send --icon=clock 'Pomodoro session complete! (tag: #{tag}) Time for a break.'"
+      command = "sleep #{time} && tput bel && tt stop 0 && #{notification_command} &"
+      pid = spawn(command)
+      Process.wait(pid)
+    end
+
+    # Runs a Pomodoro session on a macOS system.
+    #
+    # @param time [Integer] The duration of the Pomodoro session in seconds.
+    # @param _tag [String] A tag or label for the session, not used in the notification message on macOS.
+    # @return [void]
+    def run_mac_session(time, _tag)
+      notification_command = "osascript -e 'display notification \"Pomodoro session complete! Time for a break.\"'"
+      command = "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && #{notification_command} &"
+      pid = spawn(command)
+      Process.wait(pid)
     end
   end
 end
