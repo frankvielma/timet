@@ -119,14 +119,14 @@ module Timet
     #   time_block = { "00" => 100, "01" => 200, ..., "23" => 300 }
     #   print_time_block_chart(time_block)
     #   # Output:
-    #   # ⏳ ↦ ┏ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23
-    #   #      ┗ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █
+    #   # ⏳ ↦ [ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23 ]
+    #   #      [ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █
     #   #
     #   # (followed by two newlines)
     #
     def print_time_block_chart(time_block)
       print_header
-      print '     ┗ '
+      print '     [ '
       print_blocks(time_block)
     end
 
@@ -138,12 +138,13 @@ module Timet
     # @example
     #   print_header
     #   # Output:
-    #   # ⏳ ↦ ┏ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23
+    #   # ⏳ ↦ [ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23
     #
     def print_header
       puts
-      print '⏳ ↦ ┏ '
+      print '⏳ ↦ [ '
       (0..23).each { |hour| print format('%02d', hour).ljust(4) }
+      print ']'
       puts
     end
 
@@ -171,6 +172,7 @@ module Timet
         block_char = get_block_char(time_block[format('%02d', hour)])
         print (block_char * 2).ljust(4)
       end
+      print ']'
       puts "\n\n"
     end
 
