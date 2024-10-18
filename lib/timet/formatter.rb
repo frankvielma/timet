@@ -88,6 +88,23 @@ module Timet
       process_and_print_tags(sorted_duration_by_tag, factor, total)
     end
 
+    # Processes and prints the tag distribution information.
+    #
+    # @param sorted_duration_by_tag [Array<Array(String, Numeric)>] An array of arrays where each inner array contains a
+    # tag and its corresponding duration, sorted by duration in descending order.
+    # @param factor [Numeric] The factor used to adjust the bar length.
+    # @param total [Numeric] The total duration of all tags combined.
+    # @return [void] This method outputs the tag distribution information to the standard output.
+    def process_and_print_tags(sorted_duration_by_tag, factor, total)
+      block = '▅'
+      sorted_duration_by_tag.each do |tag, duration|
+        value = (duration.to_f / total * 100).round(2)
+        bar_length = (value / factor).to_i
+        color = rand(256)
+        puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  \u001b[38;5;#{color}m#{block * bar_length}\u001b[0m"
+      end
+    end
+
     # Prints the entire time block chart.
     #
     # This method orchestrates the printing of the entire time block chart by calling
@@ -175,25 +192,6 @@ module Timet
       }
 
       range_to_char.find { |range, _| range.include?(value) }&.last || ' '
-    end
-  end
-
-  private
-
-  # Processes and prints the tag distribution information.
-  #
-  # @param sorted_duration_by_tag [Array<Array(String, Numeric)>] An array of arrays where each inner array contains a
-  # tag and its corresponding duration, sorted by duration in descending order.
-  # @param factor [Numeric] The factor used to adjust the bar length.
-  # @param total [Numeric] The total duration of all tags combined.
-  # @return [void] This method outputs the tag distribution information to the standard output.
-  def process_and_print_tags(sorted_duration_by_tag, factor, total)
-    block = '▅'
-    sorted_duration_by_tag.each do |tag, duration|
-      value = (duration.to_f / total * 100).round(2)
-      bar_length = (value / factor).to_i
-      color = rand(256)
-      puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  \u001b[38;5;#{color}m#{block * bar_length}\u001b[0m"
     end
   end
 end
