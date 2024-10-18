@@ -6,7 +6,8 @@ module Timet
   module Formatter
     # Formats the header of the time tracking report table.
     #
-    # @return [void] This method does not return a value; it performs side effects such as printing the formatted header.
+    # @return [void] This method does not return a value; it performs side effects such as printing
+    # the formatted header.
     #
     # @example Format and print the table header
     #   format_table_header
@@ -16,7 +17,7 @@ module Timet
       header = <<~TABLE
         Tracked time report \e[5m\u001b[31m[#{@filter}]\033[0m:
         #{format_table_separator}
-        \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |\033[0m
+        \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes              |\033[0m
         #{format_table_separator}
       TABLE
       puts header
@@ -27,11 +28,11 @@ module Timet
     # @return [String] The formatted separator line.
     #
     # @example Get the formatted table separator
-    #   format_table_separator # => '+-------+------------+--------+----------+----------+----------+--------------------------+'
+    #   format_table_separator # => '+-------+------------+--------+----------+----------+----------+------------+'
     #
     # @note The method returns a string representing the separator line for the table.
     def format_table_separator
-      '+-------+------------+--------+----------+----------+----------+--------------------------+'
+      '+-------+------------+--------+----------+----------+----------+--------------------+'
     end
 
     # Formats a row of the time tracking report table.
@@ -59,10 +60,11 @@ module Timet
     #
     # @note The method truncates the notes to a maximum of 20 characters and pads them to a fixed width.
     def format_notes(notes)
-      return ' ' * 23 if notes.nil?
+      spaces = 17
+      return ' ' * spaces if notes.nil?
 
-      notes = "#{notes.slice(0, 20)}..." if notes.length > 20
-      notes.ljust(23)
+      notes = "#{notes.slice(0, spaces - 3)}..." if notes.length > spaces - 3
+      notes.ljust(spaces)
     end
 
     # @!method format_tag_distribution(duration_by_tag)
@@ -78,17 +80,12 @@ module Timet
     #   @param duration_by_tag [Hash<String, Integer>] A hash where keys are tags and values are durations in seconds.
     #   @return [void] This method outputs the formatted tag distribution to the console.
     def format_tag_distribution(duration_by_tag)
-      block = '▅'
       total = duration_by_tag.values.sum
       return unless total.positive?
 
       factor = duration_by_tag.size < 3 ? 2 : 1
       sorted_duration_by_tag = duration_by_tag.sort_by { |_, duration| -duration }
-
-      sorted_duration_by_tag.each do |tag, duration|
-        value = (duration.to_f / total * 100).round(2)
-        puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  \u001b[38;5;#{rand(256)}m#{block * (value / factor).to_i}\u001b[0m"
-      end
+      process_and_print_tags(sorted_duration_by_tag, factor, total)
     end
 
     # Prints the entire time block chart.
@@ -178,6 +175,25 @@ module Timet
       }
 
       range_to_char.find { |range, _| range.include?(value) }&.last || ' '
+    end
+  end
+
+  private
+
+  # Processes and prints the tag distribution information.
+  #
+  # @param sorted_duration_by_tag [Array<Array(String, Numeric)>] An array of arrays where each inner array contains a
+  # tag and its corresponding duration, sorted by duration in descending order.
+  # @param factor [Numeric] The factor used to adjust the bar length.
+  # @param total [Numeric] The total duration of all tags combined.
+  # @return [void] This method outputs the tag distribution information to the standard output.
+  def process_and_print_tags(sorted_duration_by_tag, factor, total)
+    block = '▅'
+    sorted_duration_by_tag.each do |tag, duration|
+      value = (duration.to_f / total * 100).round(2)
+      bar_length = (value / factor).to_i
+      color = rand(256)
+      puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  \u001b[38;5;#{color}m#{block * bar_length}\u001b[0m"
     end
   end
 end
