@@ -19,7 +19,7 @@ Timet refers to a command-line tool designed to track your activities by recordi
 - **Querying and Reporting:** Generate detailed reports for specific periods.
 - **CSV Export:** Easily export your time tracking data to CSV format for further analysis or sharing.
 - **Pomodoro Integration:** The pomodoro option in the start command enhances time tracking by integrating the Pomodoro Technique.
-- **Block Time Plot:** Visualizes the distribution of tracked time across a 24-hour period, with bars in each column representing the amount of time tracked during that specific hour.
+- **Block Time Plot:** Visualizes the distribution of tracked time across a specified range of dates, with bars in each column representing the amount of time tracked during that specific hour. The plot includes a header showing the hours and a row for each date, displaying the time blocks for each hour.
 - **Tag Distribution Plot:** Illustrates the proportion of total tracked time allocated to each tag, showing the relative contribution of each tag to the overall time tracked.
 
 Example:
