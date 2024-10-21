@@ -42,6 +42,8 @@ Tracked time report [today]:
     Tag3:    50.0%  ▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅
 ```
 
+![Timet monthly report](monthly_report.webp)
+
 ## Requirements
 
 - Ruby version: >= 3.0.0
@@ -233,7 +235,7 @@ Many people have contacted me asking how to contribute. Any contribution, from a
 
 **Bitcoin Address:**
 ```sh
-bc1qkg9me2jsuhpzu2hp9kkpxagwtf9ewnyfl4kszl 
+bc1qkg9me2jsuhpzu2hp9kkpxagwtf9ewnyfl4kszl
 ```
 
 ![Buy me a coffee!](btc.png)
