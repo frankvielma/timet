@@ -178,10 +178,9 @@ module Timet
     #   If the start_time is outside this range, the output may not be as expected.
     def print_header(start_time)
       puts
-      print '     ⏳ ↦ [ '
+      print "\u001b[38;5;244m┌╴W ╴╴╴╴╴⏰ ╴╴╴╴╴╴┬\u001b[0m "
       (start_time..23).each { |hour| print format('%02d', hour).ljust(4) }
-      print ']'
-      puts
+      puts ''
     end
 
     # Prints the block characters for each hour in the time block chart.
@@ -204,13 +203,30 @@ module Timet
     def print_blocks(time_block, colors, start_time)
       return unless time_block
 
-      time_block.each_key do |item|
-        print "#{item}  "
-        time_block_initial = time_block[item]
+      weeks = []
+      time_block.each_key do |date_string|
+        date = Date.parse(date_string)
+        day = date.strftime('%a')[0..1]
+        date1 = date_string
+        if %w[Sa Su].include?(day)
+          day = "\u001b[38;5;1m#{day}\u001b[0m"
+          date1 = "\u001b[38;5;1m#{date1}\u001b[0m"
+        end
+
+        weeks << date.cweek
+        n = weeks.size - 1
+        week = if (weeks[n] == weeks[n - 1]) && n.positive?
+                 '  '
+               else
+                 "\e[4m#{weeks[n]}\e[0m"
+               end
+        puts "\u001b[38;5;244m┆                 ┆\u001b[0m" if week != '  ' && n.positive?
+        print "\u001b[38;5;244m┆\u001b[0m#{week} #{date1} #{day} \u001b[38;5;244m┆\u001b[0m "
+        time_block_initial = time_block[date_string]
         print_time_blocks(start_time, time_block_initial, colors)
         puts
       end
-      puts "\n"
+      puts "\u001b[38;5;244m└╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴┴\u001b[0m"
     end
 
     # Prints time blocks for each hour from the start time to 23.
