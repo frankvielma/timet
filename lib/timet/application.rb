@@ -35,7 +35,8 @@ module Timet
 
     VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
 
-    desc "start [tag] --notes='[notes]'", 'Start time tracking for a specific tag with optional notes'
+    desc "start [tag] --notes='' --pomodoro=[min]",
+         'Starts tracking time for a task labeled with the provided [tag],  notes and "pomodoro time" in minutes (optional).'
     option :notes, type: :string, desc: 'Add a note'
     option :pomodoro, type: :numeric, desc: 'Pomodoro time in minutes'
     # Starts a new tracking session with the given tag and optional notes.
@@ -127,7 +128,7 @@ module Timet
     end
 
     desc 'summary (su) [filter] [tag] --csv=csv_filename',
-         '  [filter] => [today (t), yesterday (y), week (w), month (m), [start_date]..[end_date]]  [tag]'
+         '[filter] => [today (t), yesterday (y), week (w), month (m), [start_date]..[end_date]]  [tag]'
     option :csv, type: :string, desc: 'Export to CSV file'
     # Generates a summary of tracking items based on the provided filter and tag, and optionally exports the summary
     # to a CSV file.
