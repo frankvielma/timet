@@ -4,6 +4,7 @@ require 'date'
 require 'csv'
 require_relative 'status_helper'
 require_relative 'formatter'
+require_relative 'time_report_helper'
 
 module Timet
   # The TimeReport class is responsible for displaying a report of tracked time
@@ -11,6 +12,7 @@ module Timet
   # a formatted table with the relevant information.
   class TimeReport
     include Formatter
+    include TimeReportHelper
 
     # Provides access to the database instance.
     attr_reader :db
@@ -53,23 +55,14 @@ module Timet
       return puts 'No tracked time found for the specified filter.' if items.empty?
 
       format_table_header
-      duration_by_tag = Hash.new(0)
-      time_block = []
-      items.each_with_index do |item, idx|
-        date = TimeHelper.extract_date(items, idx)
-        display_time_entry(item, date)
-        time_block << TimeHelper.count_seconds_per_hour_block(item[1], item[2])
-        duration_by_tag[item[3]] += TimeHelper.calculate_duration(item[1], item[2])
-      end
+      time_block, duration_by_tag = process_time_entries
       puts format_table_separator
       total
 
-      if Time.now.to_i - items.map { |x| x[1] }.min < 86_400
-        time_block_reverse = TimeHelper.aggregate_hash_values(time_block)
-        print_time_block_chart(time_block_reverse)
-      end
+      colors = duration_by_tag.map { |x| x[0] }.sort.each_with_index.to_h
+      print_time_block_chart(time_block, colors)
 
-      format_tag_distribution(duration_by_tag)
+      format_tag_distribution(duration_by_tag, colors)
     end
 
     # Displays a single row of the report.
@@ -119,31 +112,8 @@ module Timet
     def write_csv(file_name)
       CSV.open(file_name, 'w') do |csv|
         csv << %w[ID Start End Tag Notes]
-        items.each do |item|
-          csv << format_item(item)
-        end
+        write_csv_rows(csv)
       end
-    end
-
-    # Formats an item for CSV export.
-    #
-    # @param item [Array] The item to format.
-    #
-    # @return [Array] The formatted item.
-    #
-    # @example Format an item for CSV export
-    #   format_item(item)
-    #
-    # @note The method formats the item's ID, start time, end time, tag, and notes.
-    def format_item(item)
-      id, start_time, end_time, tags, notes = item
-      [
-        id,
-        TimeHelper.format_time(start_time),
-        TimeHelper.format_time(end_time),
-        tags,
-        notes
-      ]
     end
 
     # Displays a single time entry in the report.
@@ -180,7 +150,7 @@ module Timet
       total = @items.map do |item|
         TimeHelper.calculate_duration(item[1], item[2])
       end.sum
-      puts "|#{' ' * 37}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(8)} |\033[0m                          |"
+      puts "|#{' ' * 43}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(8)} |\033[0m                    |"
       puts format_table_separator
     end
 
@@ -206,24 +176,6 @@ module Timet
         puts 'Invalid filter. Supported filters: today, yesterday, week, month'
         []
       end
-    end
-
-    # Provides predefined date ranges for filtering.
-    #
-    # @return [Hash] A hash containing predefined date ranges.
-    #
-    # @example Get the predefined date ranges
-    #   date_ranges
-    #
-    # @note The method returns a hash with predefined date ranges for 'today', 'yesterday', 'week', and 'month'.
-    def date_ranges
-      today = Date.today
-      {
-        'today' => [today, nil],
-        'yesterday' => [today - 1, nil],
-        'week' => [today - 7, today + 1],
-        'month' => [today - 30, today + 1]
-      }
     end
 
     # Filters the items by date range and tag.
@@ -272,23 +224,6 @@ module Timet
       return filter if filter && valid_date_format?(filter)
 
       'today'
-    end
-
-    # Validates the date format.
-    #
-    # @param date_string [String] The date string to validate.
-    #
-    # @return [Boolean] True if the date format is valid, otherwise false.
-    #
-    # @example Validate the date format
-    #   valid_date_format?('2021-10-01') # => true
-    #
-    # @note The method validates the date format for single dates and date ranges.
-    def valid_date_format?(date_string)
-      date_format_single = /^\d{4}-\d{2}-\d{2}$/
-      date_format_range = /^\d{4}-\d{2}-\d{2}\.\.\d{4}-\d{2}-\d{2}$/
-
-      date_string.match?(date_format_single) || date_string.match?(date_format_range)
     end
   end
 end

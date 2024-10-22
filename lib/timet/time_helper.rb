@@ -15,7 +15,7 @@ module Timet
     # @example Format a timestamp
     #   TimeHelper.format_time(1633072800) # => '2021-10-01 12:00:00'
     def self.format_time(timestamp)
-      return nil if timestamp.nil?
+      return nil unless timestamp
 
       Time.at(timestamp).strftime('%Y-%m-%d %H:%M:%S')
     end
@@ -28,7 +28,7 @@ module Timet
     # @example Convert a timestamp to a date string
     #   TimeHelper.timestamp_to_date(1633072800) # => '2021-10-01'
     def self.timestamp_to_date(timestamp)
-      return nil if timestamp.nil?
+      return nil unless timestamp
 
       Time.at(timestamp).strftime('%Y-%m-%d')
     end
@@ -41,7 +41,7 @@ module Timet
     # @example Convert a timestamp to a time string
     #   TimeHelper.timestamp_to_time(1633072800) # => '12:00:00'
     def self.timestamp_to_time(timestamp)
-      return nil if timestamp.nil?
+      return nil unless timestamp
 
       Time.at(timestamp).strftime('%H:%M:%S')
     end
@@ -186,53 +186,51 @@ module Timet
     #   result = count_seconds_per_hour_block(start_time, end_time)
     #   # Output: {"08"=>1800, "09"=>1800, "10"=>3600, "11"=>1200}
     #
-    def self.count_seconds_per_hour_block(start_time, end_time)
+    def self.count_seconds_per_hour_block(start_time, end_time, tag)
       hour_blocks = Hash.new(0)
 
       current_time = Time.at(start_time)
       end_time = Time.at(end_time || current_timestamp)
 
       while current_time < end_time
-        current_hour = current_time.hour
-        next_hour_boundary = Time.new(current_time.year, current_time.month, current_time.day, current_hour + 1)
-
-        block_end_time = [next_hour_boundary, end_time].min
-        seconds_in_block = (block_end_time - current_time).to_i
-
-        hour_block = current_time.strftime('%H')
-        hour_blocks[hour_block] += seconds_in_block
+        block_end_time, hour_blocks = calculate_block_end_time_and_seconds(current_time, end_time, hour_blocks)
 
         current_time = block_end_time
       end
 
-      hour_blocks
+      append_tag_to_hour_blocks(hour_blocks, tag)
     end
 
-    # Aggregates the values of the same keys from an array of hashes.
+    # Calculates the end time of the current block and the number of seconds in the block.
+    # Additionally, it updates the `hour_blocks` hash with the number of seconds for the current hour block.
     #
-    # This method takes an array of hashes, reverses it, and then aggregates the values
-    # for the same keys into a single hash. If a key appears in multiple hashes, its
-    # values are summed.
-    #
-    # @param time_block [Array<Hash>] An array of hashes where each hash contains key-value pairs.
-    # @return [Hash] A hash where the keys are the aggregated keys from the input hashes
-    #                and the values are the summed values for each key.
-    # @example
-    #   time_block = [
-    #     {"01": 10},
-    #     {"01": 30},
-    #     {"02": 50}
-    #   ]
-    #   result = aggregate_hash_values(time_block)
-    #   # Output: {"01"=>40, "02"=>50}
-    #
-    def self.aggregate_hash_values(time_block)
-      time_block.reverse.each_with_object({}) do |hash, acc|
-        hash.each do |key, value|
-          acc[key] ||= 0
-          acc[key] += value
-        end
+    # @param current_time [Time] The current time.
+    # @param end_time [Time] The end time of the overall period.
+    # @param hour_blocks [Hash] A hash where each key represents an hour block and the value is the number of seconds
+    # in that block.
+    # @return [Array<(Time, Hash)>] An array containing the end time of the current block and the updated
+    # `hour_blocks` hash.
+    def self.calculate_block_end_time_and_seconds(current_time, end_time, hour_blocks)
+      current_hour = current_time.hour
+      next_hour_boundary = Time.new(current_time.year, current_time.month, current_time.day, current_hour + 1)
+
+      block_end_time = [next_hour_boundary, end_time].min
+      seconds_in_block = (block_end_time - current_time).to_i
+      hour_block = current_time.strftime('%H')
+      hour_blocks[hour_block] += seconds_in_block
+
+      [block_end_time, hour_blocks]
+    end
+
+    # @param hour_blocks [Hash] A hash where each key represents an hour block and the value is some data associated
+    # with that hour block.
+    # @param tag [Object] The tag to append to each value in the hash.
+    # @return [Hash] The modified hash with the tag appended to each value.
+    def self.append_tag_to_hour_blocks(hour_blocks, tag)
+      hour_blocks.each do |key, value|
+        hour_blocks[key] = [value, tag]
       end
+      hour_blocks
     end
   end
 end

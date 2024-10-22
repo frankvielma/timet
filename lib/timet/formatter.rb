@@ -4,6 +4,18 @@ module Timet
   # This module is responsible for formatting the output of the `timet` application.
   # It provides methods for formatting the table header, separators, and rows.
   module Formatter
+    CHAR_MAPPING = {
+      0..120 => '_',
+      121..450 => '▁',
+      451..900 => '▂',
+      901..1350 => '▃',
+      1351..1800 => '▄',
+      1801..2250 => '▅',
+      2251..2700 => '▆',
+      2701..3150 => '▇',
+      3151..3600 => '█'
+    }.freeze
+
     # Formats the header of the time tracking report table.
     #
     # @return [void] This method does not return a value; it performs side effects such as printing
@@ -61,9 +73,10 @@ module Timet
     # @note The method truncates the notes to a maximum of 20 characters and pads them to a fixed width.
     def format_notes(notes)
       spaces = 17
-      return ' ' * spaces if notes.nil?
+      return ' ' * spaces unless notes
 
-      notes = "#{notes.slice(0, spaces - 3)}..." if notes.length > spaces - 3
+      max_length = spaces - 3
+      notes = "#{notes.slice(0, max_length)}..." if notes.length > max_length
       notes.ljust(spaces)
     end
 
@@ -79,13 +92,13 @@ module Timet
     #
     #   @param duration_by_tag [Hash<String, Integer>] A hash where keys are tags and values are durations in seconds.
     #   @return [void] This method outputs the formatted tag distribution to the console.
-    def format_tag_distribution(duration_by_tag)
+    def format_tag_distribution(duration_by_tag, colors)
       total = duration_by_tag.values.sum
       return unless total.positive?
 
       factor = duration_by_tag.size < 3 ? 2 : 1
       sorted_duration_by_tag = duration_by_tag.sort_by { |_, duration| -duration }
-      process_and_print_tags(sorted_duration_by_tag, factor, total)
+      process_and_print_tags(sorted_duration_by_tag, factor, total, colors)
     end
 
     # Processes and prints the tag distribution information.
@@ -95,55 +108,78 @@ module Timet
     # @param factor [Numeric] The factor used to adjust the bar length.
     # @param total [Numeric] The total duration of all tags combined.
     # @return [void] This method outputs the tag distribution information to the standard output.
-    def process_and_print_tags(sorted_duration_by_tag, factor, total)
+    def process_and_print_tags(*args)
+      sorted_duration_by_tag, factor, total, colors = args
       block = '▅'
       sorted_duration_by_tag.each do |tag, duration|
-        value = (duration.to_f / total * 100).round(2)
-        bar_length = (value / factor).to_i
-        color = rand(256)
-        puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  \u001b[38;5;#{color}m#{block * bar_length}\u001b[0m"
+        value, bar_length = calculate_value_and_bar_length(duration, total, factor)
+        puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  \u001b[38;5;#{colors[tag] + 1}m#{block * bar_length}\u001b[0m"
       end
     end
 
-    # Prints the entire time block chart.
+    # Calculates the value and bar length for a given duration, total duration, and factor.
     #
-    # This method orchestrates the printing of the entire time block chart by calling
-    # the `print_header` and `print_blocks` methods. It also prints the separator line
-    # between the header and the blocks, and adds a double newline at the end for
-    # separation.
+    # @param duration [Numeric] The duration for the current tag.
+    # @param total [Numeric] The total duration.
+    # @param factor [Numeric] A factor to adjust the formatting.
+    # @return [Array<(Float, Integer)>] An array containing the calculated value and bar length.
     #
-    # @param time_block [Hash] A hash where the keys are formatted hour strings
-    #                          (e.g., "00", "01") and the values are the corresponding
-    #                          values to determine the block character.
     # @example
-    #   time_block = { "00" => 100, "01" => 200, ..., "23" => 300 }
-    #   print_time_block_chart(time_block)
-    #   # Output:
-    #   # ⏳ ↦ [ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23 ]
-    #   #      [ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █
-    #   #
-    #   # (followed by two newlines)
+    #   calculate_value_and_bar_length(50, 100, 2) #=> [50.0, 25]
+    def calculate_value_and_bar_length(duration, total, factor)
+      value = (duration.to_f / total * 100).round(2)
+      bar_length = (value / factor).round
+      [value, bar_length]
+    end
+
+    # Prints a time block chart based on the provided time block and colors.
     #
-    def print_time_block_chart(time_block)
-      print_header
-      print '     [ '
-      print_blocks(time_block)
+    # @param time_block [Hash] A hash where the keys are time blocks and the values are hashes of time slots and their
+    # corresponding values.
+    #   Example: { "block1" => { 10 => "value1", 11 => "value2" }, "block2" => { 12 => "value3" } }
+    # @param colors [Hash] A hash where the keys are time slots and the values are the colors to be used
+    # for those slots.
+    #   Example: { 10 => "red", 11 => "blue", 12 => "green" }
+    #
+    # @return [void] This method does not return a value; it prints the chart directly to the output.
+    #
+    # @example
+    #   time_block = { "block1" => { 10 => "value1", 11 => "value2" }, "block2" => { 12 => "value3" } }
+    #   colors = { 10 => "red", 11 => "blue", 12 => "green" }
+    #   print_time_block_chart(time_block, colors)
+    #
+    # @note This method relies on two helper methods: `print_header` and `print_blocks`.
+    #   Ensure these methods are defined and available in the scope where `print_time_block_chart` is called.
+    #
+    # @see #print_header
+    # @see #print_blocks
+    def print_time_block_chart(time_block, colors)
+      start_time = time_block.values.map(&:keys).flatten.uniq.min.to_i
+      print_header(start_time)
+      print_blocks(time_block, colors, start_time)
     end
 
     # Prints the header of the time block chart.
     #
-    # This method outputs the header line of the chart, which includes the hours
-    # from 00 to 23, formatted and aligned for readability.
+    # The header includes a visual representation of the time slots from the given start time to 23.
+    # Each time slot is formatted as a two-digit number and aligned to the right within a fixed width.
+    #
+    # @param start_time [Integer] The starting time for the chart. This should be an integer between 0 and 23.
+    #
+    # @return [void] This method does not return a value; it prints the header directly to the output.
     #
     # @example
-    #   print_header
+    #   print_header(10)
     #   # Output:
-    #   # ⏳ ↦ [ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23
+    #   #
+    #   #      ⏳ ↦ [ 10  11  12  13  14  15  16  17  18  19  20  21  22  23]
     #
-    def print_header
+    # @note The method assumes that the start_time is within the valid range of 0 to 23.
+    #   If the start_time is outside this range, the output may not be as expected.
+    def print_header(start_time)
       puts
-      print '⏳ ↦ [ '
-      (0..23).each { |hour| print format('%02d', hour).ljust(4) }
+      print '     ⏳ ↦ [ '
+      (start_time..23).each { |hour| print format('%02d', hour).ljust(4) }
       print ']'
       puts
     end
@@ -165,15 +201,72 @@ module Timet
     #   #
     #   # (followed by two newlines)
     #
-    def print_blocks(time_block)
+    def print_blocks(time_block, colors, start_time)
       return unless time_block
 
-      (0..23).each do |hour|
-        block_char = get_block_char(time_block[format('%02d', hour)])
-        print (block_char * 2).ljust(4)
+      time_block.each_key do |item|
+        print "#{item}  "
+        time_block_initial = time_block[item]
+        print_time_blocks(start_time, time_block_initial, colors)
+        puts
       end
-      print ']'
-      puts "\n\n"
+      puts "\n"
+    end
+
+    # Prints time blocks for each hour from the start time to 23.
+    #
+    # @param start_time [Integer] The starting hour for printing time blocks.
+    # @param time_block_initial [Hash] A hash containing time block data, where keys are formatted hours and values
+    # are arrays containing block data.
+    # @param colors [Hash] A hash mapping tags to color codes.
+    # @return [void]
+    #
+    # @example
+    #   time_block_initial = {
+    #     '01' => ['block_char_data', 'tag']
+    #   }
+    #   colors = { 'tag' => 1 }
+    #   print_time_blocks(1, time_block_initial, colors) # Prints time blocks for hours 1 to 23
+    def print_time_blocks(start_time, time_block_initial, colors)
+      (start_time..23).each do |hour|
+        tag, block_char = get_formatted_block_char(hour, time_block_initial)
+        print_colored_block(block_char, tag, colors)
+      end
+    end
+
+    # Returns the formatted block character and its associated tag for a given hour.
+    #
+    # @param hour [Integer] The hour for which to retrieve the block character.
+    # @param time_block_initial [Hash] A hash containing time block data, where keys are formatted hours and values
+    # are arrays containing block data.
+    # @return [Array<(String, String)>] An array containing the tag and the block character.
+    #
+    # @example
+    #   time_block_initial = {
+    #     '01' => ['block_char_data', 'tag']
+    #   }
+    #   get_formatted_block_char(1, time_block_initial) #=> ['tag', 'block_char']
+    def get_formatted_block_char(hour, time_block_initial)
+      formatted_hour = format('%02d', hour)
+      hour_data = time_block_initial[formatted_hour]
+      tag = hour_data&.last
+      [tag, get_block_char(hour_data&.first)]
+    end
+
+    # Prints a colored block character based on the provided tag and block character.
+    #
+    # @param block_char [String] The block character to be printed.
+    # @param tag [String] The tag associated with the block character, used to determine the color.
+    # @param colors [Hash] A hash mapping tags to color codes.
+    #
+    # @example
+    #   colors = { 'tag' => 1 }
+    #   print_colored_block('X', 'tag', colors) # Prints a colored block character 'XX'
+    def print_colored_block(block_char, tag, colors)
+      color_code = colors[tag]
+      block = block_char * 2
+      colored_block = color_code ? "\u001b[38;5;#{color_code + 1}m#{block}\u001b[0m  " : block
+      print colored_block.ljust(4)
     end
 
     # Determines the block character based on the value.
@@ -181,19 +274,9 @@ module Timet
     # @param value [Integer] The value to determine the block character for.
     # @return [String] The block character corresponding to the value.
     def get_block_char(value)
-      range_to_char = {
-        0..120 => ' ',
-        121..450 => '▁',
-        451..900 => '▂',
-        901..1350 => '▃',
-        1351..1800 => '▄',
-        1801..2250 => '▅',
-        2251..2700 => '▆',
-        2701..3150 => '▇',
-        3151..3600 => '█'
-      }
+      return ' ' unless value
 
-      range_to_char.find { |range, _| range.include?(value) }&.last || ' '
+      CHAR_MAPPING.find { |range, _| range.include?(value) }&.last || ' '
     end
   end
 end
