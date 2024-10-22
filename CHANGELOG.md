@@ -1,18 +1,66 @@
 ## [Unreleased]
 
+## [1.3.0] - 2024-10-22
+
+**Improvements:**
+
+- **Refactor `TimeReport` to use `TimeReportHelper` module for utility methods:**
+
+  - Extracted utility methods (`add_hashes`, `date_ranges`, `format_item`, `valid_date_format?`) into a new `TimeReportHelper` module.
+  - Updated `TimeReport` class to include `TimeReportHelper` module.
+  - Removed redundant utility methods from `TimeReport` class.
+  - Updated `display` method to use `process_time_entries` from `TimeReportHelper`.
+  - Updated `write_csv` method to use `write_csv_rows` from `TimeReportHelper`.
+  - Updated `print_time_block_chart` method to pass `colors` parameter to `format_tag_distribution`.
+  - Adjusted formatting in `total` method for better alignment.
+
+- **Refactor `Timet::Formatter` to improve readability and modularity:**
+
+  - Introduced a constant `CHAR_MAPPING` to store block characters for different value ranges.
+  - Refactored `format_notes` method to use a more descriptive variable name for the maximum length.
+  - Updated `format_tag_distribution` method to accept `colors` parameter and pass it to `process_and_print_tags`.
+  - Extracted the logic for calculating `value` and `bar_length` into a separate method `calculate_value_and_bar_length`.
+  - Refactored `process_and_print_tags` to accept `colors` parameter and use the new `calculate_value_and_bar_length` method.
+  - Updated `print_time_block_chart` method to accept `colors` parameter and pass it to `print_blocks`.
+  - Refactored `print_blocks` method to accept `colors` and `start_time` parameters and use the new `print_time_blocks` method.
+  - Introduced `print_time_blocks` method to handle the printing of time blocks for each hour from the start time to 23.
+  - Introduced `get_formatted_block_char` method to retrieve the formatted block character and its associated tag for a given hour.
+  - Refactored `print_colored_block` method to use the `block` variable for clarity.
+  - Updated `get_block_char` method to use the `CHAR_MAPPING` constant for determining the block character.
+
+- **Refactor `TimeHelper` methods and add new functionality:**
+  - Simplified nil checks in `format_time`, `timestamp_to_date`, and `timestamp_to_time` methods by using `unless` instead of `if`.
+  - Extracted the logic for calculating block end time and seconds into a new method `calculate_block_end_time_and_seconds`.
+  - Updated `count_seconds_per_hour_block` to use the new `calculate_block_end_time_and_seconds` method.
+  - Added a new method `append_tag_to_hour_blocks` to append a tag to each value in the `hour_blocks` hash.
+  - Removed the `aggregate_hash_values` method as it is no longer needed.
+  - Updated YARD documentation for all methods to reflect the changes.
+
+**Bug fixes:**
+
+- [ ] No bug fixes in this PR.
+
+**Tasks:**
+
+- Update `README.md` to reflect the changes.
+- Update `Gemfile` and version to reflect the latest changes.
+
 ## [1.2.1] - 2024-10-18
 
 **Improvements:**
+
 - Updated the time block chart formatting to use square brackets for better visual representation.
 - Refactored the `play_sound_and_notify` method to avoid redundant platform checks and introduced platform-specific session runners.
 - Improved readability and maintainability of the `format_tag_distribution` method by extracting logic into a new private method.
 - Updated the `rubocop` gem from `~> 1.65` to `~> 1.67`.
 
 ### Bug fixes:
+
 - Fixed a `NoMethodError` caused by an undefined method `process_and_print_tags` in the `format_tag_distribution` method.
 - Fixed line length violations in several files to comply with `rubocop` rules.
 
 ### Additional Considerations:
+
 - The changes in this pull request should be thoroughly tested to ensure that they do not introduce any regressions.
 - Future improvements could include further refactoring to extract more logic into separate methods or classes, depending on the complexity and requirements of the application.
 
