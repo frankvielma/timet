@@ -224,6 +224,9 @@ module Timet
         print "\u001b[38;5;244m┆\u001b[0m#{week} #{date1} #{day} \u001b[38;5;244m┆\u001b[0m "
         time_block_initial = time_block[date_string]
         print_time_blocks(start_time, time_block_initial, colors)
+        total_seconds = time_block_initial.values.map { |item| item[0] }.sum
+        hours_per_day = (total_seconds / 3600.0).round(1)
+        print "#{hours_per_day}h"
         puts
       end
       puts "\u001b[38;5;244m└╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴┴\u001b[0m"
