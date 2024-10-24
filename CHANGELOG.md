@@ -1,5 +1,44 @@
 ## [Unreleased]
 
+## [1.3.1] - 2024-10-24
+
+**Improvements:**
+
+- Refactor `print_header` and `print_blocks` methods for improved readability and formatting.
+  - Updated `print_header` method to use color codes for better visual distinction.
+  - Refactored `print_blocks` method to include date and week formatting:
+    - Formatted day names with two letters and applied color for weekends.
+    - Added week number formatting with underlines for new weeks.
+    - Printed date headers with week numbers, formatted dates, and day names.
+    - Printed time blocks for each hour from the start time to 23.
+    - Added a footer line for better visual separation.
+- Update description in the `start` command for clarity.
+- Bump version to 1.3.1 and update README image.
+  - Updated the version number in `lib/timet/version.rb` to 1.3.1.
+  - Updated the README.md to use a `.webp` image format for the "Buy me a coffee!" section.
+  - Removed the old `.png` image file.
+  - Updated the `.gemspec` file to exclude `.webp` files from the gem package.
+  - Updated the `Gemfile.lock` to reflect the new version number.
+
+**Bug fixes:**
+
+- Address missing file issue.
+
+**Tasks:**
+
+- Refactor `print_header` method.
+- Refactor `print_blocks` method.
+- Update `start` command description.
+- Bump version to 1.3.1.
+- Update README image format.
+- Address missing file.
+
+**Additional Considerations:**
+
+- The changes in this pull request improve the overall user experience by enhancing the visual presentation of the time tracking report and updating the documentation.
+- The version bump to 1.3.1 reflects the improvements and bug fixes made in this release.
+- The updated README image format ensures better compatibility and performance.
+
 ## [1.3.0] - 2024-10-22
 
 **Improvements:**
