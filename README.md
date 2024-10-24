@@ -238,7 +238,7 @@ Many people have contacted me asking how to contribute. Any contribution, from a
 bc1qkg9me2jsuhpzu2hp9kkpxagwtf9ewnyfl4kszl
 ```
 
-![Buy me a coffee!](btc.png)
+![Buy me a coffee!](btc.webp)
 
 ---
 
