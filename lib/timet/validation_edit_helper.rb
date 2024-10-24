@@ -75,7 +75,7 @@ module Timet
     # @example Print an error message for an invalid date
     #   print_error('Invalid date: 2023-13-32')
     def print_error(message)
-      puts "\u001b[31mInvalid date: #{message}\033[0m"
+      puts "Invalid date: #{message}".red
     end
 
     # Updates a time field (start or end) of a tracking item with a formatted date value.
