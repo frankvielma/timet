@@ -5,7 +5,7 @@ module Timet
   class ColorCodes
     RESET = "\u001b[0m"
     UNDERLINE = "\e[4m"
-    BLINK = "\e[5m["
+    BLINK = "\e[5m"
 
     def self.reset
       RESET

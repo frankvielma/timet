@@ -109,10 +109,10 @@ module Timet
     # @param tag [String] A tag or label for the session, used in the notification message.
     # @return [void]
     def run_linux_session(time, tag)
-      notification_command = "notify-send --icon=clock 'Pomodoro session complete! (tag: #{tag}) Time for a break.'"
+      notification_command = "notify-send --icon=clock '#{show_message(tag)}'"
       command = "sleep #{time} && tput bel && tt stop 0 && #{notification_command} &"
       pid = spawn(command)
-      Process.wait(pid)
+      Process.detach(pid)
     end
 
     # Runs a Pomodoro session on a macOS system.
@@ -120,11 +120,24 @@ module Timet
     # @param time [Integer] The duration of the Pomodoro session in seconds.
     # @param _tag [String] A tag or label for the session, not used in the notification message on macOS.
     # @return [void]
-    def run_mac_session(time, _tag)
-      notification_command = "osascript -e 'display notification \"Pomodoro session complete! Time for a break.\"'"
+    def run_mac_session(time, tag)
+      notification_command = "osascript -e 'display notification \"#{show_message(tag)}\"'"
       command = "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && #{notification_command} &"
       pid = spawn(command)
-      Process.wait(pid)
+      Process.detach(pid)
+    end
+
+    # Generates a message indicating that a Pomodoro session is complete and it's time for a break.
+    #
+    # @param tag [String] The tag associated with the completed Pomodoro session.
+    # @return [String] A message indicating the completion of the Pomodoro session and suggesting a break.
+    #
+    # @example
+    #   show_message("work")
+    #   # => "Pomodoro session complete (work). Time for a break."
+    #
+    def show_message(tag)
+      "Pomodoro session complete (#{tag}). Time for a break."
     end
   end
 end

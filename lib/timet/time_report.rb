@@ -63,7 +63,6 @@ module Timet
 
       colors = duration_by_tag.map { |x| x[0] }.sort.each_with_index.to_h
       print_time_block_chart(time_block, colors)
-
       tag_distribution(duration_by_tag, colors)
     end
 
@@ -135,7 +134,7 @@ module Timet
       id, start_time_value, end_time_value, tag_name, notes = item
       duration = TimeHelper.calculate_duration(start_time_value, end_time_value)
       start_time = TimeHelper.format_time(start_time_value)
-      end_time = TimeHelper.format_time(end_time_value) || '- -'
+      end_time = TimeHelper.format_time(end_time_value)
       start_date = date || (' ' * 10)
       puts format_table_row(id, tag_name[0..5], start_date, start_time, end_time, duration, notes)
     end

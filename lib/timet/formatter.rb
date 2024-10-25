@@ -26,7 +26,7 @@ module Timet
     #
     # @note The method constructs a string representing the table header and prints it.
     def format_table_header
-      title = "Tracked time report #{@filter.blink.red}]:"
+      title = "Tracked time report [#{@filter.blink.red}]:"
       header = <<~TABLE
         #{title}
         #{format_table_separator}
@@ -59,8 +59,10 @@ module Timet
     # @note The method formats each element of the row and constructs a string representing the formatted row.
     def format_table_row(*row)
       id, tag, start_date, start_time, end_time, duration, notes = row
+      end_time = end_time ? end_time.split[1] : '-'
+
       "| #{id.to_s.rjust(5)} | #{start_date} | #{tag.ljust(6)} | #{start_time.split[1]} | " \
-        "#{end_time.split[1].rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  |"
+        "#{end_time.rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  |"
     end
 
     # Formats the notes column of the time tracking report table.
