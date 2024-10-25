@@ -26,8 +26,9 @@ module Timet
     #
     # @note The method constructs a string representing the table header and prints it.
     def format_table_header
+      title = "Tracked time report #{@filter.blink.red}]:"
       header = <<~TABLE
-        Tracked time report \e[5m\u001b[31m[#{@filter}]\033[0m:
+        #{title}
         #{format_table_separator}
         \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes              |\033[0m
         #{format_table_separator}
@@ -87,8 +88,8 @@ module Timet
     #     duration_by_tag = { "timet" => 3600, "nextjs" => 1800 }
     #     Formatter.format_tag_distribution(duration_by_tag)
     #     # Output:
-    #     #    timet:   66.67%  \u001b[38;5;42m====================\u001b[0m
-    #     #   nextjs:   33.33%  \u001b[38;5;42m==========\u001b[0m
+    #     #    timet:   66.67%  ====================
+    #     #   nextjs:   33.33%  ==========
     #
     #   @param duration_by_tag [Hash<String, Integer>] A hash where keys are tags and values are durations in seconds.
     #   @return [void] This method outputs the formatted tag distribution to the console.
@@ -113,7 +114,8 @@ module Timet
       block = '▅'
       sorted_duration_by_tag.each do |tag, duration|
         value, bar_length = calculate_value_and_bar_length(duration, total, factor)
-        puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  \u001b[38;5;#{colors[tag] + 1}m#{block * bar_length}\u001b[0m"
+        horizontal_bar = (block * bar_length).to_s.color(colors[tag] + 1)
+        puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  #{horizontal_bar}"
       end
     end
 
@@ -154,9 +156,9 @@ module Timet
     # @see #print_header
     # @see #print_blocks
     def print_time_block_chart(time_block, colors)
-      start_time = time_block.values.map(&:keys).flatten.uniq.min.to_i
-      print_header(start_time)
-      print_blocks(time_block, colors, start_time)
+      start_hour = time_block.values.map(&:keys).flatten.uniq.min.to_i
+      print_header(start_hour)
+      print_blocks(time_block, colors, start_hour)
     end
 
     # Prints the header of the time block chart.
@@ -164,7 +166,7 @@ module Timet
     # The header includes a visual representation of the time slots from the given start time to 23.
     # Each time slot is formatted as a two-digit number and aligned to the right within a fixed width.
     #
-    # @param start_time [Integer] The starting time for the chart. This should be an integer between 0 and 23.
+    # @param start_hour [Integer] The starting time for the chart. This should be an integer between 0 and 23.
     #
     # @return [void] This method does not return a value; it prints the header directly to the output.
     #
@@ -174,13 +176,14 @@ module Timet
     #   #
     #   #      ⏳ ↦ [ 10  11  12  13  14  15  16  17  18  19  20  21  22  23]
     #
-    # @note The method assumes that the start_time is within the valid range of 0 to 23.
-    #   If the start_time is outside this range, the output may not be as expected.
-    def print_header(start_time)
+    # @note The method assumes that the start_hour is within the valid range of 0 to 23.
+    #   If the start_hour is outside this range, the output may not be as expected.
+    def print_header(start_hour)
       puts
-      print "\u001b[38;5;244m┌╴W ╴╴╴╴╴⏰ ╴╴╴╴╴╴┬\u001b[0m "
-      (start_time..23).each { |hour| print format('%02d', hour).ljust(4) }
-      puts ''
+      print ' ' * 19
+      (start_hour..23).each { |hour| print format('%02d', hour).rjust(4) }
+      puts
+      puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (24 - start_hour) * 4}╴╴╴┼".gray
     end
 
     # Prints the block characters for each hour in the time block chart.
@@ -200,17 +203,17 @@ module Timet
     #   #
     #   # (followed by two newlines)
     #
-    def print_blocks(time_block, colors, start_time)
+    def print_blocks(time_block, colors, start_hour)
       return unless time_block
 
       weeks = []
       time_block.each_key do |date_string|
         date = Date.parse(date_string)
         day = date.strftime('%a')[0..1]
-        date1 = date_string
+        weekend = date_string
         if %w[Sa Su].include?(day)
-          day = "\u001b[38;5;1m#{day}\u001b[0m"
-          date1 = "\u001b[38;5;1m#{date1}\u001b[0m"
+          day = day.red
+          weekend = weekend.red
         end
 
         weeks << date.cweek
@@ -218,15 +221,29 @@ module Timet
         week = if (weeks[n] == weeks[n - 1]) && n.positive?
                  '  '
                else
-                 "\e[4m#{weeks[n]}\e[0m"
+                 weeks[n].to_s.underline
                end
-        puts "\u001b[38;5;244m┆                 ┆\u001b[0m" if week != '  ' && n.positive?
-        print "\u001b[38;5;244m┆\u001b[0m#{week} #{date1} #{day} \u001b[38;5;244m┆\u001b[0m "
+        puts "┆                 ┆#{' ' * (24 - start_hour) * 4}   ┼░░░░".gray if week != '  ' && n.positive?
+        print '┆'.gray + "#{week} #{weekend} #{day} " + '┆- '.gray
         time_block_initial = time_block[date_string]
-        print_time_blocks(start_time, time_block_initial, colors)
+        print_time_blocks(start_hour, time_block_initial, colors)
+
+        total_seconds = time_block_initial.values.map { |item| item[0] }.sum
+        hours_per_day = (total_seconds / 3600.0).round(1)
+        print "-┆#{hours_per_day}h".gray
         puts
       end
-      puts "\u001b[38;5;244m└╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴┴\u001b[0m"
+      print_footer(start_hour)
+    end
+
+    # Prints the footer of the report.
+    #
+    # @param start_hour [Integer] The start time used to calculate the footer length.
+    # @return [void] This method does not return a value; it prints directly to the standard output.
+    def print_footer(start_hour)
+      timet = "\e]8;;https://github.com/frankvielma/timet/\aTimet\e]8;;\a".green
+      puts '└╴╴╴╴╴╴╴'.gray + timet + "╴╴╴╴╴┴#{'╴' * (24 - start_hour) * 4}╴╴╴┴".gray
+      puts
     end
 
     # Prints time blocks for each hour from the start time to 23.
@@ -281,8 +298,8 @@ module Timet
     def print_colored_block(block_char, tag, colors)
       color_code = colors[tag]
       block = block_char * 2
-      colored_block = color_code ? "\u001b[38;5;#{color_code + 1}m#{block}\u001b[0m  " : block
-      print colored_block.ljust(4)
+      colored_block = color_code ? "#{block.color(color_code + 1)}  " : block
+      print colored_block.rjust(4)
     end
 
     # Determines the block character based on the value.

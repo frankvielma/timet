@@ -36,7 +36,8 @@ module Timet
     VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
 
     desc "start [tag] --notes='' --pomodoro=[min]",
-         'Starts tracking time for a task labeled with the provided [tag],  notes and "pomodoro time" in minutes (optional).'
+         'Starts tracking time for a task labeled with the provided [tag],  notes and "pomodoro time" in minutes
+         (optional).'
     option :notes, type: :string, desc: 'Add a note'
     option :pomodoro, type: :numeric, desc: 'Pomodoro time in minutes'
     # Starts a new tracking session with the given tag and optional notes.
