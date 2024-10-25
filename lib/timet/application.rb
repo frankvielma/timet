@@ -130,15 +130,15 @@ module Timet
       end
     end
 
-    desc 'summary (su) [filter] [tag] --csv=csv_filename',
-         '[filter] => [today (t), yesterday (y), week (w), month (m), [start_date]..[end_date]]  [tag]'
+    desc 'summary (su) [time_scope] [tag] --csv=csv_filename',
+         '[time_scope] => [today (t), yesterday (y), week (w), month (m), [start_date]..[end_date]]  [tag]'
     option :csv, type: :string, desc: 'Export to CSV file'
-    # Generates a summary of tracking items based on the provided filter and tag, and optionally exports the summary
+    # Generates a summary of tracking items based on the provided time_scope and tag, and optionally exports the summary
     # to a CSV file.
     #
-    # @param filter [String, nil] The filter to apply when generating the summary. Possible values include 'today',
+    # @param time_scope [String, nil] The time_scope to apply when generating the summary. Possible values include 'today',
     # 'yesterday', 'week', 'month', or a date range in the format '[start_date]..[end_date]'.
-    # @param tag [String, nil] The tag to filter the tracking items by.
+    # @param tag [String, nil] The tag to time_scope the tracking items by.
     #
     # @return [void] This method does not return a value; it performs side effects such as displaying the summary and
     # exporting to CSV if specified.
@@ -152,14 +152,14 @@ module Timet
     # @example Generate a summary for a date range and export to CSV
     #   summary('2023-01-01..2023-01-31', nil, csv: 'summary.csv')
     #
-    # @note The method initializes a `TimeReport` object with the database, filter, tag, and optional CSV filename.
+    # @note The method initializes a `TimeReport` object with the database, time_scope, tag, and optional CSV filename.
     # @note The method calls `display` on the `TimeReport` object to show the summary.
     # @note If a CSV filename is provided and there are items to export, the method calls `export_sheet` to export the
     # summary to a CSV file.
     # @note If no items are found to export, it prints a message indicating that no items were found.
-    def summary(filter = nil, tag = nil)
+    def summary(time_scope = nil, tag = nil)
       csv_filename = options[:csv]&.split('.')&.first
-      summary = TimeReport.new(@db, filter, tag, csv_filename)
+      summary = TimeReport.new(@db, time_scope, tag, csv_filename)
 
       summary.display
       items = summary.items

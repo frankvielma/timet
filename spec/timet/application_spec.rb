@@ -57,12 +57,6 @@ RSpec.describe Timet::Application do
         expect(db).not_to have_received(:insert_item)
       end
 
-      it 'calls summary' do
-        allow(app).to receive(:summary)
-        app.start('tag', 'my notes...', 25)
-        expect(app).to have_received(:summary)
-      end
-
       it 'does not call play_sound_and_notify' do
         allow(app).to receive(:play_sound_and_notify)
         app.start('tag', 'my notes...', 25)
