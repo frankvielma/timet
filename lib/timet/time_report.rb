@@ -5,6 +5,7 @@ require 'csv'
 require_relative 'status_helper'
 require_relative 'formatter'
 require_relative 'time_report_helper'
+require_relative 'tag_distribution'
 
 module Timet
   # The TimeReport class is responsible for displaying a report of tracked time
@@ -13,6 +14,7 @@ module Timet
   class TimeReport
     include Formatter
     include TimeReportHelper
+    include TagDistribution
 
     # Provides access to the database instance.
     attr_reader :db
@@ -62,7 +64,7 @@ module Timet
       colors = duration_by_tag.map { |x| x[0] }.sort.each_with_index.to_h
       print_time_block_chart(time_block, colors)
 
-      format_tag_distribution(duration_by_tag, colors)
+      tag_distribution(duration_by_tag, colors)
     end
 
     # Displays a single row of the report.
