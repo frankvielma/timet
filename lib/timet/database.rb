@@ -171,7 +171,7 @@ module Timet
     #
     # @note The method executes SQL to find the item with the given ID in the 'items' table.
     def find_item(id)
-      execute_sql("select * from items where id=#{id}").first
+      execute_sql("SELECT * from items where id=#{id}").first
     end
 
     # Fetches all items from the items table that have a start time greater than or equal to today.
