@@ -22,27 +22,15 @@ Timet refers to a command-line tool designed to track your activities by recordi
 - **Block Time Plot:** Visualizes the distribution of tracked time across a specified range of dates, with bars in each column representing the amount of time tracked during that specific hour. The plot includes a header showing the hours and a row for each date, displaying the time blocks for each hour.
 - **Tag Distribution Plot:** Illustrates the proportion of total tracked time allocated to each tag, showing the relative contribution of each tag to the overall time tracked.
 
-Example:
 
-```bash
-Tracked time report [today]:
-+-------+------------+--------+----------+----------+----------+--------------------------+
-| Id    | Date       | Tag    | Start    | End      | Duration | Notes                    |
-+-------+------------+--------+----------+----------+----------+--------------------------+
-|    20 | 2024-10-10 | Tag8   | 19:26:58 | 20:26:58 | 01:00:00 | Notes 2                  |
-|    19 |            | Tag3   | 07:52:26 | 08:52:26 | 01:00:00 | Notes 7                  |
-+-------+------------+--------+----------+----------+----------+--------------------------+
-|                                           Total:  | 02:00:00 |                          |
-+-------+------------+--------+----------+----------+----------+--------------------------+
+Examples:
 
-⏳ ↦ [ 00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23 ]
-     [                             ▂▂  ▇▇                                          ▅▅  ▄▄             ]
+![Timet1 demo](timet1.gif)
 
-    Tag8:    50.0%  ▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅
-    Tag3:    50.0%  ▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅
-```
+![Timet2 demo](timet2.gif)
 
-![Timet monthly report](monthly_report.webp)
+![Timet3 demo](timet3.gif)
+
 
 ## Requirements
 
