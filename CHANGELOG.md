@@ -1,5 +1,40 @@
 ## [Unreleased]
 
+## [1.3.2] - 2024-10-25
+
+**Improvements:**
+
+- Refactor and enhance time tracking report formatting.
+  - Refactored the `format_table_header` method to improve readability and use the `blink` and `red` color methods.
+  - Updated the `format_tag_distribution` method to use the `color` method for horizontal bars.
+  - Refactored the `print_time_block_chart` method to use the `start_hour` variable consistently.
+  - Enhanced the `print_header` method to improve alignment and use the `gray` color method.
+  - Refactored the `print_blocks` method to use the `red` color method for weekends and the `underline` method for week numbers.
+  - Added a new `print_footer` method to print the footer of the report.
+  - Refactored the `print_colored_block` method to use the `color` method for colored blocks.
+  - Updated the `application.rb` file to improve the description of the `start` command.
+- Refactor color codes and add new methods.
+  - Removed hardcoded color codes and replaced them with a dynamic color method.
+  - Added new methods for underline, blink, and green color.
+  - Updated the String class extension to use the new color methods.
+  - Added a new file 'color_codes.rb' to the 'lib/timet.rb' require list.
+  - Removed YARD documentation comments from 'lib/timet.rb' as they are no longer needed.
+- Update JSON and SQLite3 dependencies.
+- Add hours per day feature.
+
+**Bug fixes:**
+
+- Refactor error message printing to use color method.
+  - Updated the `print_error` method in `validation_edit_helper.rb` to use the `red` color method instead of hardcoded ANSI escape codes.
+  - This change improves readability and consistency with other color usage in the project.
+
+**Additional Considerations:**
+
+- The changes in this pull request improve the overall user experience by enhancing the visual presentation of the time tracking report and updating the documentation.
+- The refactor of color codes and addition of new methods improve the flexibility and visual effects of terminal output.
+- The update to JSON and SQLite3 dependencies ensures compatibility with the latest versions of these libraries.
+- The addition of the hours per day feature provides more detailed information in the time tracking report.
+
 ## [1.3.1] - 2024-10-24
 
 **Improvements:**
