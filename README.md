@@ -27,11 +27,6 @@ Examples:
 
 ![Timet1 demo](timet1.gif)
 
-![Timet2 demo](timet2.gif)
-
-![Timet3 demo](timet3.gif)
-
-
 ## ✔️ Requirements
 
 - Ruby version: >= 3.0.0
