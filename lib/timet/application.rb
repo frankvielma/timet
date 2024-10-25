@@ -69,10 +69,12 @@ module Timet
       notes = options[:notes] || notes
       pomodoro = (options[:pomodoro] || pomodoro).to_i
 
-      if VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
-        @db.insert_item(start_time, tag, notes)
-        play_sound_and_notify(pomodoro * 60, tag) if pomodoro.positive?
+      unless VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
+        return puts 'A task is currently being tracked.'
       end
+
+      @db.insert_item(start_time, tag, notes)
+      play_sound_and_notify(pomodoro * 60, tag) if pomodoro.positive?
       summary
     end
 
