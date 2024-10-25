@@ -9,7 +9,7 @@
 
 Timet refers to a command-line tool designed to track your activities by recording the time spent on each task, allowing you to monitor your work hours and productivity directly from your terminal without needing a graphical interface; essentially, it's a way to log your time spent on different projects or tasks using simple text commands
 
-**Key Features:**
+🔑 **Key Features:**
 
 - **Local Data Storage:** Timet utilizes SQLite to store your time tracking data locally, ensuring privacy and security.
 - **Lightweight and Fast:** Its efficient design and local data storage make Timet a speedy and responsive tool.
@@ -32,7 +32,7 @@ Examples:
 ![Timet3 demo](timet3.gif)
 
 
-## Requirements
+## ✔️ Requirements
 
 - Ruby version: >= 3.0.0
 - sqlite3: > 1.7
@@ -43,7 +43,7 @@ Old versions of Ruby and Sqlite:
 
 - [Ruby >= 2.4](https://github.com/frankvielma/timet/tree/ruby-2.4.0)
 
-## Installation
+## 💾 Installation
 
 Install the gem by executing:
 
@@ -51,7 +51,7 @@ Install the gem by executing:
 gem install timet
 ```
 
-## Usage
+## ⏳ Usage
 
 ### Command Aliases
 
@@ -168,7 +168,7 @@ gem install timet
   +-------+------------+--------+----------+----------+----------+--------------------------+
   ```
 
-## Command Reference
+## 📋  Command Reference
 
 | Command                             | Description                                                                 | Example Usage                     |
 | ----------------------------------- | --------------------------------------------------------------------------- | --------------------------------- |
