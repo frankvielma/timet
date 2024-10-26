@@ -35,6 +35,10 @@ class String
     "#{Timet::ColorCodes.color(1)}#{self}#{Timet::ColorCodes.reset}"
   end
 
+  def blue
+    "#{Timet::ColorCodes.color(12)}#{self}#{Timet::ColorCodes.reset}"
+  end
+
   def underline
     "#{Timet::ColorCodes.underline}#{self}#{Timet::ColorCodes.reset}"
   end

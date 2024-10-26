@@ -151,7 +151,7 @@ module Timet
       total = @items.map do |item|
         TimeHelper.calculate_duration(item[1], item[2])
       end.sum
-      puts "|#{' ' * 43}\033[94mTotal:  | #{@db.seconds_to_hms(total).rjust(8)} |\033[0m                    |"
+      puts "|#{' ' * 43}#{'Total:'.blue}  | #{@db.seconds_to_hms(total).rjust(8).blue} |#{' ' * 20}|"
       puts format_table_separator
     end
 
