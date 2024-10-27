@@ -283,25 +283,5 @@ module Timet
     def version
       puts Timet::VERSION
     end
-
-    private
-
-    # Deletes a tracking item from the database by its ID and prints a confirmation message.
-    #
-    # @param id [Integer] The ID of the tracking item to be deleted.
-    # @param message [String] The message to be printed after the item is deleted.
-    #
-    # @return [void] This method does not return a value; it performs side effects such as deleting the tracking item
-    # and printing a message.
-    #
-    # @example Delete a tracking item with ID 1 and print a confirmation message
-    #   delete_item_and_print_message(1, 'Deleted item 1')
-    #
-    # @note The method deletes the tracking item from the database using `@db.delete_item(id)`.
-    # @note After deleting the item, the method prints the provided message using `puts message`.
-    def delete_item_and_print_message(id, message)
-      @db.delete_item(id)
-      puts message
-    end
   end
 end
