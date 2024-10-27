@@ -61,8 +61,18 @@ module Timet
       id, tag, start_date, start_time, end_time, duration, notes = row
       end_time = end_time ? end_time.split[1] : '-'
 
-      "| #{id.to_s.rjust(5)} | #{start_date} | #{tag.ljust(6)} | #{start_time.split[1]} | " \
-        "#{end_time.rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  |"
+      pomodoro = @db.find_item(id)[5] || 0
+      if pomodoro.positive? && end_time == '-'
+        delta = (@db.find_item(id)[5] - (duration / 60.0)).round(1)
+        timet = "\e]8;;Session ends\a#{delta} min\e]8;;\a".green
+        end_time = " #{timet}".blink
+      end
+
+      mark = '|'
+      mark = "#{'├'.white} #{'P'.blue.blink}" if pomodoro.positive?
+
+      "| #{id.to_s.rjust(6)}| #{start_date} | #{tag.ljust(6)} | #{start_time.split[1]} | " \
+        "#{end_time.rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  #{mark}"
     end
 
     # Formats the notes column of the time tracking report table.

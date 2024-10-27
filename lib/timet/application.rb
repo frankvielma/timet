@@ -73,7 +73,7 @@ module Timet
         return puts 'A task is currently being tracked.'
       end
 
-      @db.insert_item(start_time, tag, notes)
+      @db.insert_item(start_time, tag, notes, pomodoro)
       play_sound_and_notify(pomodoro * 60, tag) if pomodoro.positive?
       summary
     end
@@ -136,8 +136,8 @@ module Timet
     # Generates a summary of tracking items based on the provided time_scope and tag, and optionally exports the summary
     # to a CSV file.
     #
-    # @param time_scope [String, nil] The time_scope to apply when generating the summary. Possible values include 'today',
-    # 'yesterday', 'week', 'month', or a date range in the format '[start_date]..[end_date]'.
+    # @param time_scope [String, nil] The time_scope to apply when generating the summary. Possible values include
+    # 'today', 'yesterday', 'week', 'month', or a date range in the format '[start_date]..[end_date]'.
     # @param tag [String, nil] The tag to time_scope the tracking items by.
     #
     # @return [void] This method does not return a value; it performs side effects such as displaying the summary and

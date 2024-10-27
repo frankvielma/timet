@@ -90,8 +90,8 @@ module Timet
     #   insert_item(1633072800, 'work', 'Completed task X')
     #
     # @note The method executes SQL to insert a new row into the 'items' table.
-    def insert_item(start, tag, notes)
-      execute_sql('INSERT INTO items (start, tag, notes) VALUES (?, ?, ?)', [start, tag, notes])
+    def insert_item(start, tag, notes, pomodoro = nil)
+      execute_sql('INSERT INTO items (start, tag, notes, pomodoro) VALUES (?, ?, ?, ?)', [start, tag, notes, pomodoro])
     end
 
     # Updates an existing item in the items table.

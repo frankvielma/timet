@@ -153,6 +153,13 @@ module Timet
       end.sum
       puts "|#{' ' * 43}#{'Total:'.blue}  | #{@db.seconds_to_hms(total).rjust(8).blue} |#{' ' * 20}|"
       puts format_table_separator
+      display_pomodoro_label
+    end
+
+    def display_pomodoro_label
+      return unless @items.map { |x| x[5] }.compact.sum.positive?
+
+      puts "#{'P'.blue.blink}omodoro"
     end
 
     # Filters the items based on the specified filter and tag.

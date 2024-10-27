@@ -27,6 +27,10 @@ end
 
 # Extend String class globally
 class String
+  def white
+    "#{Timet::ColorCodes.color(246)}#{self}#{Timet::ColorCodes.reset}"
+  end
+
   def gray
     "#{Timet::ColorCodes.color(242)}#{self}#{Timet::ColorCodes.reset}"
   end
