@@ -159,12 +159,12 @@ module Timet
     # @note If no items are found to export, it prints a message indicating that no items were found.
     def summary(time_scope = nil, tag = nil)
       csv_filename = options[:csv]&.split('.')&.first
-      summary = TimeReport.new(@db, time_scope, tag, csv_filename)
+      report = TimeReport.new(@db, time_scope, tag, csv_filename)
 
-      summary.display
-      items = summary.items
+      report.display
+      items = report.items
       if csv_filename && items.any?
-        summary.export_sheet
+        report.export_sheet
       elsif items.empty?
         puts 'No items found to export'
       end

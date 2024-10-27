@@ -3,7 +3,7 @@
 module Timet
   # This module is responsible for formatting the output of the `timet` application.
   # It provides methods for formatting the table header, separators, and rows.
-  module Formatter
+  module TimeBlockChart
     CHAR_MAPPING = {
       0..120 => '_',
       121..450 => '▁',
@@ -16,82 +16,7 @@ module Timet
       3151..3600 => '█'
     }.freeze
 
-    # Formats the header of the time tracking report table.
-    #
-    # @return [void] This method does not return a value; it performs side effects such as printing
-    # the formatted header.
-    #
-    # @example Format and print the table header
-    #   format_table_header
-    #
-    # @note The method constructs a string representing the table header and prints it.
-    def format_table_header
-      title = "Tracked time report [#{@filter.blink.red}]:"
-      header = <<~TABLE
-        #{title}
-        #{format_table_separator}
-        \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes              |\033[0m
-        #{format_table_separator}
-      TABLE
-      puts header
-    end
-
-    # Formats the separator line for the time tracking report table.
-    #
-    # @return [String] The formatted separator line.
-    #
-    # @example Get the formatted table separator
-    #   format_table_separator # => '+-------+------------+--------+----------+----------+----------+------------+'
-    #
-    # @note The method returns a string representing the separator line for the table.
-    def format_table_separator
-      '+-------+------------+--------+----------+----------+----------+--------------------+'
-    end
-
-    # Formats a row of the time tracking report table.
-    #
-    # @param row [Array] The row data to be formatted.
-    # @return [String] The formatted row.
-    #
-    # @example Format a table row
-    #   format_table_row(1, 'work', '2023-10-01', '12:00:00', '14:00:00', 7200, 'Completed task X')
-    #
-    # @note The method formats each element of the row and constructs a string representing the formatted row.
-    def format_table_row(*row)
-      id, tag, start_date, start_time, end_time, duration, notes = row
-      end_time = end_time ? end_time.split[1] : '-'
-
-      pomodoro = @db.find_item(id)[5] || 0
-      if pomodoro.positive? && end_time == '-'
-        delta = (@db.find_item(id)[5] - (duration / 60.0)).round(1)
-        timet = "\e]8;;Session ends\a#{delta} min\e]8;;\a".green
-        end_time = " #{timet}".blink
-      end
-
-      mark = '|'
-      mark = "#{'├'.white} #{'P'.blue.blink}" if pomodoro.positive?
-
-      "| #{id.to_s.rjust(6)}| #{start_date} | #{tag.ljust(6)} | #{start_time.split[1]} | " \
-        "#{end_time.rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  #{mark}"
-    end
-
-    # Formats the notes column of the time tracking report table.
-    #
-    # @param notes [String, nil] The notes to be formatted.
-    # @return [String] The formatted notes.
-    #
-    # @example Format notes
-    #   format_notes('This is a long note that needs to be truncated')
-    #
-    # @note The method truncates the notes to a maximum of 20 characters and pads them to a fixed width.
-    def format_notes(notes)
-      spaces = 17
-      return ' ' * spaces unless notes
-
-      max_length = spaces - 3
-      notes = "#{notes.slice(0, max_length)}..." if notes.length > max_length
-      notes.ljust(spaces)
-    end
+    SEPARATOR_CHAR = '░'
 
     # Prints a time block chart based on the provided time block and colors.
     #
@@ -145,23 +70,12 @@ module Timet
       puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (24 - start_hour) * 4}╴╴╴┼".gray
     end
 
-    # Prints the block characters for each hour in the time block chart.
+    # Prints the time blocks for each date in the given time block data structure.
     #
-    # This method iterates over each hour from 0 to 23, retrieves the corresponding
-    # block character using the `get_block_char` method, and prints it aligned for
-    # readability. It also adds a double newline at the end for separation.
-    #
-    # @param time_block [Hash] A hash where the keys are formatted hour strings
-    #                          (e.g., "00", "01") and the values are the corresponding
-    #                          values to determine the block character.
-    # @example
-    #   time_block = { "00" => 100, "01" => 200, ..., "23" => 300 }
-    #   print_blocks(time_block)
-    #   # Output:
-    #   # ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █
-    #   #
-    #   # (followed by two newlines)
-    #
+    # @param time_block [Hash] A hash where keys are date strings and values are time block data.
+    # @param colors [Hash] A hash containing color codes for formatting.
+    # @param start_hour [Integer] The starting hour for the time blocks.
+    # @return [void]
     def print_blocks(time_block, colors, start_hour)
       return unless time_block
 
@@ -169,30 +83,81 @@ module Timet
       time_block.each_key do |date_string|
         date = Date.parse(date_string)
         day = date.strftime('%a')[0..1]
-        weekend = date_string
-        if %w[Sa Su].include?(day)
-          day = day.red
-          weekend = weekend.red
-        end
 
-        weeks << date.cweek
-        n = weeks.size - 1
-        week = if (weeks[n] == weeks[n - 1]) && n.positive?
-                 '  '
-               else
-                 weeks[n].to_s.underline
-               end
-        puts "┆                 ┆#{' ' * (24 - start_hour) * 4}   ┼░░░░".gray if week != '  ' && n.positive?
-        print '┆'.gray + "#{week} #{weekend} #{day} " + '┆- '.gray
+        format_and_print_date_info(date_string, day, weeks, start_hour)
+
         time_block_initial = time_block[date_string]
         print_time_blocks(start_hour, time_block_initial, colors)
 
-        total_seconds = time_block_initial.values.map { |item| item[0] }.sum
-        hours_per_day = (total_seconds / 3600.0).round(1)
-        print "-┆#{hours_per_day}h".gray
-        puts
+        calculate_and_print_hours(time_block_initial)
       end
       print_footer(start_hour)
+    end
+
+    # Calculates the total hours from the given time block data and prints it.
+    #
+    # @param time_block_initial [Hash] A hash containing time block data for a specific date.
+    # @return [void]
+    def calculate_and_print_hours(time_block_initial)
+      total_seconds = time_block_initial.values.map { |item| item[0] }.sum
+      hours_per_day = (total_seconds / 3600.0).round(1)
+      print "-┆#{hours_per_day}h".gray
+      puts
+    end
+
+    # Formats and prints the date information including the week and day.
+    #
+    # @param date_string [String] The date string in a parsable format.
+    # @param day [String] The abbreviated day of the week (e.g., "Mo" for Monday).
+    # @param weeks [Array<Integer>] An array storing the week numbers.
+    # @param start_hour [Integer] The starting hour for the time blocks.
+    # @return [void]
+    def format_and_print_date_info(date_string, day, weeks, start_hour)
+      weekend = date_string
+      day = day.red if %w[Sa Su].include?(day)
+      weekend = weekend.red if %w[Sa Su].include?(day)
+
+      week = format_and_print_week(date_string, weeks, start_hour)
+
+      print '┆'.gray + "#{week} #{weekend} #{day} " + '┆- '.gray
+    end
+
+    # Formats and prints the week information including the separator if necessary.
+    #
+    # @param date_string [String] The date string in a parsable format.
+    # @param weeks [Array<Integer>] An array storing the week numbers.
+    # @param start_hour [Integer] The starting hour for the time blocks.
+    # @return [String] The formatted week string.
+    def format_and_print_week(date_string, weeks, start_hour)
+      week, current_index = determine_week(date_string, weeks)
+      print_separator(start_hour, week, current_index)
+      week
+    end
+
+    # Determines the week string based on the date and the previous week.
+    #
+    # @param date_string [String] The date string in a parsable format.
+    # @param weeks [Array<Integer>] An array storing the week numbers.
+    # @return [Array<String, Integer>] An array containing the formatted week string and the current index.
+    def determine_week(date_string, weeks)
+      weeks << Date.parse(date_string).cweek
+      current_index = weeks.size - 1
+      current_week = weeks[current_index]
+      week = current_week == weeks[current_index - 1] && current_index.positive? ? '  ' : current_week.to_s.underline
+      [week, current_index]
+    end
+
+    # Prints the separator line if the week string is not empty and the current index is positive.
+    #
+    # @param start_hour [Integer] The starting hour for the time blocks.
+    # @param week [String] The formatted week string.
+    # @param current_index [Integer] The current index in the weeks array.
+    # @return [void]
+    def print_separator(start_hour, week, current_index)
+      return unless week != '  ' && current_index.positive?
+
+      sep = SEPARATOR_CHAR
+      puts "┆#{sep * 17}┼#{sep * (24 - start_hour) * 4}#{sep * 3}┼#{sep * 4}".gray
     end
 
     # Prints the footer of the report.

@@ -2,9 +2,9 @@
 
 require 'date'
 require 'csv'
-require_relative 'status_helper'
-require_relative 'formatter'
 require_relative 'time_report_helper'
+require_relative 'table'
+require_relative 'time_block_chart'
 require_relative 'tag_distribution'
 
 module Timet
@@ -12,8 +12,9 @@ module Timet
   # entries. It allows filtering the report by time periods and displays
   # a formatted table with the relevant information.
   class TimeReport
-    include Formatter
     include TimeReportHelper
+    include Table
+    include TimeBlockChart
     include TagDistribution
 
     # Provides access to the database instance.
@@ -56,13 +57,11 @@ module Timet
     def display
       return puts 'No tracked time found for the specified filter.' if items.empty?
 
-      format_table_header
-      time_block, duration_by_tag = process_time_entries
-      puts format_table_separator
-      total
+      time_block, duration_by_tag = table
 
       colors = duration_by_tag.map { |x| x[0] }.sort.each_with_index.to_h
       print_time_block_chart(time_block, colors)
+
       tag_distribution(duration_by_tag, colors)
     end
 
@@ -77,9 +76,9 @@ module Timet
     #
     # @note The method formats and prints the table header, row, and total duration.
     def show_row(item)
-      format_table_header
+      header
       display_time_entry(item)
-      puts format_table_separator
+      puts separator
       total
     end
 
@@ -117,49 +116,18 @@ module Timet
       end
     end
 
-    # Displays a single time entry in the report.
+    # Writes the CSV rows for the time report.
     #
-    # @param item [Array] The item to display.
-    # @param date [String, nil] The date to display. If nil, the date is not displayed.
+    # @param csv [CSV] The CSV object to which the rows will be written.
+    # @return [void]
     #
-    # @return [void] This method does not return a value; it performs side effects such as printing the row.
-    #
-    # @example Display a time entry
-    #   display_time_entry(item, '2021-10-01')
-    #
-    # @note The method formats and prints the row for the time entry.
-    def display_time_entry(item, date = nil)
-      return puts 'Missing time entry data.' unless item
-
-      id, start_time_value, end_time_value, tag_name, notes = item
-      duration = TimeHelper.calculate_duration(start_time_value, end_time_value)
-      start_time = TimeHelper.format_time(start_time_value)
-      end_time = TimeHelper.format_time(end_time_value)
-      start_date = date || (' ' * 10)
-      puts format_table_row(id, tag_name[0..5], start_date, start_time, end_time, duration, notes)
-    end
-
-    # Displays the total duration of the tracked time entries.
-    #
-    # @return [void] This method does not return a value; it performs side effects such as printing the total duration.
-    #
-    # @example Display the total duration
-    #   total
-    #
-    # @note The method calculates and prints the total duration of the tracked time entries.
-    def total
-      total = @items.map do |item|
-        TimeHelper.calculate_duration(item[1], item[2])
-      end.sum
-      puts "|#{' ' * 43}#{'Total:'.blue}  | #{@db.seconds_to_hms(total).rjust(8).blue} |#{' ' * 20}|"
-      puts format_table_separator
-      display_pomodoro_label
-    end
-
-    def display_pomodoro_label
-      return unless @items.map { |x| x[5] }.compact.sum.positive?
-
-      puts "#{'P'.blue.blink}omodoro"
+    # @example
+    #   csv = CSV.new(file)
+    #   write_csv_rows(csv)
+    def write_csv_rows(csv)
+      items.each do |item|
+        csv << format_item(item)
+      end
     end
 
     # Filters the items based on the specified filter and tag.
