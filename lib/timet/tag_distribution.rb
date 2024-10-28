@@ -7,6 +7,7 @@ module Timet
   module TagDistribution
     MAX_BAR_LENGTH = 70
     BLOCK_CHAR = '▅'
+    TAG_SIZE = 12
 
     # Formats and displays the tag distribution.
     #
@@ -34,11 +35,11 @@ module Timet
     # @param total [Numeric] The total duration of all tags combined.
     # @return [void] This method outputs the tag distribution information to the standard output.
     def process_and_print_tags(sorted_duration_by_tag, total, colors)
-      block = BLOCK_CHAR
       sorted_duration_by_tag.each do |tag, duration|
         value, bar_length = calculate_value_and_bar_length(duration, total)
-        horizontal_bar = (block * bar_length).to_s.color(colors[tag] + 1)
-        puts "#{tag.rjust(8)}: #{value.to_s.rjust(7)}%  #{horizontal_bar}"
+        horizontal_bar = (BLOCK_CHAR * bar_length).to_s.color(colors[tag] + 1)
+        tag = tag[0..TAG_SIZE - 1] if tag.size >= TAG_SIZE
+        puts "#{tag.rjust(TAG_SIZE)}: #{value.to_s.rjust(5)}%  #{horizontal_bar}"
       end
     end
 
