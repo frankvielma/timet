@@ -69,9 +69,7 @@ module Timet
       notes = options[:notes] || notes
       pomodoro = (options[:pomodoro] || pomodoro).to_i
 
-      unless VALID_STATUSES_FOR_INSERTION.include?(@db.last_item_status)
-        return puts 'A task is currently being tracked.'
-      end
+      return puts 'A task is currently being tracked.' unless VALID_STATUSES_FOR_INSERTION.include?(@db.item_status)
 
       @db.insert_item(start_time, tag, notes, pomodoro)
       play_sound_and_notify(pomodoro * 60, tag) if pomodoro.positive?
@@ -87,13 +85,13 @@ module Timet
     # @example Stop the current tracking session
     #   stop
     #
-    # @note The method checks if the last tracking item is in progress by calling `@db.last_item_status`.
+    # @note The method checks if the last tracking item is in progress by calling `@db.item_status`.
     # @note If the last item is in progress, it fetches the last item's ID using `@db.fetch_last_id` and updates it
     # with the current timestamp.
     # @note The method then fetches the last item using `@db.last_item` and generates a summary if the result
     # is not nil.
     def stop(display = nil)
-      return unless @db.last_item_status == :in_progress
+      return unless @db.item_status == :in_progress
 
       last_id = @db.fetch_last_id
       @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
@@ -101,7 +99,7 @@ module Timet
       summary unless display
     end
 
-    desc 'resume (r)', 'resume last task'
+    desc 'resume (r) [id]', 'resume last task'
     # Resumes the last tracking session if it was completed.
     #
     # @return [void] This method does not return a value; it performs side effects such as resuming a tracking session
@@ -110,21 +108,31 @@ module Timet
     # @example Resume the last tracking session
     #   resume
     #
-    # @note The method checks the status of the last tracking item using `@db.last_item_status`.
+    # @note The method checks the status of the last tracking item using `@db.item_status`.
     # @note If the last item is in progress, it prints a message indicating that a task is currently being tracked.
     # @note If the last item is complete, it fetches the last item using `@db.last_item`, retrieves the tag and notes,
     # and calls the `start` method to resume the tracking session.
-    def resume
-      status = @db.last_item_status
+    #
+    # @param id [Integer, nil] The ID of the tracking item to resume. If nil, the last item is used.
+    #
+    # @see Database#item_status
+    # @see Database#find_item
+    # @see #start
+    def resume(id = nil)
+      status = @db.item_status(id)
 
       case status
       when :in_progress
         puts 'A task is currently being tracked.'
       when :complete
-        last_item = @db.last_item
-        if last_item
-          tag = last_item[FIELD_INDEX['tag']]
-          notes = last_item[FIELD_INDEX['notes']]
+        item = if id
+                 @db.find_item(id)
+               else
+                 @db.last_item
+               end
+        if item
+          tag = item[FIELD_INDEX['tag']]
+          notes = item[FIELD_INDEX['notes']]
           start(tag, notes)
         end
       end
@@ -247,13 +255,13 @@ module Timet
     #   cancel
     #
     # @note The method fetches the ID of the last tracking item using `@db.fetch_last_id`.
-    # @note It checks if the last item is in progress by comparing `@db.last_item_status` with `:complete`.
+    # @note It checks if the last item is in progress by comparing `@db.item_status` with `:complete`.
     # @note If the last item is in progress, it deletes the item and prints a confirmation message using
     # `delete_item_and_print_message(id, "Canceled active time tracking #{id}")`.
     # @note If there is no active time tracking, it prints a message indicating that there is no active time tracking.
     def cancel
       id = @db.fetch_last_id
-      return puts 'There is no active time tracking' if @db.last_item_status == :complete
+      return puts 'There is no active time tracking' if @db.item_status == :complete
 
       delete_item_and_print_message(id, "Canceled active time tracking #{id}")
     end
