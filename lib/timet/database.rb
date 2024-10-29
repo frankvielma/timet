@@ -28,7 +28,9 @@ module Timet
     def initialize(database_path = DEFAULT_DATABASE_PATH)
       @db = SQLite3::Database.new(database_path)
       create_table
-      add_notes
+
+      add_column('items', 'notes', 'TEXT')
+      add_column('items', 'pomodoro', 'INTEGER')
     end
 
     # Creates the items table if it doesn't already exist.
@@ -51,23 +53,27 @@ module Timet
       SQL
     end
 
-    # Adds a new column named "notes" to the "items" table if it doesn't exist.
+    # Adds a new column to the specified table if it does not already exist.
     #
-    # @return [void] This method does not return a value; it performs side effects such as executing SQL to add
-    # the column.
+    # @param table_name [String] The name of the table to which the column will be added.
+    # @param new_column_name [String] The name of the new column to be added.
+    # @param date_type [String] The data type of the new column (e.g., 'INTEGER', 'TEXT', 'BOOLEAN').
+    # @return [void] This method does not return a value; it performs side effects such as adding the column and
+    # printing a message.
     #
-    # @example Add the notes column to the items table
-    #   add_notes
+    # @example Add a new 'completed' column to the 'tasks' table
+    #   add_column('tasks', 'completed', 'INTEGER')
     #
-    # @note The method checks if the 'notes' column already exists and adds it if it does not.
-    def add_notes
-      table_name = 'items'
-      new_column_name = 'notes'
+    # @note The method first checks if the column already exists in the table using `pragma_table_info`.
+    # @note If the column exists, the method returns without making any changes.
+    # @note If the column does not exist, the method executes an SQL `ALTER TABLE` statement to add the column.
+    # @note The method prints a message indicating that the column has been added.
+    def add_column(table_name, new_column_name, date_type)
       result = execute_sql("SELECT count(*) FROM pragma_table_info('items') where name='#{new_column_name}'")
       column_exists = result[0][0].positive?
       return if column_exists
 
-      execute_sql("ALTER TABLE #{table_name} ADD COLUMN #{new_column_name} TEXT")
+      execute_sql("ALTER TABLE #{table_name} ADD COLUMN #{new_column_name} #{date_type}")
       puts "Column '#{new_column_name}' added to table '#{table_name}'."
     end
 
@@ -84,8 +90,8 @@ module Timet
     #   insert_item(1633072800, 'work', 'Completed task X')
     #
     # @note The method executes SQL to insert a new row into the 'items' table.
-    def insert_item(start, tag, notes)
-      execute_sql('INSERT INTO items (start, tag, notes) VALUES (?, ?, ?)', [start, tag, notes])
+    def insert_item(start, tag, notes, pomodoro = nil)
+      execute_sql('INSERT INTO items (start, tag, notes, pomodoro) VALUES (?, ?, ?, ?)', [start, tag, notes, pomodoro])
     end
 
     # Updates an existing item in the items table.

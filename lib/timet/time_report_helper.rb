@@ -6,58 +6,6 @@ module Timet
   # and validating date formats.
   # This module is designed to be included in classes that require time report processing functionalities.
   module TimeReportHelper
-    # Processes each time entry in the items array and updates the time block and duration by tag.
-    #
-    # @return [Array<(Hash, Hash)>] An array containing the updated time block and duration by tag.
-    #
-    # @example
-    #   items = [
-    #     [start_time1, end_time1, tag1],
-    #     [start_time2, end_time2, tag2]
-    #   ]
-    #   process_time_entries
-    #   #=> [{ '2024-10-21' => { 8 => [duration1, tag1], 9 => [duration2, tag2] } }, { tag1 => total_duration1,
-    #   tag2 => total_duration2 }]
-    def process_time_entries
-      duration_by_tag = Hash.new(0)
-      time_block = Hash.new { |hash, key| hash[key] = {} }
-
-      items.each_with_index do |item, idx|
-        display_time_entry(item, TimeHelper.extract_date(items, idx))
-        start_time = item[1]
-        end_time = item[2]
-        tag = item[3]
-        time_block = process_time_block_item(start_time, end_time, tag, time_block)
-
-        duration_by_tag[tag] += TimeHelper.calculate_duration(start_time, end_time)
-      end
-      [time_block, duration_by_tag]
-    end
-
-    # Processes a time block item and updates the time block hash.
-    #
-    # @param start_time [Time] The start time of the time block.
-    # @param end_time [Time] The end time of the time block.
-    # @param tag [String] The tag associated with the time block.
-    # @param time_block [Hash] A hash containing time block data, where keys are dates and values are hashes of time
-    # slots and their corresponding values.
-    # @return [Hash] The updated time block hash.
-    #
-    # @example
-    #   start_time = Time.new(2024, 10, 21, 8, 0, 0)
-    #   end_time = Time.new(2024, 10, 21, 9, 0, 0)
-    #   tag = 'work'
-    #   time_block = {}
-    #   process_time_block_item(start_time, end_time, tag, time_block)
-    #   #=> { '2024-10-21' => { 8 => [duration, 'work'] } }
-    def process_time_block_item(*args)
-      start_time, end_time, tag, time_block = args
-      block_hour = TimeHelper.count_seconds_per_hour_block(start_time, end_time, tag)
-      date_line = TimeHelper.timestamp_to_date(start_time)
-      time_block[date_line] = add_hashes(time_block[date_line], block_hour)
-      time_block
-    end
-
     # Provides predefined date ranges for filtering.
     #
     # @return [Hash] A hash containing predefined date ranges.
@@ -130,20 +78,6 @@ module Timet
       base_hash.merge(additional_hash) do |_key, old_value, new_value|
         summed_number = old_value[0] + new_value[0]
         [summed_number, old_value[1]]
-      end
-    end
-
-    # Writes the CSV rows for the time report.
-    #
-    # @param csv [CSV] The CSV object to which the rows will be written.
-    # @return [void]
-    #
-    # @example
-    #   csv = CSV.new(file)
-    #   write_csv_rows(csv)
-    def write_csv_rows(csv)
-      items.each do |item|
-        csv << format_item(item)
       end
     end
   end

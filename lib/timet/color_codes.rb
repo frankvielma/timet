@@ -5,7 +5,7 @@ module Timet
   class ColorCodes
     RESET = "\u001b[0m"
     UNDERLINE = "\e[4m"
-    BLINK = "\e[5m["
+    BLINK = "\e[5m"
 
     def self.reset
       RESET
@@ -27,12 +27,20 @@ end
 
 # Extend String class globally
 class String
+  def white
+    "#{Timet::ColorCodes.color(246)}#{self}#{Timet::ColorCodes.reset}"
+  end
+
   def gray
     "#{Timet::ColorCodes.color(242)}#{self}#{Timet::ColorCodes.reset}"
   end
 
   def red
     "#{Timet::ColorCodes.color(1)}#{self}#{Timet::ColorCodes.reset}"
+  end
+
+  def blue
+    "#{Timet::ColorCodes.color(12)}#{self}#{Timet::ColorCodes.reset}"
   end
 
   def underline
