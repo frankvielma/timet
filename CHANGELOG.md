@@ -1,5 +1,29 @@
 ## [Unreleased]
 
+## [1.4.0] - 2024-10-29
+
+**Improvements:**
+
+- Introduced constants for fixed tag size and block character in the `TagDistribution` module.
+- Refactored `process_and_print_tags` to use constants directly and ensure tags are truncated to fit within the defined size.
+- Simplified `calculate_value_and_bar_length` method to directly calculate percentage value and bar length using `MAX_BAR_LENGTH`.
+- Renamed `summary` to `report` in `application.rb` for clarity.
+- Integrated `Formatter` functionality into `Table` and `TimeBlockChart` modules.
+- Added new methods in `Table` for formatting specific parts of the table row.
+- Enhanced `TimeBlockChart` with new methods for formatting and printing date information.
+- Integrated `Table` and `TimeBlockChart` into `TimeReport` for a more modular structure.
+- Removed redundant methods from `TimeReportHelper` and ensured all necessary methods are included in the appropriate modules.
+- Added a `blue` method to the `String` class to apply blue color to text and applied it to the total time display in `TimeReport`.
+- Refactored database initialization and column addition logic to improve reusability and maintainability.
+- Refactored Pomodoro session handling and table formatting to improve readability and functionality.
+- Refactored `summary` method to use `time_scope` instead of `filter` for clarity.
+- Refactored insertion logic to improve clarity and prevent redundant checks.
+- Refactored tag distribution formatting into a separate `TagDistribution` module for better code organization.
+
+**Bug fixes:**
+
+- Fixed a typo in the table header title.
+
 ## [1.3.2] - 2024-10-25
 
 **Improvements:**
