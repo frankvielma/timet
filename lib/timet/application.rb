@@ -108,9 +108,13 @@ module Timet
     # @example Resume the last tracking session
     #   resume
     #
+    # @example Resume a specific task by ID
+    #   resume(123)
+    #
     # @note The method checks the status of the last tracking item using `@db.item_status`.
     # @note If the last item is in progress, it prints a message indicating that a task is currently being tracked.
-    # @note If the last item is complete, it fetches the last item using `@db.last_item`, retrieves the tag and notes,
+    # @note If the last item is complete, it fetches the last item using `@db.find_item` or `@db.last_item`,
+    # retrieves the tag and notes,
     # and calls the `start` method to resume the tracking session.
     #
     # @param id [Integer, nil] The ID of the tracking item to resume. If nil, the last item is used.
@@ -119,22 +123,11 @@ module Timet
     # @see Database#find_item
     # @see #start
     def resume(id = nil)
-      status = @db.item_status(id)
-
-      case status
+      case @db.item_status(id)
       when :in_progress
         puts 'A task is currently being tracked.'
       when :complete
-        item = if id
-                 @db.find_item(id)
-               else
-                 @db.last_item
-               end
-        if item
-          tag = item[FIELD_INDEX['tag']]
-          notes = item[FIELD_INDEX['notes']]
-          start(tag, notes)
-        end
+        resume_complete_task(id)
       end
     end
 
