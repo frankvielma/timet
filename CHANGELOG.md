@@ -1,5 +1,24 @@
 ## [Unreleased]
 
+## [1.4.1] - 2024-10-31
+
+**Improvements:**
+
+- Refactor `resume` method to accept an optional `id` parameter for resuming a specific tracking item.
+- Renamed `last_item_status` method to `item_status` in the `Database` class for better clarity and flexibility.
+- Updated `Application` class methods (`start`, `stop`, `resume`, `cancel`) to use the new `item_status` method.
+- Introduced `determine_status` method within the `Database` class to encapsulate status determination logic.
+- Updated documentation and test cases to reflect the changes and ensure consistent status handling.
+- Bumped version to reflect the changes.
+- Updated README.md to include new features and improvements.
+
+**Tasks:**
+
+- Refactor `resume` method.
+- Bump version.
+- Update README.md.
+- Refactor `Database` class for improved status determination and encapsulation.
+
 ## [1.4.0] - 2024-10-29
 
 **Improvements:**
