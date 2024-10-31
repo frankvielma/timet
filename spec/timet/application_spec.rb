@@ -9,7 +9,7 @@ RSpec.describe Timet::Application do
     allow(Timet::Database).to receive(:new).and_return(db)
     allow(db).to receive(:insert_item)
     allow(db).to receive(:last_item)
-    allow(db).to receive(:last_item_status)
+    allow(db).to receive(:item_status)
     allow(db).to receive(:find_item)
     allow(db).to receive(:fetch_last_id)
     allow(db).to receive(:delete_item)
@@ -26,7 +26,7 @@ RSpec.describe Timet::Application do
   describe '#start' do
     context 'when the database is empty or the most recent item is finished' do
       before do
-        allow(db).to receive(:last_item_status).and_return(:no_items)
+        allow(db).to receive(:item_status).and_return(:no_items)
       end
 
       it 'inserts a new item into the database' do
@@ -49,7 +49,7 @@ RSpec.describe Timet::Application do
 
     context 'when the last item is still in progress' do
       before do
-        allow(db).to receive(:last_item_status).and_return(:in_progress)
+        allow(db).to receive(:item_status).and_return(:in_progress)
       end
 
       it 'does not insert a new item into the database' do
@@ -66,7 +66,7 @@ RSpec.describe Timet::Application do
 
     context 'when notes are provided via --notes option' do
       before do
-        allow(db).to receive(:last_item_status).and_return(:no_items)
+        allow(db).to receive(:item_status).and_return(:no_items)
         allow(app).to receive(:options).and_return({ notes: 'my notes from option', pomodoro: 25 })
         allow(Time).to receive(:now).and_return(Time.at(1_700_000_000))
       end
@@ -89,7 +89,7 @@ RSpec.describe Timet::Application do
     context 'when the last item is in progress' do
       before do
         start_time = Time.now.utc.to_i - 3600
-        allow(db).to receive_messages(last_item_status: :in_progress,
+        allow(db).to receive_messages(item_status: :in_progress,
                                       last_item: { 'start' => start_time,
                                                    'stop' => nil })
         allow(db).to receive(:fetch_last_id).and_return(1)
@@ -115,7 +115,7 @@ RSpec.describe Timet::Application do
 
     context 'when the last item is complete' do
       before do
-        allow(db).to receive_messages(last_item_status: :complete)
+        allow(db).to receive_messages(item_status: :complete)
       end
 
       it 'does not update the database' do
@@ -134,7 +134,7 @@ RSpec.describe Timet::Application do
       let(:status) { :in_progress }
 
       it 'prints a message indicating that a task is being tracked' do
-        allow(db).to receive(:last_item_status).and_return(status)
+        allow(db).to receive(:item_status).and_return(status)
         expect { app.resume }.to output(/A task is currently being tracked./).to_stdout
       end
 
@@ -148,18 +148,18 @@ RSpec.describe Timet::Application do
 
     context 'when there is a last task' do
       let(:last_item) { ['task', '2024-01-01', '12:00', 'tag', 'notes'] }
-      let(:last_item_status) { :complete }
+      let(:item_status) { :complete }
 
       before do
         allow(db).to receive_messages(
-          last_item_status: last_item_status,
+          item_status: item_status,
           last_item: last_item
         )
       end
 
       it 'retrieves the last item status from the database' do
         app.resume
-        expect(db).to have_received(:last_item_status).twice
+        expect(db).to have_received(:item_status).twice
       end
 
       it 'retrieves the last item from the database' do
@@ -178,12 +178,12 @@ RSpec.describe Timet::Application do
       let(:status) { :no_items }
 
       before do
-        allow(db).to receive_messages(last_item_status: status, last_item: nil)
+        allow(db).to receive_messages(item_status: status, last_item: nil)
       end
 
       it 'retrieves the last item status from the database' do
         app.resume
-        expect(db).to have_received(:last_item_status)
+        expect(db).to have_received(:item_status)
       end
 
       it 'does not retrieve the last item from the database' do
@@ -332,18 +332,18 @@ RSpec.describe Timet::Application do
 
   describe '#cancel' do
     it 'cancels active time tracking and outputs message' do
-      allow(db).to receive_messages(last_item_status: :in_progress, fetch_last_id: '1')
+      allow(db).to receive_messages(item_status: :in_progress, fetch_last_id: '1')
       expect { app.cancel }.to output("Canceled active time tracking 1\n").to_stdout
     end
 
     it 'deletes the last item from the database' do
-      allow(db).to receive_messages(last_item_status: :in_progress, fetch_last_id: '1')
+      allow(db).to receive_messages(item_status: :in_progress, fetch_last_id: '1')
       app.cancel
       expect(db).to have_received(:delete_item).with('1')
     end
 
     it 'displays message when no active time tracking' do
-      allow(db).to receive(:last_item_status).and_return(:complete)
+      allow(db).to receive(:item_status).and_return(:complete)
       expect { app.cancel }.to output("There is no active time tracking\n").to_stdout
     end
   end

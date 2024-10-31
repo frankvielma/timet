@@ -106,7 +106,7 @@ gem install timet
   +-------+------------+--------+----------+----------+----------+--------------------------+
   ```
 ---
-- **timet resume**: It allows users to quickly resume tracking a task that was previously in progress.
+- **timet resume [id]**: This command allows users to quickly resume tracking a task that was previously in progress. If an id is provided, it resumes the tracking session for the specified task. If no id is provided, it resumes the last completed task.
 
   ```
   Tracked time report [today]:
@@ -177,9 +177,10 @@ gem install timet
 | `timet summary resume (r)`          | Resume tracking the last task.                                              | `timet su r`                      |
 | `timet delete [id]`                 | Delete a task by its ID.                                                    | `timet d [id]`                    |
 | `timet cancel`                      | Cancel active time tracking.                                                | `timet c`                         |
-| `timet edit [id]`                   | Update a task's notes, tag, start or end fields.                            | `timet e [1]`                     |
+| `timet edit [id]`                   | Update a task's notes, tag, start or end fields.                            | `timet e [id]`                    |
 | `timet su [date]`                   | Display a report of tracked time for a specific date.                       | `timet su 2024-01-03`             |
 | `timet su [start_date]..[end_date]` | Display a report of tracked time for a date range.                          | `timet su 2024-01-02..2024-01-03` |
+| `timet resume [id]`                 | Resume tracking a task by ID or the last completed task.                    | `timet resume [id]`               |
 
 ### Date Range in Summary
 

@@ -1,12 +1,9 @@
 # frozen_string_literal: true
 
 require 'sqlite3'
-require_relative 'status_helper'
 module Timet
   # Provides database access for managing time tracking data.
   class Database
-    include StatusHelper
-
     # The default path to the SQLite database file.
     DEFAULT_DATABASE_PATH = File.join(Dir.home, '.timet.db')
 
@@ -158,12 +155,15 @@ module Timet
     # @return [Symbol] The status of the last item. Possible values are :no_items, :in_progress, or :complete.
     #
     # @example Determine the status of the last item
-    #   last_item_status
+    #   item_status
     #
     # @note The method executes SQL to fetch the last item and determines its status using the `StatusHelper` module.
-    def last_item_status
-      result = execute_sql('SELECT id, end FROM items ORDER BY id DESC LIMIT 1')
-      StatusHelper.determine_status(result)
+    #
+    # @param id [Integer, nil] The ID of the item to check. If nil, the last item in the table is used.
+    #
+    def item_status(id = nil)
+      id = fetch_last_id if id.nil?
+      determine_status(find_item(id))
     end
 
     # Finds an item in the items table by its ID.
@@ -240,6 +240,34 @@ module Timet
       minutes, seconds = remainder.divmod(60)
 
       format '%<hours>02d:%<minutes>02d:%<seconds>02d', hours: hours, minutes: minutes, seconds: seconds
+    end
+
+    # Determines the status of a time tracking result based on the presence and end time of items.
+    #
+    # @param result [Array] The result set containing time tracking items.
+    #
+    # @return [Symbol] The status of the time tracking result. Possible values are
+    # :no_items, :in_progress, or :complete.
+    #
+    # @example Determine the status of an empty result set
+    #   StatusHelper.determine_status([]) # => :no_items
+    #
+    # @example Determine the status of a result set with an in-progress item
+    #   StatusHelper.determine_status([[1, nil]]) # => :in_progress
+    #
+    # @example Determine the status of a result set with a completed item
+    #   StatusHelper.determine_status([[1, 1633072800]]) # => :complete
+    #
+    # @note The method checks if the result set is empty and returns :no_items if true.
+    # @note If the last item in the result set has no end time, it returns :in_progress.
+    # @note If the last item in the result set has an end time, it returns :complete.
+    def determine_status(result)
+      return :no_items if result.nil?
+
+      last_item_end = result[2]
+      return :in_progress unless last_item_end
+
+      :complete
     end
   end
 end

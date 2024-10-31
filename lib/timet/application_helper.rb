@@ -157,5 +157,32 @@ module Timet
       @db.delete_item(id)
       puts message
     end
+
+    # Resumes a tracking session for a completed task.
+    #
+    # @param id [Integer, nil] The ID of the tracking item to resume. If nil, the last completed item is used.
+    #
+    # @return [void] This method does not return a value; it performs side effects such as resuming a tracking session.
+    #
+    # @example Resume the last completed task
+    #   resume_complete_task
+    #
+    # @example Resume a specific task by ID
+    #   resume_complete_task(123)
+    #
+    # @note The method fetches the specified or last completed item using `@db.find_item` or `@db.last_item`.
+    # @note If the item is found, it retrieves the tag and notes and calls the `start` method to resume the
+    # tracking session.
+    #
+    # @see Database#find_item
+    # @see Database#last_item
+    # @see #start
+    def resume_complete_task(id)
+      item = id ? @db.find_item(id) : @db.last_item
+      return unless item
+
+      tag, notes = item.values_at(Application::FIELD_INDEX['tag'], Application::FIELD_INDEX['notes'])
+      start(tag, notes)
+    end
   end
 end

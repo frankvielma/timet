@@ -125,10 +125,10 @@ RSpec.describe Timet::Database do
     end
   end
 
-  describe '#last_item_status' do
+  describe '#item_status' do
     context 'when no items exist' do
       it 'returns :no_items' do
-        expect(db.last_item_status).to eq(:no_items)
+        expect(db.item_status).to eq(:no_items)
       end
     end
 
@@ -138,7 +138,7 @@ RSpec.describe Timet::Database do
         notes = ''
         db.insert_item(start_time, test_tag, notes)
 
-        expect(db.last_item_status).to eq(:in_progress)
+        expect(db.item_status).to eq(:in_progress)
       end
     end
 
@@ -150,7 +150,7 @@ RSpec.describe Timet::Database do
         last_id = db.fetch_last_id
         db.update_item(last_id, 'end', Time.now.utc.to_i)
 
-        expect(db.last_item_status).to eq(:complete)
+        expect(db.item_status).to eq(:complete)
       end
     end
   end
