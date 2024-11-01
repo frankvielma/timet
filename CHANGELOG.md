@@ -13,6 +13,7 @@
 - Created a new `TimeStatistics` class in `lib/timet/time_statistics.rb` to analyze and summarize time duration data associated with various tags.
 - Implemented methods in `TimeStatistics` to calculate total duration by tag, sorted duration by tag, average duration by tag, standard deviation by tag, and additional descriptive statistics by tag.
 - Updated Gemfile.lock to reflect the new dependency.
+- Update README.md
 
 **Tasks:**
 
