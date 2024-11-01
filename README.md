@@ -172,15 +172,14 @@ gem install timet
 | `timet summary today (t)`           | Display a report of tracked time for today.                                 | `timet su t` or `timet su`        |
 | `timet summary yesterday (y)`       | Display a report of tracked time for yesterday.                             | `timet su y`                      |
 | `timet summary week (w)`            | Display a report of tracked time for the week.                              | `timet su w`                      |
-| `timet summary month (m)`           | Resume tracking the last month.                                             | `timet su m`                      |
+| `timet summary month (m)`           | Display a report of tracked time for the month.                             | `timet su m`                      |
 | `timet su t --csv=[filename]`       | Display a report of tracked time for today and export it to `filename.csv`. | `timet su t --csv=file.csv`       |
-| `timet summary resume (r)`          | Resume tracking the last task.                                              | `timet su r`                      |
 | `timet delete [id]`                 | Delete a task by its ID.                                                    | `timet d [id]`                    |
 | `timet cancel`                      | Cancel active time tracking.                                                | `timet c`                         |
 | `timet edit [id]`                   | Update a task's notes, tag, start or end fields.                            | `timet e [id]`                    |
 | `timet su [date]`                   | Display a report of tracked time for a specific date.                       | `timet su 2024-01-03`             |
 | `timet su [start_date]..[end_date]` | Display a report of tracked time for a date range.                          | `timet su 2024-01-02..2024-01-03` |
-| `timet resume [id]`                 | Resume tracking a task by ID or the last completed task.                    | `timet resume [id]`               |
+| `timet resume (r) [id]`             | Resume tracking a task by ID or the last completed task.                    | `timet resume [id]`               |
 
 ### Date Range in Summary
 
