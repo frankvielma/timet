@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'time_statistics'
 module Timet
   # The TagDistribution module provides functionality to format and display the distribution of tags based on their
   # durations. This is particularly useful for visualizing how time is distributed across different tags in a project
@@ -12,20 +13,23 @@ module Timet
     # Formats and displays the tag distribution.
     #
     # @param duration_by_tag [Hash<String, Integer>] A hash where keys are tags and values are durations in seconds.
+    # @param colors [Hash<String, String>] A hash where keys are tags and values are color codes for display.
     # @return [void] This method outputs the formatted tag distribution to the console.
     #
     # @example
     #   duration_by_tag = { "timet" => 3600, "nextjs" => 1800 }
-    #   Formatter.format_tag_distribution(duration_by_tag)
+    #   colors = { "timet" => "\e[31m", "nextjs" => "\e[32m" }
+    #   Formatter.format_tag_distribution(duration_by_tag, colors)
     #   # Output:
-    #   #  timet:   66.67%  ====================
-    #   #  nextjs:   33.33%  ==========
-    def tag_distribution(duration_by_tag, colors)
-      total = duration_by_tag.values.sum
+    #   #  \e[31m timet:   66.67%  ==================== \e[0m
+    #   #  \e[32m nextjs:   33.33%  ========== \e[0m
+    def tag_distribution(colors)
+      time_stats = TimeStatistics.new(@items)
+      total = time_stats.total_duration
+
       return unless total.positive?
 
-      sorted_duration_by_tag = duration_by_tag.sort_by { |_, duration| -duration }
-      process_and_print_tags(sorted_duration_by_tag, total, colors)
+      process_and_print_tags(time_stats, total, colors)
     end
 
     # Processes and prints the tag distribution information.
@@ -34,13 +38,48 @@ module Timet
     # tag and its corresponding duration, sorted by duration in descending order.
     # @param total [Numeric] The total duration of all tags combined.
     # @return [void] This method outputs the tag distribution information to the standard output.
-    def process_and_print_tags(sorted_duration_by_tag, total, colors)
-      sorted_duration_by_tag.each do |tag, duration|
-        value, bar_length = calculate_value_and_bar_length(duration, total)
-        horizontal_bar = (BLOCK_CHAR * bar_length).to_s.color(colors[tag] + 1)
-        tag = tag[0..TAG_SIZE - 1] if tag.size >= TAG_SIZE
-        puts "#{tag.rjust(TAG_SIZE)}: #{value.to_s.rjust(5)}%  #{horizontal_bar}"
+    def process_and_print_tags(time_stats, total, colors)
+      time_stats.sorted_duration_by_tag.each do |tag, duration|
+        print_tag_info(tag, duration, total, time_stats, colors)
       end
+    end
+
+    # Prints the detailed information for a specific tag.
+    #
+    # @param tag [String] The tag for which to print the information.
+    # @param duration [Numeric] The duration associated with the tag.
+    # @param total [Numeric] The total duration of all tags combined.
+    # @param time_stats [Object] An object containing time statistics for the tags.
+    # @param colors [Hash] A hash mapping tags to color indices for display.
+    # @return [void] This method outputs the tag information to the standard output.
+    def print_tag_info(tag, duration, total, time_stats, colors)
+      value, bar_length = calculate_value_and_bar_length(duration, total)
+      horizontal_bar = generate_horizontal_bar(bar_length, colors[tag])
+      formatted_tag = tag[0...TAG_SIZE].rjust(TAG_SIZE)
+      stats = generate_stats(tag, time_stats)
+
+      puts "#{formatted_tag}: #{value.to_s.rjust(5)}%  #{horizontal_bar} [#{stats}]"
+    end
+
+    # Generates a horizontal bar for display based on the bar length and color index.
+    #
+    # @param bar_length [Numeric] The length of the bar to generate.
+    # @param color_index [Numeric] The color index to use for the bar.
+    # @return [String] The generated horizontal bar string.
+    def generate_horizontal_bar(bar_length, color_index)
+      (BLOCK_CHAR * bar_length).to_s.color(color_index + 1)
+    end
+
+    # Generates the statistics string for a given tag.
+    #
+    # @param tag [String] The tag for which to generate the statistics.
+    # @param time_stats [Object] An object containing time statistics for the tags.
+    # @return [String] The generated statistics string.
+    def generate_stats(tag, time_stats)
+      total_hours = (time_stats.total_duration_by_tag[tag] / 3600.0).round(1)
+      avg_minutes = (time_stats.average_by_tag[tag] / 60.0).round(1)
+      sd_minutes = (time_stats.standard_deviation_by_tag[tag] / 60).round(1)
+      "T: #{total_hours}h, AVG: #{avg_minutes}min SD: #{sd_minutes}min".gray
     end
 
     # Calculates the percentage value and bar length for a given duration and total duration.
@@ -53,7 +92,7 @@ module Timet
     #   calculate_value_and_bar_length(50, 100, 2) #=> [50.0, 25]
     def calculate_value_and_bar_length(duration, total)
       value = duration.to_f / total
-      percentage_value = (duration.to_f / total * 100).round(2)
+      percentage_value = (duration.to_f / total * 100).round(1)
       bar_length = (value * MAX_BAR_LENGTH).round
       [percentage_value, bar_length]
     end

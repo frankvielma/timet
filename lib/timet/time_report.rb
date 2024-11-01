@@ -54,15 +54,22 @@ module Timet
     #   time_report.display
     #
     # @note The method formats and prints the table header, rows, and total duration.
+    #
+    # @param items [Array<Hash>] The list of time entries to be displayed.
+    # @param options [Hash] Additional options for customizing the display (e.g., color scheme).
+    #
+    # @see #table
+    # @see #print_time_block_chart
+    # @see #tag_distribution
     def display
-      return puts 'No tracked time found for the specified filter.' if items.empty?
+      return puts 'No tracked time found for the specified filter.' if @items.empty?
 
-      time_block, duration_by_tag = table
+      time_block = table
 
-      colors = duration_by_tag.map { |x| x[0] }.sort.each_with_index.to_h
+      colors = @items.map { |x| x[3] }.uniq.each_with_index.to_h
       print_time_block_chart(time_block, colors)
 
-      tag_distribution(duration_by_tag, colors)
+      tag_distribution(colors)
     end
 
     # Displays a single row of the report.
