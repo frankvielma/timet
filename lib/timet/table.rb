@@ -9,12 +9,12 @@ module Timet
     # @example
     #   table
     #
-    # @return [Array<(String, Hash)>] An array containing the time block string and a hash of durations by tag.
+    # @return [String] The time block string.
     #
     # @note
     #   - The method relies on the `header`, `process_time_entries`, `separator`, and `total` methods.
     #   - The `header` method is responsible for printing the table header.
-    #   - The `process_time_entries` method processes the time entries and returns the time block and duration by tag.
+    #   - The `process_time_entries` method processes the time entries and returns the time block.
     #   - The `separator` method returns a string representing the separator line.
     #   - The `total` method prints the total duration.
     #
@@ -24,10 +24,10 @@ module Timet
     # @see #total
     def table
       header
-      time_block, duration_by_tag = process_time_entries
+      time_block = process_time_entries
       puts separator
       total
-      [time_block, duration_by_tag]
+      time_block
     end
 
     # Formats the header of the time tracking report table.
@@ -62,73 +62,53 @@ module Timet
       '+-------+------------+--------+----------+----------+----------+--------------------+'
     end
 
-    # Processes each time entry in the `items` array and updates the time block and duration by tag.
+    # Processes time entries and generates a time block structure.
     #
-    # @return [Array<(Hash, Hash)>] An array containing the updated time block and duration by tag.
-    #
-    # @example
-    #   items = [
-    #     [start_time1, end_time1, tag1],
-    #     [start_time2, end_time2, tag2]
-    #   ]
-    #   process_time_entries
-    #   #=> [{ '2024-10-21' => { 8 => [duration1, tag1], 9 => [duration2, tag2] } },
-    #   { tag1 => total_duration1, tag2 => total_duration2 }]
+    # @return [Hash] A nested hash representing the time block structure.
     #
     # @note
-    #   - The method relies on the `items` instance variable, which should be an array of arrays.
-    #   - Each sub-array in `items` is expected to contain a start time, end time, and a tag.
-    #   - The `display_time_entry` method is used to display each time entry.
-    #   - The `process_time_block_item` method processes each time entry and updates the time block and duration by tag.
+    #   - The method iterates over each item in the `items` array.
+    #   - For each item, it calls `display_time_entry` to display the time entry.
+    #   - It then processes the time block item using `process_time_block_item`.
+    #   - The `TimeHelper.extract_date` method is used to extract the date from the items.
     #
-    # @see #items
     # @see #display_time_entry
     # @see #process_time_block_item
+    # @see TimeHelper#extract_date
     def process_time_entries
-      duration_by_tag = Hash.new(0)
       time_block = Hash.new { |hash, key| hash[key] = {} }
 
       items.each_with_index do |item, idx|
         display_time_entry(item, TimeHelper.extract_date(items, idx))
-        time_block, duration_by_tag = process_time_block_item(item, time_block, duration_by_tag)
+        time_block = process_time_block_item(item, time_block)
       end
-      [time_block, duration_by_tag]
+
+      time_block
     end
 
-    # Processes a time block item and updates the time block hash.
+    # Processes a single time block item and updates the time block structure.
     #
-    # @param item [Array] The time entry to process, containing the start time, end time, and tag.
-    # @param time_block [Hash] A hash containing time block data, where keys are dates and values are hashes of time
-    # slots and their corresponding values.
-    # @param duration_by_tag [Hash] A hash containing the total duration by tag.
+    # @param item [Array] An array containing the item details, including start time, end time, and tag.
+    # @param time_block [Hash] The current time block structure.
     #
-    # @return [Array<(Hash, Hash)>] An array containing the updated time block hash and the updated duration
-    # by tag hash.
-    #
-    # @example
-    #   item = [nil, Time.new(2024, 10, 21, 8, 0, 0), Time.new(2024, 10, 21, 9, 0, 0), 'work']
-    #   time_block = {}
-    #   duration_by_tag = {}
-    #   process_time_block_item(item, time_block, duration_by_tag)
-    #   #=> [{ '2024-10-21' => { 8 => [3600, 'work'] } }, { 'work' => 3600 }]
+    # @return [Hash] The updated time block structure.
     #
     # @note
-    #   - The method relies on the `TimeHelper` module for time-related calculations.
-    #   - The `add_hashes` method is used to merge the new time block data into the existing time block hash.
-    #   - The `calculate_duration` method calculates the duration between the start and end times.
+    #   - The method extracts the start time, end time, and tag from the item.
+    #   - It calculates the number of seconds per hour block using `TimeHelper.count_seconds_per_hour_block`.
+    #   - It converts the start time to a date using `TimeHelper.timestamp_to_date`.
+    #   - It updates the time block structure by adding the new block hour to the existing structure.
     #
     # @see TimeHelper#count_seconds_per_hour_block
     # @see TimeHelper#timestamp_to_date
-    # @see TimeHelper#calculate_duration
     # @see #add_hashes
-    def process_time_block_item(item, time_block, duration_by_tag)
+    def process_time_block_item(item, time_block)
       _, start_time, end_time, tag = item
 
       block_hour = TimeHelper.count_seconds_per_hour_block(start_time, end_time, tag)
       date_line = TimeHelper.timestamp_to_date(start_time)
       time_block[date_line] = add_hashes(time_block[date_line], block_hour)
-      duration_by_tag[tag] += TimeHelper.calculate_duration(start_time, end_time)
-      [time_block, duration_by_tag]
+      time_block
     end
 
     # Displays a single time entry in the report.

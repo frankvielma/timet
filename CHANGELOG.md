@@ -1,5 +1,30 @@
 ## [Unreleased]
 
+## [1.4.2] - 2024-11-01
+
+**Improvements:**
+
+- Refactored the `table` method in `lib/timet/table.rb` to simplify its return value and remove unnecessary complexity.
+- Updated the `process_time_entries` and `process_time_block_item` methods to streamline the processing of time entries and time block items.
+- Integrated the `TimeStatistics` class into the `TagDistribution` module to calculate and display detailed statistics for each tag.
+- Modified the `tag_distribution` method to use the `TimeStatistics` class for generating tag distribution information.
+- Updated the `display` method in `lib/timet/time_report.rb` to use the refactored methods and integrate the new tag distribution logic.
+- Added the `descriptive_statistics` gem to the Gemfile to support statistical calculations.
+- Created a new `TimeStatistics` class in `lib/timet/time_statistics.rb` to analyze and summarize time duration data associated with various tags.
+- Implemented methods in `TimeStatistics` to calculate total duration by tag, sorted duration by tag, average duration by tag, standard deviation by tag, and additional descriptive statistics by tag.
+- Updated Gemfile.lock to reflect the new dependency.
+- Update README.md
+
+**Tasks:**
+
+- Refactor time tracking report methods and integrate `TimeStatistics`.
+- Add `descriptive_statistics` gem and create `TimeStatistics` class.
+- Fix typo in `README.md`.
+
+**Bug fixes:**
+
+- Fixed a typo in `README.md`.
+
 ## [1.4.1] - 2024-10-31
 
 **Improvements:**
