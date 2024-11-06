@@ -206,6 +206,29 @@ module Timet
       }
     end
 
+    # @note This class is responsible for exporting reports to CSV and iCalendar formats.
+    class ReportExporter
+      # Exports the report to a CSV file if the `csv` option is provided.
+      #
+      # @param report [TimeReport] The report object to export.
+      # @param options [Hash] The options hash containing export settings.
+      # @option options [String] :csv The filename to use when exporting the report to CSV.
+      # @return [void]
+      def self.export_csv_report(report, options)
+        report.export_csv if options[:csv]
+      end
+
+      # Exports the report to an iCalendar file if the `ics` option is provided.
+      #
+      # @param report [TimeReport] The report object to export.
+      # @param options [Hash] The options hash containing export settings.
+      # @option options [String] :ics The filename to use when exporting the report to iCalendar.
+      # @return [void]
+      def self.export_icalendar_report(report, options)
+        report.export_icalendar if options[:ics]
+      end
+    end
+
     # Displays the report and exports it to a CSV file and/or an iCalendar file if specified.
     #
     # @param report [TimeReport] The TimeReport instance to display and export.
@@ -220,11 +243,20 @@ module Timet
     #   display_and_export_report(report, { csv: 'report.csv', ics: 'icalendar.ics' })
     def display_and_export_report(report, options)
       report.display
+      export_report(report, options)
+    end
+
+    # Exports the given report in CSV and iCalendar formats if there are items, otherwise prints a message.
+    #
+    # @param report [Report] The report to be exported.
+    # @param options [Hash] The options to pass to the exporter.
+    # @return [void]
+    def export_report(report, options)
       items = report.items
       if items.any?
-        report.export_csv if options[:csv]
-        report.export_icalendar if options[:ics]
-      elsif items.empty?
+        ReportExporter.export_csv_report(report, options)
+        ReportExporter.export_icalendar_report(report, options)
+      else
         puts 'No items found to export'
       end
     end
