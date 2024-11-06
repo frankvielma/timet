@@ -22,6 +22,7 @@
 - **Block Time Plot:** Visualizes the distribution of tracked time across a specified range of dates. Each column represents the amount of time tracked during a specific hour, with a header showing the hours and a row for each date displaying the time blocks for each hour.
 - **Tag Distribution Plot:** Illustrates the proportion of total tracked time allocated to each tag, showing the relative contribution of each tag to the overall time tracked.
 - **Detailed Statistics:** Displays detailed statistics for each tag, including total duration, average duration, and standard deviation.
+- **iCalendar Export:** Easily export your time tracking data to iCalendar format for integration with calendar applications.
 
 **Examples:**
 
@@ -181,7 +182,8 @@ gem install timet
 | `timet summary yesterday (y)`                | Display a report of tracked time for yesterday.                             | `timet su y`                      |
 | `timet summary week (w)`                     | Display a report of tracked time for the week.                              | `timet su w`                      |
 | `timet summary month (m)`                    | Display a report of tracked time for the month.                             | `timet su m`                      |
-| `timet su t --csv=[filename]`                | Display a report of tracked time for today and export it to `filename.csv`. | `timet su t --csv=file.csv`       |
+| `timet su t --csv=[filename]`                | Display a report of tracked time for today and export to CSV file | `timet su t --csv=file.csv`       |
+| `timet su w --ics=[filename]`                | Display a report of tracked time for week and export to iCalendar file | `timet su w --ics=file.csv`       |
 | `timet delete [id]`                          | Delete a task by its ID.                                                    | `timet d [id]`                    |
 | `timet cancel`                               | Cancel active time tracking.                                                | `timet c`                         |
 | `timet edit [id]`                            | Update a task's notes, tag, start, or end fields.                           | `timet e [id]`                    |
