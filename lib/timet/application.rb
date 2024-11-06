@@ -162,17 +162,19 @@ module Timet
     #
     # @note The method initializes a `TimeReport` object with the database, time_scope, tag, and optional CSV filename.
     # @note The method calls `display` on the `TimeReport` object to show the summary.
-    # @note If a CSV filename is provided and there are items to export, the method calls `export_sheet` to export the
+    # @note If a CSV filename is provided and there are items to export, the method calls `export_csv` to export the
     # summary to a CSV file.
     # @note If no items are found to export, it prints a message indicating that no items were found.
     def summary(time_scope = nil, tag = nil)
       csv_filename = options[:csv]&.split('.')&.first
-      report = TimeReport.new(@db, time_scope, tag, csv_filename)
+      ics_filename = options[:ics]&.split('.')&.first
+      report = TimeReport.new(@db, time_scope, tag, csv_filename, ics_filename)
 
       report.display
       items = report.items
-      if csv_filename && items.any?
-        report.export_sheet
+      if items.any?
+        report.export_csv if csv_filename
+        report.export_icalendar if ics_filename
       elsif items.empty?
         puts 'No items found to export'
       end

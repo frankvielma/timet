@@ -24,7 +24,7 @@ module Timet
     attr_reader :items
 
     # Provides access to the CSV filename.
-    attr_reader :filename
+    attr_reader :csv_filename
 
     # Initializes a new instance of the TimeReport class.
     #
@@ -38,10 +38,11 @@ module Timet
     # instance variables.
     #
     # @example Initialize a new TimeReport instance with a filter and tag
-    #   TimeReport.new(db, 'today', 'work', 'report.csv')
-    def initialize(db, filter = nil, tag = nil, csv = nil)
+    #   TimeReport.new(db, 'today', 'work', 'report.csv', 'icalendar.ics')
+    def initialize(db, filter = nil, tag = nil, csv = nil, ics = nil)
       @db = db
-      @filename = csv
+      @csv_filename = csv
+      @ics_file = ics
       @filter = formatted_filter(filter)
       @items = filter ? filter_items(@filter, tag) : @db.all_items
     end
@@ -94,11 +95,11 @@ module Timet
     # @return [void] This method does not return a value; it performs side effects such as writing the CSV file.
     #
     # @example Export the report to a CSV file
-    #   time_report.export_sheet
+    #   time_report.export_csv
     #
     # @note The method writes the items to a CSV file and prints a confirmation message.
-    def export_sheet
-      file_name = "#{filename}.csv"
+    def export_csv
+      file_name = "#{csv_filename}.csv"
       write_csv(file_name)
 
       puts "The #{file_name} has been exported."

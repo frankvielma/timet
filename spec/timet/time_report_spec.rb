@@ -3,10 +3,11 @@
 RSpec.describe Timet::TimeReport do
   let(:db) { instance_double(Timet::Database) }
   let(:items) { [] }
-  let(:time_report) { described_class.new(db, filter, tag, csv) }
+  let(:time_report) { described_class.new(db, filter, tag, csv, ics) }
   let(:filter) { nil }
   let(:tag) { nil }
   let(:csv) { nil }
+  let(:ics) { nil }
 
   before do
     allow(db).to receive_messages(all_items: items, execute_sql: [])
