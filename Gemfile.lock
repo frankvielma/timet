@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    timet (1.4.2)
+    timet (1.4.3)
       sqlite3 (~> 2, >= 1.7)
       thor (~> 1.2)
       tty-prompt (~> 0.2)
@@ -14,8 +14,13 @@ GEM
     descriptive_statistics (2.5.1)
     diff-lcs (1.5.1)
     docile (1.4.1)
+    icalendar (2.10.3)
+      ice_cube (~> 0.16)
+      ostruct
+    ice_cube (0.17.0)
     json (2.7.4)
     language_server-protocol (3.17.0.3)
+    ostruct (0.6.0)
     parallel (1.26.3)
     parser (3.3.5.0)
       ast (~> 2.4.1)
@@ -99,6 +104,7 @@ PLATFORMS
 DEPENDENCIES
   csv (~> 3.3.0)
   descriptive_statistics (~> 2.5)
+  icalendar
   rake (~> 13.2)
   rspec (~> 3.13)
   rubocop (~> 1.67)
