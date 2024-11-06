@@ -2,6 +2,7 @@
 
 require 'date'
 require 'csv'
+require 'icalendar'
 require_relative 'time_report_helper'
 require_relative 'table'
 require_relative 'time_block_chart'
@@ -26,25 +27,30 @@ module Timet
     # Provides access to the CSV filename.
     attr_reader :csv_filename
 
+    # Provides access to the ICS filename.
+    attr_reader :ics_filename
+
     # Initializes a new instance of the TimeReport class.
     #
     # @param db [Database] The database instance to use for fetching data.
-    # @param filter [String, nil] The filter to apply when fetching items. Possible values include 'today',
-    # 'yesterday', 'week', 'month', or a date range in the format 'YYYY-MM-DD..YYYY-MM-DD'.
-    # @param tag [String, nil] The tag to filter the items by.
-    # @param csv [String, nil] The filename to use when exporting the report to CSV.
+    # @param options [Hash] A hash containing optional parameters.
+    # @option options [String, nil] :filter The filter to apply when fetching items. Possible values include 'today',
+    #   'yesterday', 'week', 'month', or a date range in the format 'YYYY-MM-DD..YYYY-MM-DD'.
+    # @option options [String, nil] :tag The tag to filter the items by.
+    # @option options [String, nil] :csv The filename to use when exporting the report to CSV.
+    # @option options [String, nil] :ics The filename to use when exporting the report to iCalendar.
     #
     # @return [void] This method does not return a value; it performs side effects such as initializing the
     # instance variables.
     #
     # @example Initialize a new TimeReport instance with a filter and tag
-    #   TimeReport.new(db, 'today', 'work', 'report.csv', 'icalendar.ics')
-    def initialize(db, filter = nil, tag = nil, csv = nil, ics = nil)
+    #   TimeReport.new(db, filter: 'today', tag: 'work', csv: 'report.csv', ics: 'icalendar.ics')
+    def initialize(db, options = {})
       @db = db
-      @csv_filename = csv
-      @ics_file = ics
-      @filter = formatted_filter(filter)
-      @items = filter ? filter_items(@filter, tag) : @db.all_items
+      @csv_filename = options[:csv]
+      @ics_filename = options[:ics]
+      @filter = formatted_filter(options[:filter])
+      @items = options[:filter] ? filter_items(@filter, options[:tag]) : @db.all_items
     end
 
     # Displays the report of tracked time entries.
@@ -103,6 +109,32 @@ module Timet
       write_csv(file_name)
 
       puts "The #{file_name} has been exported."
+    end
+
+    def export_icalendar
+      file_name = "#{ics_filename}.ics"
+
+      cal = Icalendar::Calendar.new
+      items.each do |item|
+        dtstart = Time.at(item[1]).to_datetime
+        end_time = item[2] || TimeHelper.current_timestamp
+        dtend = Time.at(end_time).to_datetime
+
+        tag = item[3]
+        notes = item[4]
+        cal.event do |e|
+          e.dtstart     = dtstart
+          e.dtend       = dtend
+          e.summary     = tag
+          e.description = notes
+          e.ip_class    = 'PRIVATE'
+        end
+      end
+      cal.publish
+
+      File.write(file_name, cal.to_ical)
+
+      puts "The #{file_name} has been generated."
     end
 
     private

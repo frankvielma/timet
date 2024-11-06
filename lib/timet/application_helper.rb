@@ -184,5 +184,49 @@ module Timet
       tag, notes = item.values_at(Application::FIELD_INDEX['tag'], Application::FIELD_INDEX['notes'])
       start(tag, notes)
     end
+
+    # Builds a hash of options to be used when initializing a TimeReport instance.
+    #
+    # @param time_scope [String, nil] The filter to apply when fetching items. Possible values include 'today',
+    #   'yesterday', 'week', 'month', or a date range in the format 'YYYY-MM-DD..YYYY-MM-DD'.
+    # @param tag [String, nil] The tag to filter the items by.
+    #
+    # @return [Hash] A hash containing the filter, tag, CSV filename, and iCalendar filename.
+    #
+    # @example Build options with a filter and tag
+    #   build_options('today', 'work') # => { filter: 'today', tag: 'work', csv: nil, ics: nil }
+    def build_options(time_scope, tag)
+      csv_filename = options[:csv]&.split('.')&.first
+      ics_filename = options[:ics]&.split('.')&.first
+      {
+        filter: time_scope,
+        tag: tag,
+        csv: csv_filename,
+        ics: ics_filename
+      }
+    end
+
+    # Displays the report and exports it to a CSV file and/or an iCalendar file if specified.
+    #
+    # @param report [TimeReport] The TimeReport instance to display and export.
+    # @param options [Hash] A hash containing the options for exporting the report.
+    # @option options [String, nil] :csv The filename to use when exporting the report to CSV.
+    # @option options [String, nil] :ics The filename to use when exporting the report to iCalendar.
+    #
+    # @return [void] This method does not return a value; it performs side effects such as displaying
+    # and exporting the report.
+    #
+    # @example Display and export the report to CSV and iCalendar
+    #   display_and_export_report(report, { csv: 'report.csv', ics: 'icalendar.ics' })
+    def display_and_export_report(report, options)
+      report.display
+      items = report.items
+      if items.any?
+        report.export_csv if options[:csv]
+        report.export_icalendar if options[:ics]
+      elsif items.empty?
+        puts 'No items found to export'
+      end
+    end
   end
 end
