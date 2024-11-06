@@ -184,5 +184,81 @@ module Timet
       tag, notes = item.values_at(Application::FIELD_INDEX['tag'], Application::FIELD_INDEX['notes'])
       start(tag, notes)
     end
+
+    # Builds a hash of options to be used when initializing a TimeReport instance.
+    #
+    # @param time_scope [String, nil] The filter to apply when fetching items. Possible values include 'today',
+    #   'yesterday', 'week', 'month', or a date range in the format 'YYYY-MM-DD..YYYY-MM-DD'.
+    # @param tag [String, nil] The tag to filter the items by.
+    #
+    # @return [Hash] A hash containing the filter, tag, CSV filename, and iCalendar filename.
+    #
+    # @example Build options with a filter and tag
+    #   build_options('today', 'work') # => { filter: 'today', tag: 'work', csv: nil, ics: nil }
+    def build_options(time_scope, tag)
+      csv_filename = options[:csv]&.split('.')&.first
+      ics_filename = options[:ics]&.split('.')&.first
+      {
+        filter: time_scope,
+        tag: tag,
+        csv: csv_filename,
+        ics: ics_filename
+      }
+    end
+
+    # @note This class is responsible for exporting reports to CSV and iCalendar formats.
+    class ReportExporter
+      # Exports the report to a CSV file if the `csv` option is provided.
+      #
+      # @param report [TimeReport] The report object to export.
+      # @param options [Hash] The options hash containing export settings.
+      # @option options [String] :csv The filename to use when exporting the report to CSV.
+      # @return [void]
+      def self.export_csv_report(report, options)
+        report.export_csv if options[:csv]
+      end
+
+      # Exports the report to an iCalendar file if the `ics` option is provided.
+      #
+      # @param report [TimeReport] The report object to export.
+      # @param options [Hash] The options hash containing export settings.
+      # @option options [String] :ics The filename to use when exporting the report to iCalendar.
+      # @return [void]
+      def self.export_icalendar_report(report, options)
+        report.export_icalendar if options[:ics]
+      end
+    end
+
+    # Displays the report and exports it to a CSV file and/or an iCalendar file if specified.
+    #
+    # @param report [TimeReport] The TimeReport instance to display and export.
+    # @param options [Hash] A hash containing the options for exporting the report.
+    # @option options [String, nil] :csv The filename to use when exporting the report to CSV.
+    # @option options [String, nil] :ics The filename to use when exporting the report to iCalendar.
+    #
+    # @return [void] This method does not return a value; it performs side effects such as displaying
+    # and exporting the report.
+    #
+    # @example Display and export the report to CSV and iCalendar
+    #   display_and_export_report(report, { csv: 'report.csv', ics: 'icalendar.ics' })
+    def display_and_export_report(report, options)
+      report.display
+      export_report(report, options)
+    end
+
+    # Exports the given report in CSV and iCalendar formats if there are items, otherwise prints a message.
+    #
+    # @param report [Report] The report to be exported.
+    # @param options [Hash] The options to pass to the exporter.
+    # @return [void]
+    def export_report(report, options)
+      items = report.items
+      if items.any?
+        ReportExporter.export_csv_report(report, options)
+        ReportExporter.export_icalendar_report(report, options)
+      else
+        puts 'No items found to export'
+      end
+    end
   end
 end

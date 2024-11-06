@@ -36,8 +36,9 @@ module Timet
     VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
 
     desc "start [tag] --notes='' --pomodoro=[min]",
-         'Starts tracking time for a task labeled with the provided [tag],  notes and "pomodoro time" in minutes
-         (optional).'
+         'Start time tracking for a task labeled with the provided [tag], notes and "pomodoro time"
+        in minutes (optional).
+        tt start project1 "Starting project1" --pomodoro=25'
     option :notes, type: :string, desc: 'Add a note'
     option :pomodoro, type: :numeric, desc: 'Pomodoro time in minutes'
     # Starts a new tracking session with the given tag and optional notes.
@@ -76,7 +77,7 @@ module Timet
       summary
     end
 
-    desc 'stop', 'stop time tracking'
+    desc 'stop', 'Stop time tracking'
     # Stops the current tracking session if there is one in progress.
     #
     # @return [void] This method does not return a value; it performs side effects such as updating the tracking item
@@ -99,7 +100,7 @@ module Timet
       summary unless display
     end
 
-    desc 'resume (r) [id]', 'resume last task'
+    desc 'resume (r) [id]', 'Resume last task (id is an optional parameter) => tt resume'
     # Resumes the last tracking session if it was completed.
     #
     # @return [void] This method does not return a value; it performs side effects such as resuming a tracking session
@@ -131,48 +132,34 @@ module Timet
       end
     end
 
-    desc 'summary (su) [time_scope] [tag] --csv=csv_filename',
-         '[time_scope] => [today (t), yesterday (y), week (w), month (m), [start_date]..[end_date]]  [tag]'
-    option :csv, type: :string, desc: 'Export to CSV file'
+    desc 'summary (su) [time_scope] [tag] --csv=csv_filename --ics=ics_filename',
+         'Display a summary of tracked time and export to CSV.
+          [time_scope] => [today (t), yesterday (y), week (w), month (m). => tt su yesterday
+          [start_date]..[end_date]] => tt su 2024-10-03..2024-10-20
+          [tag] => tt su Task1
+          --csv=csv_filename => tt su month --csv=myfile
+          --ics=ics_filename => tt su week --csv=mycalendar'
+    option :csv, type: :string, desc: 'Export to CSV'
+    option :ics, type: :string, desc: 'Export to iCalendar'
     # Generates a summary of tracking items based on the provided time_scope and tag, and optionally exports the summary
-    # to a CSV file.
+    # to a CSV file and/or an iCalendar file.
     #
-    # @param time_scope [String, nil] The time_scope to apply when generating the summary. Possible values include
-    # 'today', 'yesterday', 'week', 'month', or a date range in the format '[start_date]..[end_date]'.
-    # @param tag [String, nil] The tag to time_scope the tracking items by.
+    # @param time_scope [String, nil] The filter to apply when fetching items. Possible values include 'today',
+    #   'yesterday', 'week', 'month', or a date range in the format 'YYYY-MM-DD..YYYY-MM-DD'.
+    # @param tag [String, nil] The tag to filter the items by.
     #
-    # @return [void] This method does not return a value; it performs side effects such as displaying the summary and
-    # exporting to CSV if specified.
-    #
-    # @example Generate a summary for today
-    #   summary('today')
-    #
-    # @example Generate a summary for a specific tag
-    #   summary(nil, 'work')
-    #
-    # @example Generate a summary for a date range and export to CSV
-    #   summary('2023-01-01..2023-01-31', nil, csv: 'summary.csv')
-    #
-    # @note The method initializes a `TimeReport` object with the database, time_scope, tag, and optional CSV filename.
-    # @note The method calls `display` on the `TimeReport` object to show the summary.
-    # @note If a CSV filename is provided and there are items to export, the method calls `export_sheet` to export the
-    # summary to a CSV file.
-    # @note If no items are found to export, it prints a message indicating that no items were found.
+    # @return [void] This method does not return a value; it performs side effects such as displaying
+    # and exporting the report.
     def summary(time_scope = nil, tag = nil)
-      csv_filename = options[:csv]&.split('.')&.first
-      report = TimeReport.new(@db, time_scope, tag, csv_filename)
-
-      report.display
-      items = report.items
-      if csv_filename && items.any?
-        report.export_sheet
-      elsif items.empty?
-        puts 'No items found to export'
-      end
+      options = build_options(time_scope, tag)
+      report = TimeReport.new(@db, options)
+      display_and_export_report(report, options)
     end
 
     desc 'edit (e) [id] [field] [value]',
-         'edit a task, [field] (notes, tag, start or end) and [value] are optional parameters'
+         'Edit task, [field] (notes, tag, start or end) and [value] are optional parameters.
+          Update notes => tt edit 12 notes "Update note"
+          Update start time => tt edit 12 start 12:33'
     # Edits a specific tracking item by its ID, allowing the user to modify fields such as notes, tag, start time, or
     # end time.
     #
@@ -211,7 +198,7 @@ module Timet
       display_item(updated_item || item)
     end
 
-    desc 'delete (d) [id]', 'delete a task'
+    desc 'delete (d) [id]', 'Delete task => tt d 23'
     # Deletes a specific tracking item by its ID after confirming with the user.
     #
     # @param id [Integer] The ID of the tracking item to be deleted.
@@ -238,7 +225,7 @@ module Timet
       delete_item_and_print_message(id, "Deleted #{id}")
     end
 
-    desc 'cancel (c)', 'cancel active time tracking'
+    desc 'cancel (c)', 'Cancel active time tracking => tt c'
     # Cancels the active time tracking session by deleting the last tracking item.
     #
     # @return [void] This method does not return a value; it performs side effects such as deleting the active tracking

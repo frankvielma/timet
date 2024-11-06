@@ -18,7 +18,7 @@ RSpec.describe Timet::Application do
 
     allow(Timet::TimeReport).to receive(:new).and_return(time_report)
     allow(time_report).to receive(:display)
-    allow(time_report).to receive(:export_sheet)
+    allow(time_report).to receive(:export_csv)
     allow(time_report).to receive(:show_row)
     allow(time_report).to receive(:items).and_return(['item'])
   end
@@ -235,7 +235,7 @@ RSpec.describe Timet::Application do
       it 'exports the summary to the given csv filename' do
         app.options = { csv: 'output.csv' }
         app.summary
-        expect(time_report).to have_received(:export_sheet)
+        expect(time_report).to have_received(:export_csv)
       end
     end
 
