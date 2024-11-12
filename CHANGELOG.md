@@ -1,5 +1,35 @@
 ## [Unreleased]
 
+## [1.4.4] - 2024-11-12
+
+**Improvements:**
+- Refactored tag distribution and time statistics methods:
+  - Split `process_and_print_tags` into `print_summary` and `print_tags_info` for better modularity and readability.
+  - Added Yardoc comments to document the new methods and updated existing comments for clarity.
+  - Introduced `totals` method in `TimeStatistics` to calculate and return total duration, average duration, and standard deviation.
+- Refactored export methods to `TimeReportHelper`:
+  - Moved `export_csv` and `export_icalendar` methods from `TimeReport` to `TimeReportHelper`.
+  - Created private methods `add_events`, `create_event`, and `convert_to_datetime` in `TimeReportHelper` to handle iCalendar event creation and conversion.
+  - Ensured that the iCalendar file generation logic is encapsulated within the `TimeReportHelper` module.
+
+**Tasks:**
+- Bumped version to 1.4.4.
+- Updated `Gemfile.lock`.
+
+## [1.4.3] - 2024-11-06
+
+**Improvements:**
+- **Refactor export logic**: Introduced a new `ReportExporter` class to handle the export of reports to CSV and iCalendar formats, addressing the Feature Envy code smell and making the `ApplicationHelper` module more modular.
+- **Update gem dependencies**: Updated several gems to their latest versions, including `icalendar`, `sqlite3`, `json`, `parser`, `rubocop`, and `rubocop-ast`.
+- **Refactor `TimeReport` initialization**: Refactored `TimeReport` initialization to use an options hash instead of individual parameters, and added support for exporting tracking summaries to iCalendar format.
+- **Enhance command descriptions**: Improved the descriptions of the `start`, `stop`, `resume`, `summary`, `edit`, `delete`, and `cancel` commands, and added an `--ics` option to the `summary` command for iCalendar export.
+- **Add `icalendar` gem**: Added the `icalendar` gem to support iCalendar functionality and updated the `timet` gem version to `1.4.3`.
+
+**Bug Fixes:**
+- Corrected platform names in the lockfile.
+- Updated the `TimeReport` spec to use the new options hash in the `TimeReport` initialization.
+
+
 ## [1.4.2] - 2024-11-01
 
 **Improvements:**
