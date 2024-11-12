@@ -80,5 +80,72 @@ module Timet
         [summed_number, old_value[1]]
       end
     end
+
+    # Exports the report to a CSV file.
+    #
+    # @return [void] This method does not return a value; it performs side effects such as writing the CSV file.
+    #
+    # @example Export the report to a CSV file
+    #   time_report.export_csv
+    #
+    # @note The method writes the items to a CSV file and prints a confirmation message.
+    def export_csv
+      file_name = "#{csv_filename}.csv"
+      write_csv(file_name)
+
+      puts "The #{file_name} has been exported."
+    end
+
+    # Generates an iCalendar file and writes it to disk.
+    #
+    # @return [void]
+    def export_icalendar
+      file_name = "#{ics_filename}.ics"
+      cal = add_events
+
+      File.write(file_name, cal.to_ical)
+
+      puts "The #{file_name} has been generated."
+    end
+
+    private
+
+    # Creates an iCalendar object and adds events to it.
+    #
+    # @return [Icalendar::Calendar] the populated iCalendar object
+    def add_events
+      cal = Icalendar::Calendar.new
+      items.each do |item|
+        event = create_event(item)
+        cal.add_event(event)
+      end
+      cal.publish
+      cal
+    end
+
+    # Creates an iCalendar event from the given item.
+    #
+    # @param item [Array] the item containing event details
+    # @return [Icalendar::Event] the created event
+    def create_event(item)
+      dtstart = convert_to_datetime(item[1])
+      dtend = convert_to_datetime(item[2] || TimeHelper.current_timestamp)
+
+      Icalendar::Event.new.tap do |e|
+        e.dtstart     = dtstart
+        e.dtend       = dtend
+        e.summary     = item[3]
+        e.description = item[4]
+        e.ip_class    = 'PRIVATE'
+      end
+    end
+
+    # Converts a timestamp to a DateTime object.
+    #
+    # @param timestamp [Integer] the timestamp to convert
+    # @return [DateTime] the converted DateTime object
+    def convert_to_datetime(timestamp)
+      Time.at(timestamp).to_datetime
+    end
   end
 end
