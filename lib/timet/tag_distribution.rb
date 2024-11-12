@@ -64,25 +64,13 @@ module Timet
     # @return [void] This method outputs the detailed tag information to the standard output.
     def print_tags_info(time_stats, total, colors)
       time_stats.sorted_duration_by_tag.each do |tag, duration|
-        print_tag_info(tag, duration, total, time_stats, colors)
+        value, bar_length = calculate_value_and_bar_length(duration, total)
+        horizontal_bar = generate_horizontal_bar(bar_length, colors[tag])
+        formatted_tag = tag[0...TAG_SIZE].rjust(TAG_SIZE)
+        stats = generate_stats(tag, time_stats)
+
+        puts "#{formatted_tag}: #{value.to_s.rjust(5)}%  #{horizontal_bar} [#{stats}]"
       end
-    end
-
-    # Prints the detailed information for a specific tag.
-    #
-    # @param tag [String] The tag for which to print the information.
-    # @param duration [Numeric] The duration associated with the tag.
-    # @param total [Numeric] The total duration of all tags combined.
-    # @param time_stats [Object] An object containing time statistics for the tags.
-    # @param colors [Hash] A hash mapping tags to color indices for display.
-    # @return [void] This method outputs the tag information to the standard output.
-    def print_tag_info(tag, duration, total, time_stats, colors)
-      value, bar_length = calculate_value_and_bar_length(duration, total)
-      horizontal_bar = generate_horizontal_bar(bar_length, colors[tag])
-      formatted_tag = tag[0...TAG_SIZE].rjust(TAG_SIZE)
-      stats = generate_stats(tag, time_stats)
-
-      puts "#{formatted_tag}: #{value.to_s.rjust(5)}%  #{horizontal_bar} [#{stats}]"
     end
 
     # Generates a horizontal bar for display based on the bar length and color index.
