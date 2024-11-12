@@ -96,47 +96,6 @@ module Timet
       total
     end
 
-    # Exports the report to a CSV file.
-    #
-    # @return [void] This method does not return a value; it performs side effects such as writing the CSV file.
-    #
-    # @example Export the report to a CSV file
-    #   time_report.export_csv
-    #
-    # @note The method writes the items to a CSV file and prints a confirmation message.
-    def export_csv
-      file_name = "#{csv_filename}.csv"
-      write_csv(file_name)
-
-      puts "The #{file_name} has been exported."
-    end
-
-    def export_icalendar
-      file_name = "#{ics_filename}.ics"
-
-      cal = Icalendar::Calendar.new
-      items.each do |item|
-        dtstart = Time.at(item[1]).to_datetime
-        end_time = item[2] || TimeHelper.current_timestamp
-        dtend = Time.at(end_time).to_datetime
-
-        tag = item[3]
-        notes = item[4]
-        cal.event do |e|
-          e.dtstart     = dtstart
-          e.dtend       = dtend
-          e.summary     = tag
-          e.description = notes
-          e.ip_class    = 'PRIVATE'
-        end
-      end
-      cal.publish
-
-      File.write(file_name, cal.to_ical)
-
-      puts "The #{file_name} has been generated."
-    end
-
     private
 
     # Writes the items to a CSV file.
