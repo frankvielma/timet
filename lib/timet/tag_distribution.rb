@@ -34,11 +34,35 @@ module Timet
 
     # Processes and prints the tag distribution information.
     #
-    # @param sorted_duration_by_tag [Array<Array(String, Numeric)>] An array of arrays where each inner array contains a
-    # tag and its corresponding duration, sorted by duration in descending order.
+    # @param time_stats [Object] An object containing the time statistics, including totals and sorted durations by tag.
     # @param total [Numeric] The total duration of all tags combined.
+    # @param colors [Object] An object containing color formatting methods.
     # @return [void] This method outputs the tag distribution information to the standard output.
     def process_and_print_tags(time_stats, total, colors)
+      print_summary(time_stats, total)
+      print_tags_info(time_stats, total, colors)
+    end
+
+    # Prints the summary information including total duration, average duration, and standard deviation.
+    #
+    # @param time_stats [Object] An object containing the time statistics, including totals.
+    # @param total [Numeric] The total duration of all tags combined.
+    # @return [void] This method outputs the summary information to the standard output.
+    def print_summary(time_stats, total)
+      avg = (time_stats.totals[:avg] / 60.0).round(1)
+      sd = (time_stats.totals[:sd] / 60.0).round(1)
+      summary = "#{' ' * TAG_SIZE} #{'Summary'.underline}: "
+      summary += "[T: #{(total / 3600.0).round(1)}h, AVG: #{avg}min SD: #{sd}min]".white
+      puts summary
+    end
+
+    # Prints the detailed information for each tag.
+    #
+    # @param time_stats [Object] An object containing the time statistics, including sorted durations by tag.
+    # @param total [Numeric] The total duration of all tags combined.
+    # @param colors [Object] An object containing color formatting methods.
+    # @return [void] This method outputs the detailed tag information to the standard output.
+    def print_tags_info(time_stats, total, colors)
       time_stats.sorted_duration_by_tag.each do |tag, duration|
         print_tag_info(tag, duration, total, time_stats, colors)
       end

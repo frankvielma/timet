@@ -27,6 +27,19 @@ module Timet
       calculate_durations_by_tag
     end
 
+    # Returns a hash containing the total duration, average duration, and standard deviation of durations.
+    #
+    # @return [Hash] A hash with the following keys:
+    #   - :total [Numeric] The total duration.
+    #   - :avg [Numeric] The average duration.
+    #   - :sd [Numeric] The standard deviation of the durations.
+    def totals
+      @duration_by_tag.values.flatten
+
+      durations = @duration_by_tag.values.flatten
+      { total: @total_duration, avg: durations.mean, sd: durations.standard_deviation }
+    end
+
     # Calculates the duration for each tag and updates the @duration_by_tag and @total_duration attributes.
     #
     # @return [void]
