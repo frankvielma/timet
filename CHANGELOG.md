@@ -1,5 +1,17 @@
 ## [Unreleased]
 
+## [1.4.5] - 2024-11-18
+
+**Improvements:**
+- Added `base64` gem to the Gemfile to ensure compatibility with Ruby 3.4.0.
+- Updated the `json` gem from version 2.8.1 to 2.8.2.
+- Updated the `rubocop-ast` gem from version 1.35.0 to 1.36.1.
+- Added the `icalendar` gem to the application.
+
+**Bug Fixes:**
+- Fixed the deprecation warning related to `base64` being removed from the Ruby standard library in Ruby 3.4.0.
+
+
 ## [1.4.4] - 2024-11-12
 
 **Improvements:**
