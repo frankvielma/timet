@@ -16,6 +16,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency "thor", "~> 1.2"
   spec.add_dependency "tty-prompt", "~> 0.2"
   spec.add_dependency "sqlite3", "~> 2", ">= 1.7"
+  spec.add_dependency "icalendar", "~> 2"
+  spec.add_dependency "descriptive_statistics", "~> 2"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/frankvielma/timet"

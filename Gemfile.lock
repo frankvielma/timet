@@ -2,6 +2,8 @@ PATH
   remote: .
   specs:
     timet (1.4.5)
+      descriptive_statistics (~> 2)
+      icalendar (~> 2)
       sqlite3 (~> 2, >= 1.7)
       thor (~> 1.2)
       tty-prompt (~> 0.2)
