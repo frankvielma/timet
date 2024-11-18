@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'base64', '~> 0.2.0'
 gem 'csv', '~> 3.3.0'
 gem 'descriptive_statistics', '~> 2.5'
 gem 'icalendar', '~> 2.10.3'

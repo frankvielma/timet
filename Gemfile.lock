@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    timet (1.4.4)
+    timet (1.4.5)
       sqlite3 (~> 2, >= 1.7)
       thor (~> 1.2)
       tty-prompt (~> 0.2)
@@ -10,6 +10,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
+    base64 (0.2.0)
     csv (3.3.0)
     descriptive_statistics (2.5.1)
     diff-lcs (1.5.1)
@@ -18,7 +19,7 @@ GEM
       ice_cube (~> 0.16)
       ostruct
     ice_cube (0.17.0)
-    json (2.8.1)
+    json (2.8.2)
     language_server-protocol (3.17.0.3)
     ostruct (0.6.1)
     parallel (1.26.3)
@@ -54,7 +55,7 @@ GEM
       rubocop-ast (>= 1.32.2, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.35.0)
+    rubocop-ast (1.36.1)
       parser (>= 3.3.1.0)
     rubocop-rspec (3.2.0)
       rubocop (~> 1.61)
@@ -102,6 +103,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  base64 (~> 0.2.0)
   csv (~> 3.3.0)
   descriptive_statistics (~> 2.5)
   icalendar (~> 2.10.3)

@@ -3,6 +3,7 @@
 require_relative 'version'
 require 'thor'
 require 'tty-prompt'
+require 'icalendar'
 require_relative 'validation_edit_helper'
 require_relative 'application_helper'
 require_relative 'time_helper'
