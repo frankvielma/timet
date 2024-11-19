@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
+require 'fileutils'
 require 'sqlite3'
 module Timet
   # Provides database access for managing time tracking data.
   class Database
     # The default path to the SQLite database file.
-    DEFAULT_DATABASE_PATH = File.join(Dir.home, '.timet.db')
+    DEFAULT_DATABASE_PATH = File.join(Dir.home, '.timet', 'timet.db')
 
     # Initializes a new instance of the Database class.
     #
@@ -23,6 +24,8 @@ module Timet
     # @note The method creates a new SQLite3 database connection and initializes the necessary tables if they
     # do not already exist.
     def initialize(database_path = DEFAULT_DATABASE_PATH)
+      move_old_database_file(database_path)
+
       @db = SQLite3::Database.new(database_path)
       create_table
 
@@ -268,6 +271,19 @@ module Timet
       return :in_progress unless last_item_end
 
       :complete
+    end
+
+    private
+
+    # Moves the old database file to the new location if it exists.
+    #
+    # @param database_path [String] The path to the new SQLite database file.
+    def move_old_database_file(database_path)
+      old_file = File.join(Dir.home, '.timet.db')
+      return unless File.exist?(old_file)
+
+      FileUtils.mkdir_p(File.dirname(database_path)) unless File.directory?(File.dirname(database_path))
+      FileUtils.mv(old_file, database_path)
     end
   end
 end
