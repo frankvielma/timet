@@ -190,10 +190,9 @@ module Timet
       pomodoro = @db.find_item(id)[5] || 0
 
       if pomodoro.positive? && end_time == '-'
-        (@db.find_item(id)[5] - (duration / 60.0)).round(1)
         delta = @db.seconds_to_hms((@db.find_item(id)[5] * 60) - duration)
         timet = "\e]8;;Session ends\a#{delta}\e]8;;\a".green
-        end_time = "#{timet}".blink
+        end_time = timet.to_s.blink
       end
 
       end_time
