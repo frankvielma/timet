@@ -1,8 +1,10 @@
 PATH
   remote: .
   specs:
-    timet (1.4.5)
+    timet (1.5.0)
+      aws-sdk-s3 (~> 1.171)
       descriptive_statistics (~> 2)
+      dotenv (~> 3)
       icalendar (~> 2)
       sqlite3 (~> 2, >= 1.7)
       thor (~> 1.2)
@@ -12,15 +14,33 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
+    aws-eventstream (1.3.0)
+    aws-partitions (1.1009.0)
+    aws-sdk-core (3.213.0)
+      aws-eventstream (~> 1, >= 1.3.0)
+      aws-partitions (~> 1, >= 1.992.0)
+      aws-sigv4 (~> 1.9)
+      jmespath (~> 1, >= 1.6.1)
+    aws-sdk-kms (1.96.0)
+      aws-sdk-core (~> 3, >= 3.210.0)
+      aws-sigv4 (~> 1.5)
+    aws-sdk-s3 (1.172.0)
+      aws-sdk-core (~> 3, >= 3.210.0)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.5)
+    aws-sigv4 (1.10.1)
+      aws-eventstream (~> 1, >= 1.0.2)
     base64 (0.2.0)
     csv (3.3.0)
     descriptive_statistics (2.5.1)
     diff-lcs (1.5.1)
     docile (1.4.1)
+    dotenv (3.1.4)
     icalendar (2.10.3)
       ice_cube (~> 0.16)
       ostruct
     ice_cube (0.17.0)
+    jmespath (1.6.2)
     json (2.8.2)
     language_server-protocol (3.17.0.3)
     ostruct (0.6.1)
@@ -105,9 +125,11 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  aws-sdk-s3 (~> 1.172)
   base64 (~> 0.2.0)
   csv (~> 3.3.0)
   descriptive_statistics (~> 2.5)
+  dotenv (~> 3.1)
   icalendar (~> 2.10.3)
   rake (~> 13.2)
   rspec (~> 3.13)
