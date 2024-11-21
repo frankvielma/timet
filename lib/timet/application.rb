@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require_relative 'version'
 require 'thor'
 require 'tty-prompt'
 require 'icalendar'
+require_relative 's3_supabase'
 require_relative 'validation_edit_helper'
 require_relative 'application_helper'
 require_relative 'time_helper'
-
+require_relative 'version'
 module Timet
   # Application class that defines CLI commands for time tracking:
   # - start: Start time tracking with optional notes
@@ -271,6 +271,21 @@ module Timet
     desc 'version', 'version'
     def version
       puts Timet::VERSION
+    end
+
+    desc 'sync', 'Sync local db with supabase external db'
+    def sync
+      puts 'sync'
+      s3 = S3Supabase.new
+      s3.create_bucket('timet')
+
+      result = s3.list_objects('timet')
+      if result
+        puts 'object exists'
+        # compare local and remote db
+      else
+        s3.upload_file('timet', Timet::Database::DEFAULT_DATABASE_PATH, 'timet.db')
+      end
     end
   end
 end
