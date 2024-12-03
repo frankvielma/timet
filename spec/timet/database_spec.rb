@@ -29,7 +29,7 @@ RSpec.describe Timet::Database do
       # Retrieve table schema
       schema = db.execute_sql('PRAGMA table_info(items)').map { |row| row[1] }
       # Use a set for order-independent comparison
-      expect(Set.new(schema)).to eq(Set.new(%w[id start end tag notes pomodoro]))
+      expect(Set.new(schema)).to eq(Set.new(%w[id start end tag notes pomodoro updated_at created_at]))
     end
   end
 

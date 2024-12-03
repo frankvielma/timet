@@ -31,6 +31,9 @@ module Timet
 
       add_column('items', 'notes', 'TEXT')
       add_column('items', 'pomodoro', 'INTEGER')
+      add_column('items', 'updated_at', 'INTEGER')
+      add_column('items', 'created_at', 'INTEGER')
+      update_time_columns
     end
 
     # Creates the items table if it doesn't already exist.
@@ -90,8 +93,9 @@ module Timet
     #   insert_item(1633072800, 'work', 'Completed task X')
     #
     # @note The method executes SQL to insert a new row into the 'items' table.
-    def insert_item(start, tag, notes, pomodoro = nil)
-      execute_sql('INSERT INTO items (start, tag, notes, pomodoro) VALUES (?, ?, ?, ?)', [start, tag, notes, pomodoro])
+    def insert_item(start, tag, notes, pomodoro = nil, updated_at = nil, created_at = nil)
+      execute_sql('INSERT INTO items (start, tag, notes, pomodoro, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+                  [start, tag, notes, pomodoro, updated_at, created_at])
     end
 
     # Updates an existing item in the items table.
@@ -110,7 +114,7 @@ module Timet
     def update_item(id, field, value)
       return if %w[start end].include?(field) && value.nil?
 
-      execute_sql("UPDATE items SET #{field}='#{value}' WHERE id = #{id}")
+      execute_sql("UPDATE items SET #{field}='#{value}', updated_at=#{Time.now.utc.to_i} WHERE id = #{id}")
     end
 
     # Deletes an item from the items table.
@@ -284,6 +288,29 @@ module Timet
 
       FileUtils.mkdir_p(File.dirname(database_path)) unless File.directory?(File.dirname(database_path))
       FileUtils.mv(old_file, database_path)
+    end
+
+    # Updates the `updated_at` and `created_at` columns for items where either of these columns is null.
+    #
+    # This method queries the database for items where the `updated_at` or `created_at` columns are null.
+    # For each item found, it sets both the `updated_at` and `created_at` columns to the value of the `end_time` column.
+    #
+    # @note This method directly executes SQL queries on the database. Ensure that the `execute_sql` method is properly defined and handles SQL injection risks.
+    #
+    # @return [void] This method does not return a value.
+    #
+    # @example
+    #   update_time_columns
+    #
+    # @raise [StandardError] If there is an issue executing the SQL queries, an error may be raised.
+    #
+    def update_time_columns
+      result = execute_sql('SELECT * FROM items where updated_at is null or created_at is null')
+      result.each do |item|
+        id = item[0]
+        end_time = item[2]
+        execute_sql("UPDATE items SET updated_at = #{end_time}, created_at = #{end_time} WHERE id = #{id}")
+      end
     end
   end
 end
