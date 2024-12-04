@@ -111,9 +111,12 @@ module Timet
     # Lists all objects in the specified bucket.
     #
     # @param bucket_name [String] The name of the bucket to list objects from
-    # @return [Array<Aws::S3::Types::Object>, false] Array of objects if successful, false if bucket is empty
+    # @return [Array<Hash>, false, nil] Array of object hashes if objects found, false if bucket is empty, nil if error occurs
+    # @raise [Aws::S3::Errors::ServiceError] if there's an error accessing the S3 service
     # @example
-    #   list_objects('my-bucket')
+    #   list_objects('my-bucket') #=> [{key: 'example.txt', last_modified: '2023-01-01', ...}, ...]
+    #   list_objects('empty-bucket') #=> false
+    #   list_objects('invalid-bucket') #=> nil
     def list_objects(bucket_name)
       response = @s3_client.list_objects_v2(bucket: bucket_name)
       if response.contents.empty?
@@ -122,10 +125,11 @@ module Timet
       else
         @logger.info "Objects in '#{bucket_name}':"
         response.contents.each { |object| @logger.info "- #{object.key} (Last modified: #{object.last_modified})" }
-        response.contents
+        response.contents.map(&:to_h)
       end
     rescue Aws::S3::Errors::ServiceError => e
       @logger.error "Error listing objects: #{e.message}"
+      nil
     end
 
     # Uploads a file to the specified bucket.
