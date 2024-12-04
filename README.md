@@ -7,9 +7,24 @@
 
 ![Timet](timet.webp)
 
-[Timet](https://rubygems.org/gems/timet) is a command-line tool designed to track your activities by recording the time spent on each task. This allows you to monitor your work hours and productivity directly from your terminal without needing a graphical interface. Essentially, it's a way to log your time spent on different projects or tasks using simple text commands.
 
-🔑 **Key Features:**
+## Table of Contents
+
+- [🔑 Key Features](#key-features)
+- [✔️ Requirements](#requirements)
+- [Examples](#examples)
+- [💾 Installation](#installation)
+- [⏳ Usage](#usage)
+- [📋 Command Reference](#command-reference)
+- [🗃️ Data](#️-data)
+- [🔒 S3 Cloud Backup Configuration](#-s3-cloud-backup-configuration)
+- [Contributing](#contributing)
+- [License](#license)
+
+
+[Timet](https://rubygems.org/gems/timet) is a command-line tool designed to track your activities by recording the time spent on each task. This tool allows you to monitor your work hours and productivity directly from your terminal, eliminating the need for a graphical interface. Essentially, it's a way to log your time spent on different projects or tasks using simple text commands.
+
+<h2 id="key-features">🔑 Key Features:</h2>
 
 - **Local Data Storage:** Timet uses SQLite to store your time tracking data locally, ensuring privacy and security.
 - **Lightweight and Fast:** Its efficient design and local data storage make Timet a speedy and responsive tool.
@@ -23,12 +38,14 @@
 - **Tag Distribution Plot:** Illustrates the proportion of total tracked time allocated to each tag, showing the relative contribution of each tag to the overall time tracked.
 - **Detailed Statistics:** Displays detailed statistics for each tag, including total duration, average duration, and standard deviation.
 - **iCalendar Export:** Easily export your time tracking data to iCalendar format for integration with calendar applications.
+- **S3 Cloud Backup:** Seamlessly backup and sync your time tracking data with S3-compatible storage services, providing an additional layer of data protection and accessibility.
 
-**Examples:**
+## Examples:
 
-![Timet1 demo](timet1.gif)
+![Timet demo](timet1.gif)
 
-## ✔️ Requirements
+<a name="requirements"></a>
+<h2 id="requirements">✔️ Requirements</h2>
 
 - Ruby version: >= 3.0.0
 - sqlite3: > 1.7
@@ -38,6 +55,7 @@ For older versions of Ruby and Sqlite:
 - [Ruby >= 2.7](https://github.com/frankvielma/timet/tree/ruby-2.7.0)
 - [Ruby >= 2.4](https://github.com/frankvielma/timet/tree/ruby-2.4.0)
 
+<a name="installation"></a>
 ## 💾 Installation
 
 Install the gem by executing:
@@ -46,6 +64,7 @@ Install the gem by executing:
 gem install timet
 ```
 
+<a name="usage"></a>
 ## ⏳ Usage
 
 ### Command Aliases
@@ -172,24 +191,26 @@ gem install timet
   +-------+------------+--------+----------+----------+----------+--------------------------+
   ```
 
+<a name="command-reference"></a>
 ## 📋 Command Reference
 
 | Command                                      | Description                                                                 | Example Usage                     |
 | -------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------- |
-| `timet start [tag] --notes='' --pomodoro=[time]` | Start tracking time for a task labeled [tag] and notes (optional).          | `timet start Task "My notes" 25`     |
-| `timet stop`                                 | Stop tracking time.                                                         | `timet stop`                       |
+| `timet start [tag] --notes='' --pomodoro=[time]` | Start tracking time for a task labeled [tag] and notes (optional).      | `timet start Task "My notes" 25`  |
+| `timet stop`                                 | Stop tracking time.                                                         | `timet stop`                      |
 | `timet summary today (t)`                    | Display a report of tracked time for today.                                 | `timet su t` or `timet su`        |
 | `timet summary yesterday (y)`                | Display a report of tracked time for yesterday.                             | `timet su y`                      |
 | `timet summary week (w)`                     | Display a report of tracked time for the week.                              | `timet su w`                      |
 | `timet summary month (m)`                    | Display a report of tracked time for the month.                             | `timet su m`                      |
-| `timet su t --csv=[filename]`                | Display a report of tracked time for today and export to CSV file | `timet su t --csv=file.csv`       |
-| `timet su w --ics=[filename]`                | Display a report of tracked time for week and export to iCalendar file | `timet su w --ics=file.csv`       |
+| `timet su t --csv=[filename]`                | Display a report of tracked time for today and export to CSV file | `timet su t --csv=file.csv`                 |
+| `timet su w --ics=[filename]`                | Display a report of tracked time for week and export to iCalendar file | `timet su w --ics=file.csv`            |
 | `timet delete [id]`                          | Delete a task by its ID.                                                    | `timet d [id]`                    |
 | `timet cancel`                               | Cancel active time tracking.                                                | `timet c`                         |
 | `timet edit [id]`                            | Update a task's notes, tag, start, or end fields.                           | `timet e [id]`                    |
 | `timet su [date]`                            | Display a report of tracked time for a specific date.                       | `timet su 2024-01-03`             |
 | `timet su [start_date]..[end_date]`          | Display a report of tracked time for a date range.                          | `timet su 2024-01-02..2024-01-03` |
 | `timet resume (r) [id]`                      | Resume tracking a task by ID or the last completed task.                    | `timet resume [id]`               |
+| `timet sync`                                 | Sync local db with supabase (S3) external db                                | `timet sync`                      |
 
 ### Date Range in Summary
 
@@ -209,9 +230,48 @@ The `timet summary` command now supports specifying a date range for generating 
   timet su 2024-01-02..2024-01-03
   ```
 
-## Data
+<a name="data"></a>
+## 🗃️ Data
 
-Timet's data is stored in `~/.timet.db`.
+Timet's data is stored in `~/.timet`.
+
+<a name="s3-cloud-backup-configuration"></a>
+## 🔒 S3 Cloud Backup Configuration
+
+Timet supports backing up and syncing your time tracking data with S3-compatible storage services (Supabase). To configure S3 backup, follow these steps:
+
+### Environment Variables
+
+Create a `.env` file in your project root (`~/.timet`) with the following variables:
+
+```bash
+S3_ENDPOINT=your_s3_endpoint_url
+S3_ACCESS_KEY=your_access_key
+S3_SECRET_KEY=your_secret_key
+S3_REGION=your_s3_region # Optional, defaults to 'us-west-1'
+```
+
+### S3 Backup Methods
+
+Timet provides several methods for S3 interaction:
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `create_bucket` | Create a new S3 bucket | `s3_supabase.create_bucket('my-timet-backup')` |
+| `list_objects` | List objects in a bucket | `s3_supabase.list_objects('my-timet-backup')` |
+| `upload_file` | Upload a local file to S3 | `s3_supabase.upload_file('my-bucket', '/path/local/file.txt', 'remote-file.txt')` |
+| `download_file` | Download a file from S3 | `s3_supabase.download_file('my-bucket', 'remote-file.txt', '/path/local/file.txt')` |
+| `delete_object` | Remove a specific file from S3 | `s3_supabase.delete_object('my-bucket', 'file-to-delete.txt')` |
+| `delete_bucket` | Remove an entire S3 bucket | `s3_supabase.delete_bucket('my-bucket')` |
+
+### Security Considerations
+
+- Keep your `.env` file private and never commit it to version control
+- Use strong, unique access keys
+- Regularly rotate your S3 access credentials
+- Implement appropriate IAM policies to restrict bucket access
+
+
 
 ## Development
 
