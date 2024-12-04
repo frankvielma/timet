@@ -134,7 +134,7 @@ module Timet
     # @param item [Hash] Hash containing item data
     # @return [void]
     def self.update_item_from_hash(db, item)
-      db.execute(
+      db.execute_sql(
         'UPDATE items SET start = ?, end = ?, tag = ?, notes = ?, pomodoro = ?, updated_at = ?, created_at = ? WHERE id = ?',
         [item['start'], item['end'], item['tag'], item['notes'], item['pomodoro'], item['updated_at'],
          item['created_at'], item['id']]
@@ -147,7 +147,7 @@ module Timet
     # @param item [Hash] Hash containing item data
     # @return [void]
     def self.insert_item_from_hash(db, item)
-      db.execute(
+      db.execute_sql(
         'INSERT INTO items (id, start, end, tag, notes, pomodoro, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [item['id'], item['start'], item['end'], item['tag'], item['notes'], item['pomodoro'], item['updated_at'],
          item['created_at']]
