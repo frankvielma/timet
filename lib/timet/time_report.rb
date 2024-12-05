@@ -125,6 +125,8 @@ module Timet
     #   write_csv_rows(csv)
     def write_csv_rows(csv)
       items.each do |item|
+        next if item[8].to_i == 1 # Skip deleted items
+
         csv << format_item(item)
       end
     end
@@ -168,7 +170,7 @@ module Timet
     def filter_by_date_range(start_date, end_date = nil, tag = nil)
       start_time = TimeHelper.date_to_timestamp(start_date)
       end_time = TimeHelper.calculate_end_time(start_date, end_date)
-      query = "start >= #{start_time} and start < #{end_time} and tag like '%#{tag}%'"
+      query = "start >= #{start_time} and start < #{end_time} and tag like '%#{tag}%' and (deleted IS NULL OR deleted = 0)"
       @db.execute_sql(
         "select * from items where #{query} ORDER BY id DESC"
       )
