@@ -79,7 +79,13 @@ module Timet
       local_time = local_item['updated_at'].to_i
       remote_time = remote_item['updated_at'].to_i
 
-      if local_time > remote_time
+      # Handle deleted items
+      if remote_item['deleted'].to_i == 1 && remote_time > local_time
+        puts "Remote item #{id} is marked as deleted - updating local"
+        update_item_from_hash(local_db, remote_item)
+      elsif local_item['deleted'].to_i == 1 && local_time > remote_time
+        puts "Local item #{id} is marked as deleted - will be uploaded"
+      elsif local_time > remote_time
         puts "Local item #{id} is newer - will be uploaded"
       elsif local_time < remote_time
         puts "Remote item #{id} is newer - updating local"
@@ -135,9 +141,9 @@ module Timet
     # @return [void]
     def self.update_item_from_hash(db, item)
       db.execute_sql(
-        'UPDATE items SET start = ?, end = ?, tag = ?, notes = ?, pomodoro = ?, updated_at = ?, created_at = ? WHERE id = ?',
+        'UPDATE items SET start = ?, end = ?, tag = ?, notes = ?, pomodoro = ?, updated_at = ?, created_at = ?, deleted = ? WHERE id = ?',
         [item['start'], item['end'], item['tag'], item['notes'], item['pomodoro'], item['updated_at'],
-         item['created_at'], item['id']]
+         item['created_at'], item['deleted'], item['id']]
       )
     end
 
@@ -148,9 +154,9 @@ module Timet
     # @return [void]
     def self.insert_item_from_hash(db, item)
       db.execute_sql(
-        'INSERT INTO items (id, start, end, tag, notes, pomodoro, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO items (id, start, end, tag, notes, pomodoro, updated_at, created_at, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [item['id'], item['start'], item['end'], item['tag'], item['notes'], item['pomodoro'], item['updated_at'],
-         item['created_at']]
+         item['created_at'], item['deleted']]
       )
     end
   end

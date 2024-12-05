@@ -33,6 +33,7 @@ module Timet
       add_column('items', 'pomodoro', 'INTEGER')
       add_column('items', 'updated_at', 'INTEGER')
       add_column('items', 'created_at', 'INTEGER')
+      add_column('items', 'deleted', 'INTEGER')
       update_time_columns
     end
 
@@ -129,7 +130,8 @@ module Timet
     #
     # @note The method executes SQL to delete the item with the given ID from the 'items' table.
     def delete_item(id)
-      execute_sql("DELETE FROM items WHERE id = #{id}")
+      current_time = Time.now.to_i
+      execute_sql('UPDATE items SET deleted = 1, updated_at = ? WHERE id = ?', [current_time, id])
     end
 
     # Fetches the ID of the last inserted item.
@@ -141,8 +143,8 @@ module Timet
     #
     # @note The method executes SQL to fetch the ID of the last inserted item.
     def fetch_last_id
-      result = execute_sql('SELECT id FROM items ORDER BY id DESC LIMIT 1').first
-      result ? result[0] : nil
+      result = execute_sql('SELECT id FROM items WHERE deleted IS NULL OR deleted = 0 ORDER BY id DESC LIMIT 1')
+      result.empty? ? nil : result[0][0]
     end
 
     # Fetches the last item from the items table.
@@ -154,7 +156,38 @@ module Timet
     #
     # @note The method executes SQL to fetch the last item from the 'items' table.
     def last_item
-      execute_sql('SELECT * FROM items ORDER BY id DESC LIMIT 1').first
+      result = execute_sql('SELECT * FROM items WHERE deleted IS NULL OR deleted = 0 ORDER BY id DESC LIMIT 1')
+      result.empty? ? nil : result[0]
+    end
+
+    # Finds an item in the items table by its ID.
+    #
+    # @param id [Integer] The ID of the item to be found.
+    #
+    # @return [Array, nil] The item as an array, or nil if the item does not exist.
+    #
+    # @example Find an item with ID 1
+    #   find_item(1)
+    #
+    # @note The method executes SQL to find the item with the given ID in the 'items' table.
+    def find_item(id)
+      result = execute_sql('SELECT * FROM items WHERE id = ? AND (deleted IS NULL OR deleted = 0)', [id])
+      result.empty? ? nil : result[0]
+    end
+
+    # Fetches all items from the items table that have a start time greater than or equal to today.
+    #
+    # @return [Array] An array of items.
+    #
+    # @example Fetch all items from today
+    #   all_items
+    #
+    # @note The method executes SQL to fetch all items from the 'items' table that have a start time greater than
+    # or equal to today.
+    def all_items
+      today = Time.now.to_i - (Time.now.to_i % 86_400)
+      execute_sql('SELECT * FROM items WHERE start >= ? AND (deleted IS NULL OR deleted = 0) ORDER BY start DESC',
+                  [today])
     end
 
     # Determines the status of the last item in the items table.
@@ -171,33 +204,6 @@ module Timet
     def item_status(id = nil)
       id = fetch_last_id if id.nil?
       determine_status(find_item(id))
-    end
-
-    # Finds an item in the items table by its ID.
-    #
-    # @param id [Integer] The ID of the item to be found.
-    #
-    # @return [Array, nil] The item as an array, or nil if the item does not exist.
-    #
-    # @example Find an item with ID 1
-    #   find_item(1)
-    #
-    # @note The method executes SQL to find the item with the given ID in the 'items' table.
-    def find_item(id)
-      execute_sql("SELECT * from items where id=#{id}").first
-    end
-
-    # Fetches all items from the items table that have a start time greater than or equal to today.
-    #
-    # @return [Array] An array of items.
-    #
-    # @example Fetch all items from today
-    #   all_items
-    #
-    # @note The method executes SQL to fetch all items from the 'items' table that have a start time greater than
-    # or equal to today.
-    def all_items
-      execute_sql("SELECT * FROM items where start >= '#{Date.today.to_time.to_i}' ORDER BY id DESC")
     end
 
     # Executes a SQL query and returns the result.
