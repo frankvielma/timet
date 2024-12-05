@@ -301,7 +301,8 @@ module Timet
     # This method queries the database for items where the `updated_at` or `created_at` columns are null.
     # For each item found, it sets both the `updated_at` and `created_at` columns to the value of the `end_time` column.
     #
-    # @note This method directly executes SQL queries on the database. Ensure that the `execute_sql` method is properly defined and handles SQL injection risks.
+    # @note This method directly executes SQL queries on the database. Ensure that the `execute_sql` method is properly
+    # defined and handles SQL injection risks.
     #
     # @return [void] This method does not return a value.
     #
