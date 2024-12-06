@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
+require 'fileutils'
 require 'sqlite3'
 module Timet
   # Provides database access for managing time tracking data.
   class Database
     # The default path to the SQLite database file.
-    DEFAULT_DATABASE_PATH = File.join(Dir.home, '.timet.db')
+    DEFAULT_DATABASE_PATH = File.join(Dir.home, '.timet', 'timet.db')
 
     # Initializes a new instance of the Database class.
     #
@@ -23,11 +24,17 @@ module Timet
     # @note The method creates a new SQLite3 database connection and initializes the necessary tables if they
     # do not already exist.
     def initialize(database_path = DEFAULT_DATABASE_PATH)
+      move_old_database_file(database_path)
+
       @db = SQLite3::Database.new(database_path)
       create_table
 
       add_column('items', 'notes', 'TEXT')
       add_column('items', 'pomodoro', 'INTEGER')
+      add_column('items', 'updated_at', 'INTEGER')
+      add_column('items', 'created_at', 'INTEGER')
+      add_column('items', 'deleted', 'INTEGER')
+      update_time_columns
     end
 
     # Creates the items table if it doesn't already exist.
@@ -87,8 +94,9 @@ module Timet
     #   insert_item(1633072800, 'work', 'Completed task X')
     #
     # @note The method executes SQL to insert a new row into the 'items' table.
-    def insert_item(start, tag, notes, pomodoro = nil)
-      execute_sql('INSERT INTO items (start, tag, notes, pomodoro) VALUES (?, ?, ?, ?)', [start, tag, notes, pomodoro])
+    def insert_item(start, tag, notes, pomodoro = nil, updated_at = nil, created_at = nil)
+      execute_sql('INSERT INTO items (start, tag, notes, pomodoro, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+                  [start, tag, notes, pomodoro, updated_at, created_at])
     end
 
     # Updates an existing item in the items table.
@@ -107,7 +115,7 @@ module Timet
     def update_item(id, field, value)
       return if %w[start end].include?(field) && value.nil?
 
-      execute_sql("UPDATE items SET #{field}='#{value}' WHERE id = #{id}")
+      execute_sql("UPDATE items SET #{field}='#{value}', updated_at=#{Time.now.utc.to_i} WHERE id = #{id}")
     end
 
     # Deletes an item from the items table.
@@ -122,7 +130,8 @@ module Timet
     #
     # @note The method executes SQL to delete the item with the given ID from the 'items' table.
     def delete_item(id)
-      execute_sql("DELETE FROM items WHERE id = #{id}")
+      current_time = Time.now.to_i
+      execute_sql('UPDATE items SET deleted = 1, updated_at = ? WHERE id = ?', [current_time, id])
     end
 
     # Fetches the ID of the last inserted item.
@@ -134,8 +143,8 @@ module Timet
     #
     # @note The method executes SQL to fetch the ID of the last inserted item.
     def fetch_last_id
-      result = execute_sql('SELECT id FROM items ORDER BY id DESC LIMIT 1').first
-      result ? result[0] : nil
+      result = execute_sql('SELECT id FROM items WHERE deleted IS NULL OR deleted = 0 ORDER BY id DESC LIMIT 1')
+      result.empty? ? nil : result[0][0]
     end
 
     # Fetches the last item from the items table.
@@ -147,7 +156,38 @@ module Timet
     #
     # @note The method executes SQL to fetch the last item from the 'items' table.
     def last_item
-      execute_sql('SELECT * FROM items ORDER BY id DESC LIMIT 1').first
+      result = execute_sql('SELECT * FROM items WHERE deleted IS NULL OR deleted = 0 ORDER BY id DESC LIMIT 1')
+      result.empty? ? nil : result[0]
+    end
+
+    # Finds an item in the items table by its ID.
+    #
+    # @param id [Integer] The ID of the item to be found.
+    #
+    # @return [Array, nil] The item as an array, or nil if the item does not exist.
+    #
+    # @example Find an item with ID 1
+    #   find_item(1)
+    #
+    # @note The method executes SQL to find the item with the given ID in the 'items' table.
+    def find_item(id)
+      result = execute_sql('SELECT * FROM items WHERE id = ? AND (deleted IS NULL OR deleted = 0)', [id])
+      result.empty? ? nil : result[0]
+    end
+
+    # Fetches all items from the items table that have a start time greater than or equal to today.
+    #
+    # @return [Array] An array of items.
+    #
+    # @example Fetch all items from today
+    #   all_items
+    #
+    # @note The method executes SQL to fetch all items from the 'items' table that have a start time greater than
+    # or equal to today.
+    def all_items
+      today = Time.now.to_i - (Time.now.to_i % 86_400)
+      execute_sql('SELECT * FROM items WHERE start >= ? AND (deleted IS NULL OR deleted = 0) ORDER BY start DESC',
+                  [today])
     end
 
     # Determines the status of the last item in the items table.
@@ -164,33 +204,6 @@ module Timet
     def item_status(id = nil)
       id = fetch_last_id if id.nil?
       determine_status(find_item(id))
-    end
-
-    # Finds an item in the items table by its ID.
-    #
-    # @param id [Integer] The ID of the item to be found.
-    #
-    # @return [Array, nil] The item as an array, or nil if the item does not exist.
-    #
-    # @example Find an item with ID 1
-    #   find_item(1)
-    #
-    # @note The method executes SQL to find the item with the given ID in the 'items' table.
-    def find_item(id)
-      execute_sql("SELECT * from items where id=#{id}").first
-    end
-
-    # Fetches all items from the items table that have a start time greater than or equal to today.
-    #
-    # @return [Array] An array of items.
-    #
-    # @example Fetch all items from today
-    #   all_items
-    #
-    # @note The method executes SQL to fetch all items from the 'items' table that have a start time greater than
-    # or equal to today.
-    def all_items
-      execute_sql("SELECT * FROM items where start >= '#{Date.today.to_time.to_i}' ORDER BY id DESC")
     end
 
     # Executes a SQL query and returns the result.
@@ -268,6 +281,43 @@ module Timet
       return :in_progress unless last_item_end
 
       :complete
+    end
+
+    private
+
+    # Moves the old database file to the new location if it exists.
+    #
+    # @param database_path [String] The path to the new SQLite database file.
+    def move_old_database_file(database_path)
+      old_file = File.join(Dir.home, '.timet.db')
+      return unless File.exist?(old_file)
+
+      FileUtils.mkdir_p(File.dirname(database_path)) unless File.directory?(File.dirname(database_path))
+      FileUtils.mv(old_file, database_path)
+    end
+
+    # Updates the `updated_at` and `created_at` columns for items where either of these columns is null.
+    #
+    # This method queries the database for items where the `updated_at` or `created_at` columns are null.
+    # For each item found, it sets both the `updated_at` and `created_at` columns to the value of the `end_time` column.
+    #
+    # @note This method directly executes SQL queries on the database. Ensure that the `execute_sql` method is properly
+    # defined and handles SQL injection risks.
+    #
+    # @return [void] This method does not return a value.
+    #
+    # @example
+    #   update_time_columns
+    #
+    # @raise [StandardError] If there is an issue executing the SQL queries, an error may be raised.
+    #
+    def update_time_columns
+      result = execute_sql('SELECT * FROM items where updated_at is null or created_at is null')
+      result.each do |item|
+        id = item[0]
+        end_time = item[2]
+        execute_sql("UPDATE items SET updated_at = #{end_time}, created_at = #{end_time} WHERE id = #{id}")
+      end
     end
   end
 end

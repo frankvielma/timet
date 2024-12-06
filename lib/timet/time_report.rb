@@ -168,7 +168,12 @@ module Timet
     def filter_by_date_range(start_date, end_date = nil, tag = nil)
       start_time = TimeHelper.date_to_timestamp(start_date)
       end_time = TimeHelper.calculate_end_time(start_date, end_date)
-      query = "start >= #{start_time} and start < #{end_time} and tag like '%#{tag}%'"
+      query = [
+        "start >= #{start_time}",
+        "start < #{end_time}",
+        "tag like '%#{tag}%'",
+        '(deleted IS NULL OR deleted = 0)'
+      ].join(' and ')
       @db.execute_sql(
         "select * from items where #{query} ORDER BY id DESC"
       )

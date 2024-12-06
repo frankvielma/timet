@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
-require_relative 'version'
 require 'thor'
 require 'tty-prompt'
 require 'icalendar'
+require_relative 's3_supabase'
 require_relative 'validation_edit_helper'
 require_relative 'application_helper'
 require_relative 'time_helper'
-
+require_relative 'version'
+require_relative 'database_sync_helper'
+require 'tempfile'
+require 'digest'
 module Timet
   # Application class that defines CLI commands for time tracking:
   # - start: Start time tracking with optional notes
@@ -35,6 +38,8 @@ module Timet
     }.freeze
 
     VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
+
+    BUCKET = 'timet'
 
     desc "start [tag] --notes='' --pomodoro=[min]",
          'Start time tracking for a task labeled with the provided [tag], notes and "pomodoro time"
@@ -73,7 +78,7 @@ module Timet
 
       return puts 'A task is currently being tracked.' unless VALID_STATUSES_FOR_INSERTION.include?(@db.item_status)
 
-      @db.insert_item(start_time, tag, notes, pomodoro)
+      @db.insert_item(start_time, tag, notes, pomodoro, start_time, start_time)
       play_sound_and_notify(pomodoro * 60, tag) if pomodoro.positive?
       summary
     end
@@ -271,6 +276,12 @@ module Timet
     desc 'version', 'version'
     def version
       puts Timet::VERSION
+    end
+
+    desc 'sync', 'Sync local db with supabase external db'
+    def sync
+      puts 'Syncing database with remote storage...'
+      DatabaseSyncHelper.sync(@db, BUCKET)
     end
   end
 end

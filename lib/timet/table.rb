@@ -44,7 +44,7 @@ module Timet
       header = <<~TABLE
         #{title}
         #{separator}
-        \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes              |\033[0m
+        \033[32m| Id    | Date       | Tag    | Start    | End      | Duration | Notes\033[0m
         #{separator}
       TABLE
       puts header
@@ -59,7 +59,7 @@ module Timet
     #
     # @note The method returns a string representing the separator line for the table.
     def separator
-      '+-------+------------+--------+----------+----------+----------+--------------------+'
+      '+-------+------------+--------+----------+----------+----------+'
     end
 
     # Processes time entries and generates a time block structure.
@@ -165,7 +165,7 @@ module Timet
       mark = format_mark(id)
 
       "| #{id.to_s.rjust(6)}| #{start_date} | #{tag.ljust(6)} | #{start_time.split[1]} | " \
-        "#{end_time.rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} | #{format_notes(notes)}  #{mark}"
+        "#{end_time.rjust(8)} | #{@db.seconds_to_hms(duration).rjust(8)} #{mark} #{format_notes(notes)}"
     end
 
     # Formats the end time of the time entry.
@@ -190,9 +190,9 @@ module Timet
       pomodoro = @db.find_item(id)[5] || 0
 
       if pomodoro.positive? && end_time == '-'
-        delta = (@db.find_item(id)[5] - (duration / 60.0)).round(1)
-        timet = "\e]8;;Session ends\a#{delta} min\e]8;;\a".green
-        end_time = " #{timet}".blink
+        delta = @db.seconds_to_hms((@db.find_item(id)[5] * 60) - duration)
+        timet = "\e]8;;Session ends\a#{delta}\e]8;;\a".green
+        end_time = timet.to_s.blink
       end
 
       end_time
@@ -216,7 +216,7 @@ module Timet
     def format_mark(id)
       pomodoro = @db.find_item(id)[5] || 0
       mark = '|'
-      mark = "#{'├'.white} #{'P'.blue.blink}" if pomodoro.positive?
+      mark = "#{'├'.white}#{'P'.blue.blink}" if pomodoro.positive?
       mark
     end
 
@@ -230,7 +230,7 @@ module Timet
     #
     # @note The method truncates the notes to a maximum of 20 characters and pads them to a fixed width.
     def format_notes(notes)
-      spaces = 17
+      spaces = 80
       return ' ' * spaces unless notes
 
       max_length = spaces - 3
@@ -250,7 +250,7 @@ module Timet
       total = @items.map do |item|
         TimeHelper.calculate_duration(item[1], item[2])
       end.sum
-      puts "|#{' ' * 43}#{'Total:'.blue}  | #{@db.seconds_to_hms(total).rjust(8).blue} |#{' ' * 20}|"
+      puts "|#{' ' * 43}#{'Total:'.blue}  | #{@db.seconds_to_hms(total).rjust(8).blue} |"
       puts separator
       display_pomodoro_label
     end

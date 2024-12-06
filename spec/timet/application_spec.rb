@@ -31,7 +31,8 @@ RSpec.describe Timet::Application do
 
       it 'inserts a new item into the database' do
         app.start('tag', 'my notes...', 25)
-        expect(db).to have_received(:insert_item).with(Time.now.utc.to_i, 'tag', 'my notes...', 25)
+        time = Time.now.utc.to_i
+        expect(db).to have_received(:insert_item).with(time, 'tag', 'my notes...', 25, time, time)
       end
 
       it 'calls summary after inserting the item' do
@@ -74,7 +75,8 @@ RSpec.describe Timet::Application do
       it 'inserts a new item into the database with the provided notes from options' do
         app.start('tag')
 
-        expect(db).to have_received(:insert_item).with(1_700_000_000, 'tag', 'my notes from option', 25)
+        time = 1_700_000_000
+        expect(db).to have_received(:insert_item).with(time, 'tag', 'my notes from option', 25, time, time)
       end
 
       it 'calls play_sound_and_notify with the provided pomodoro time' do
