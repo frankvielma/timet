@@ -81,7 +81,8 @@ module Timet
     # @param remote_path [String] Path to the downloaded remote database file
     # @return [void]
     # @note This method attempts to sync the databases and handles any errors that occur during the process
-    def self.handle_database_differences(local_db, remote_storage, bucket, local_db_path, remote_path)
+    def self.handle_database_differences(*args)
+      local_db, remote_storage, bucket, local_db_path, remote_path = args
       puts 'Differences detected between local and remote databases'
       begin
         sync_with_remote_database(local_db, remote_path, remote_storage, bucket, local_db_path)
@@ -99,7 +100,8 @@ module Timet
     # @param local_db_path [String] Path to the local database file
     # @return [void]
     # @note Configures both databases to return results as hashes for consistent data handling
-    def self.sync_with_remote_database(local_db, remote_path, remote_storage, bucket, local_db_path)
+    def self.sync_with_remote_database(*args)
+      local_db, remote_path, remote_storage, bucket, local_db_path = args
       db_remote = open_remote_database(remote_path)
       db_remote.results_as_hash = true
       local_db.instance_variable_get(:@db).results_as_hash = true
@@ -147,7 +149,8 @@ module Timet
     # @param local_item [Hash] Local database item
     # @param remote_item [Hash] Remote database item
     # @param local_db [SQLite3::Database] Local database connection
-    def self.process_existing_item(id, local_item, remote_item, local_db)
+    def self.process_existing_item(*args)
+      id, local_item, remote_item, local_db = args
       local_time = local_item['updated_at'].to_i
       remote_time = remote_item['updated_at'].to_i
 
@@ -202,7 +205,8 @@ module Timet
     # @param local_db_path [String] Path to the local database file
     # @return [void]
     # @note This method orchestrates the entire database synchronization process
-    def self.sync_databases(local_db, remote_db, remote_storage, bucket, local_db_path)
+    def self.sync_databases(*args)
+      local_db, remote_db, remote_storage, bucket, local_db_path = args
       process_database_items(local_db, remote_db)
       remote_storage.upload_file(bucket, local_db_path, 'timet.db')
       puts 'Database sync completed'
