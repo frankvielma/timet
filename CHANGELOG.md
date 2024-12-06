@@ -1,20 +1,43 @@
 ## [Unreleased]
 
+## [1.5.0] - 2024-12-06
+
+**Improvements:**
+
+- Implemented soft delete for items, adding a `deleted` column to the `items` table.
+- Improved database synchronization logic with better error handling and resource management.
+- Refactored synchronization methods to improve readability and maintainability.
+- Added `updated_at` and `created_at` columns to the `items` table for better tracking of item changes.
+- Updated synchronization logic to handle deleted items during synchronization.
+- Updated various gems to their latest versions, including `aws-sdk-core`, `aws-sdk-s3`, `json`, `regexp_parser`, `rubocop`, `rubocop-ast`, `sqlite3`, and `unicode-display_width`.
+- Improved the handling of environment variables in the S3 configuration.
+- Improved table formatting and display logic for better readability.
+- Simplified pomodoro end time formatting for better performance.
+- Added a check to skip items marked as deleted when generating CSV reports.
+- Updated the README to reflect new features and improvements.
+- Added YARD documentation for the `S3Supabase` class.
+
+**Bug Fixes:**
+
+- (No bug fixes listed in the provided commit messages)
+
 ## [1.4.5] - 2024-11-18
 
 **Improvements:**
+
 - Added `base64` gem to the Gemfile to ensure compatibility with Ruby 3.4.0.
 - Updated the `json` gem from version 2.8.1 to 2.8.2.
 - Updated the `rubocop-ast` gem from version 1.35.0 to 1.36.1.
 - Added the `icalendar` gem to the application.
 
 **Bug Fixes:**
-- Fixed the deprecation warning related to `base64` being removed from the Ruby standard library in Ruby 3.4.0.
 
+- Fixed the deprecation warning related to `base64` being removed from the Ruby standard library in Ruby 3.4.0.
 
 ## [1.4.4] - 2024-11-12
 
 **Improvements:**
+
 - Refactored tag distribution and time statistics methods:
   - Split `process_and_print_tags` into `print_summary` and `print_tags_info` for better modularity and readability.
   - Added Yardoc comments to document the new methods and updated existing comments for clarity.
@@ -25,12 +48,14 @@
   - Ensured that the iCalendar file generation logic is encapsulated within the `TimeReportHelper` module.
 
 **Tasks:**
+
 - Bumped version to 1.4.4.
 - Updated `Gemfile.lock`.
 
 ## [1.4.3] - 2024-11-06
 
 **Improvements:**
+
 - **Refactor export logic**: Introduced a new `ReportExporter` class to handle the export of reports to CSV and iCalendar formats, addressing the Feature Envy code smell and making the `ApplicationHelper` module more modular.
 - **Update gem dependencies**: Updated several gems to their latest versions, including `icalendar`, `sqlite3`, `json`, `parser`, `rubocop`, and `rubocop-ast`.
 - **Refactor `TimeReport` initialization**: Refactored `TimeReport` initialization to use an options hash instead of individual parameters, and added support for exporting tracking summaries to iCalendar format.
@@ -38,9 +63,9 @@
 - **Add `icalendar` gem**: Added the `icalendar` gem to support iCalendar functionality and updated the `timet` gem version to `1.4.3`.
 
 **Bug Fixes:**
+
 - Corrected platform names in the lockfile.
 - Updated the `TimeReport` spec to use the new options hash in the `TimeReport` initialization.
-
 
 ## [1.4.2] - 2024-11-01
 
