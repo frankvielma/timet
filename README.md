@@ -210,7 +210,7 @@ gem install timet
 | `timet su [date]`                            | Display a report of tracked time for a specific date.                       | `timet su 2024-01-03`             |
 | `timet su [start_date]..[end_date]`          | Display a report of tracked time for a date range.                          | `timet su 2024-01-02..2024-01-03` |
 | `timet resume (r) [id]`                      | Resume tracking a task by ID or the last completed task.                    | `timet resume [id]`               |
-| `timet sync`                                 | Sync local db with supabase (S3) external db                                | `timet sync`                      |
+| `timet sync`                                 | Sync local db with remote (S3) external db                                | `timet sync`                      |
 
 ### Date Range in Summary
 
@@ -238,7 +238,7 @@ Timet's data is stored in `~/.timet`.
 <a name="s3-cloud-backup-configuration"></a>
 ## 🔒 S3 Cloud Backup Configuration
 
-Timet supports backing up and syncing your time tracking data with S3-compatible storage services (Supabase). To configure S3 backup, follow these steps:
+Timet supports backing up and syncing your time tracking data with S3-compatible storage services (such as Supabase S3). To configure S3 backup, follow these steps:
 
 ### Environment Variables
 
@@ -248,21 +248,8 @@ Create a `.env` file in your project root (`~/.timet`) with the following variab
 S3_ENDPOINT=your_s3_endpoint_url
 S3_ACCESS_KEY=your_access_key
 S3_SECRET_KEY=your_secret_key
-S3_REGION=your_s3_region # Optional, defaults to 'us-west-1'
+S3_REGION=your_s3_region
 ```
-
-### S3 Backup Methods
-
-Timet provides several methods for S3 interaction:
-
-| Method | Description | Example |
-|--------|-------------|---------|
-| `create_bucket` | Create a new S3 bucket | `s3_supabase.create_bucket('my-timet-backup')` |
-| `list_objects` | List objects in a bucket | `s3_supabase.list_objects('my-timet-backup')` |
-| `upload_file` | Upload a local file to S3 | `s3_supabase.upload_file('my-bucket', '/path/local/file.txt', 'remote-file.txt')` |
-| `download_file` | Download a file from S3 | `s3_supabase.download_file('my-bucket', 'remote-file.txt', '/path/local/file.txt')` |
-| `delete_object` | Remove a specific file from S3 | `s3_supabase.delete_object('my-bucket', 'file-to-delete.txt')` |
-| `delete_bucket` | Remove an entire S3 bucket | `s3_supabase.delete_bucket('my-bucket')` |
 
 ### Security Considerations
 
