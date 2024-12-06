@@ -146,6 +146,27 @@ module Timet
       items.to_h { |item| [item['id'], item] }
     end
 
+    # Determines if remote item should take precedence
+    #
+    # @param remote_item [Hash] Remote database item
+    # @param remote_time [Integer] Remote item timestamp
+    # @param local_time [Integer] Local item timestamp
+    # @return [Boolean] true if remote item should take precedence
+    def self.remote_wins?(remote_item, remote_time, local_time)
+      remote_time > local_time && (remote_item['deleted'].to_i == 1 || remote_time > local_time)
+    end
+
+    # Formats item status message
+    #
+    # @param id [Integer] Item ID
+    # @param item [Hash] Database item
+    # @param source [String] Source of the item ('Remote' or 'Local')
+    # @return [String] Formatted status message
+    def self.format_status_message(id, item, source)
+      deleted = item['deleted'].to_i == 1 ? ' and deleted' : ''
+      "#{source} item #{id} is newer#{deleted} - #{source == 'Remote' ? 'updating local' : 'will be uploaded'}"
+    end
+
     # Processes an item that exists in both databases
     #
     # @param id [Integer] Item ID
@@ -158,14 +179,12 @@ module Timet
       local_time = local_item['updated_at'].to_i
       remote_time = remote_item['updated_at'].to_i
 
-      # Remote wins if it's newer or if it's deleted and newer
-      if (remote_item['deleted'].to_i == 1 || remote_time > local_time) && remote_time > local_time
-        puts "Remote item #{id} is newer#{remote_item['deleted'].to_i == 1 ? ' and deleted' : ''} - updating local"
+      if remote_wins?(remote_item, remote_time, local_time)
+        puts format_status_message(id, remote_item, 'Remote')
         update_item_from_hash(local_db, remote_item)
         :local_update
-      # Local wins if it's newer (including if it's deleted)
       elsif local_time > remote_time
-        puts "Local item #{id} is newer#{local_item['deleted'].to_i == 1 ? ' and deleted' : ''} - will be uploaded"
+        puts format_status_message(id, local_item, 'Local')
         :remote_update
       end
     end
@@ -230,7 +249,7 @@ module Timet
     # @param item [Hash] Hash containing item data
     # @return [void]
     def self.update_item_from_hash(db, item)
-      fields = ITEM_FIELDS.join(' = ?, ') + ' = ?'
+      fields = "#{ITEM_FIELDS.join(' = ?, ')} = ?"
       db.execute_sql(
         "UPDATE items SET #{fields} WHERE id = ?",
         get_item_values(item)
