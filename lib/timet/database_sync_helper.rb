@@ -7,6 +7,9 @@ module Timet
   # Helper module for database synchronization operations
   # Provides methods for comparing and syncing local and remote databases
   module DatabaseSyncHelper
+    # Fields used in item operations
+    ITEM_FIELDS = %w[start end tag notes pomodoro updated_at created_at deleted].freeze
+
     # Main entry point for database synchronization
     #
     # @param local_db [SQLite3::Database] The local database connection
@@ -149,22 +152,21 @@ module Timet
     # @param local_item [Hash] Local database item
     # @param remote_item [Hash] Remote database item
     # @param local_db [SQLite3::Database] Local database connection
+    # @return [Symbol] :local_update if local was updated, :remote_update if remote needs update
     def self.process_existing_item(*args)
       id, local_item, remote_item, local_db = args
       local_time = local_item['updated_at'].to_i
       remote_time = remote_item['updated_at'].to_i
 
-      # Handle deleted items
-      if remote_item['deleted'].to_i == 1 && remote_time > local_time
-        puts "Remote item #{id} is marked as deleted - updating local"
+      # Remote wins if it's newer or if it's deleted and newer
+      if (remote_item['deleted'].to_i == 1 || remote_time > local_time) && remote_time > local_time
+        puts "Remote item #{id} is newer#{remote_item['deleted'].to_i == 1 ? ' and deleted' : ''} - updating local"
         update_item_from_hash(local_db, remote_item)
-      elsif local_item['deleted'].to_i == 1 && local_time > remote_time
-        puts "Local item #{id} is marked as deleted - will be uploaded"
+        :local_update
+      # Local wins if it's newer (including if it's deleted)
       elsif local_time > remote_time
-        puts "Local item #{id} is newer - will be uploaded"
-      elsif local_time < remote_time
-        puts "Remote item #{id} is newer - updating local"
-        update_item_from_hash(local_db, remote_item)
+        puts "Local item #{id} is newer#{local_item['deleted'].to_i == 1 ? ' and deleted' : ''} - will be uploaded"
+        :remote_update
       end
     end
 
@@ -212,16 +214,26 @@ module Timet
       puts 'Database sync completed'
     end
 
+    # Gets the values array for database operations
+    #
+    # @param item [Hash] Hash containing item data
+    # @param include_id [Boolean] Whether to include ID at start (insert) or end (update)
+    # @return [Array] Array of values for database operation
+    def self.get_item_values(item, include_id_at_start: false)
+      values = ITEM_FIELDS.map { |field| item[field] }
+      include_id_at_start ? [item['id'], *values] : [*values, item['id']]
+    end
+
     # Updates an existing item in the database with values from a hash
     #
     # @param db [SQLite3::Database] The database connection
     # @param item [Hash] Hash containing item data
     # @return [void]
     def self.update_item_from_hash(db, item)
+      fields = ITEM_FIELDS.join(' = ?, ') + ' = ?'
       db.execute_sql(
-        'UPDATE items SET start = ?, end = ?, tag = ?, notes = ?, pomodoro = ?, updated_at = ?, created_at = ?, deleted = ? WHERE id = ?',
-        [item['start'], item['end'], item['tag'], item['notes'], item['pomodoro'], item['updated_at'],
-         item['created_at'], item['deleted'], item['id']]
+        "UPDATE items SET #{fields} WHERE id = ?",
+        get_item_values(item)
       )
     end
 
@@ -231,10 +243,11 @@ module Timet
     # @param item [Hash] Hash containing item data
     # @return [void]
     def self.insert_item_from_hash(db, item)
+      fields = ['id', *ITEM_FIELDS].join(', ')
+      placeholders = Array.new(ITEM_FIELDS.length + 1, '?').join(', ')
       db.execute_sql(
-        'INSERT INTO items (id, start, end, tag, notes, pomodoro, updated_at, created_at, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [item['id'], item['start'], item['end'], item['tag'], item['notes'], item['pomodoro'], item['updated_at'],
-         item['created_at'], item['deleted']]
+        "INSERT INTO items (#{fields}) VALUES (#{placeholders})",
+        get_item_values(item, include_id_at_start: true)
       )
     end
   end

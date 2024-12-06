@@ -9,6 +9,9 @@ require 'fileutils'
 # - S3 integration for data backup and sync
 #
 module Timet
+  # Required environment variables for S3 configuration
+  REQUIRED_ENV_VARS = %w[S3_ENDPOINT S3_ACCESS_KEY S3_SECRET_KEY].freeze
+
   # Ensures that the environment file exists and contains the required variables.
   # If the file doesn't exist, it creates it. If required variables are missing,
   # it adds them with empty values.
@@ -18,24 +21,20 @@ module Timet
   # @example
   #   Timet.ensure_env_file_exists('/path/to/.env')
   def self.ensure_env_file_exists(env_file_path)
-    # Ensure the file exists
-    FileUtils.mkdir_p(File.dirname(env_file_path)) unless File.exist?(env_file_path)
-    File.write(env_file_path, '') unless File.size?(env_file_path)
+    dir_path = File.dirname(env_file_path)
+    FileUtils.mkdir_p(dir_path)
 
-    # Load the environment variables from the file
+    # Create file if it doesn't exist or is empty
+    File.write(env_file_path, '', mode: 'a')
+
+    # Load and check environment variables
     Dotenv.load(env_file_path)
+    missing_vars = REQUIRED_ENV_VARS.reject { |var| ENV.fetch(var, nil) }
 
-    # Check if required environment variables are present
-    required_vars = %w[S3_ENDPOINT S3_ACCESS_KEY S3_SECRET_KEY]
-    missing_vars = required_vars.select { |var| ENV[var].nil? }
+    # Append missing variables with empty values
+    return if missing_vars.empty?
 
-    return unless missing_vars.any?
-
-    File.open(env_file_path, 'a') do |file|
-      missing_vars.each do |var|
-        file.puts("#{var}=''")
-      end
-    end
+    File.write(env_file_path, missing_vars.map { |var| "#{var}=''" }.join("\n") + "\n", mode: 'a')
   end
 
   # S3Supabase is a class that provides methods to interact with an S3-compatible
