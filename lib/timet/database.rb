@@ -185,7 +185,7 @@ module Timet
     # @note The method executes SQL to fetch all items from the 'items' table that have a start time greater than
     # or equal to today.
     def all_items
-      today = Time.now.to_i - (Time.now.to_i % 86_400)
+      today = Time.now.beginning_of_day.to_i
       execute_sql('SELECT * FROM items WHERE start >= ? AND (deleted IS NULL OR deleted = 0) ORDER BY start DESC',
                   [today])
     end
