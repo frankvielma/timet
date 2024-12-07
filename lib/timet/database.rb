@@ -94,7 +94,9 @@ module Timet
     #   insert_item(1633072800, 'work', 'Completed task X')
     #
     # @note The method executes SQL to insert a new row into the 'items' table.
-    def insert_item(start, tag, notes, pomodoro = nil, updated_at = nil, created_at = nil)
+    def insert_item(*args, pomodoro: nil, updated_at: nil, created_at: nil)
+      # Unpacking args into meaningful variables for clarity
+      start, tag, notes = args
       execute_sql('INSERT INTO items (start, tag, notes, pomodoro, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
                   [start, tag, notes, pomodoro, updated_at, created_at])
     end
@@ -185,7 +187,7 @@ module Timet
     # @note The method executes SQL to fetch all items from the 'items' table that have a start time greater than
     # or equal to today.
     def all_items
-      today = Time.now.to_i - (Time.now.to_i % 86_400)
+      today = Time.now.beginning_of_day.to_i
       execute_sql('SELECT * FROM items WHERE start >= ? AND (deleted IS NULL OR deleted = 0) ORDER BY start DESC',
                   [today])
     end

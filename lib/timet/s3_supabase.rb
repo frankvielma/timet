@@ -34,7 +34,7 @@ module Timet
     # Append missing variables with empty values
     return if missing_vars.empty?
 
-    File.write(env_file_path, missing_vars.map { |var| "#{var}=''" }.join("\n") + "\n", mode: 'a')
+    File.write(env_file_path, "#{missing_vars.map { |var| "#{var}=''" }.join("\n")}\n", mode: 'a')
   end
 
   # S3Supabase is a class that provides methods to interact with an S3-compatible
@@ -110,7 +110,8 @@ module Timet
     # Lists all objects in the specified bucket.
     #
     # @param bucket_name [String] The name of the bucket to list objects from
-    # @return [Array<Hash>, false, nil] Array of object hashes if objects found, false if bucket is empty, nil if error occurs
+    # @return [Array<Hash>, false, nil] Array of object hashes if objects found, false if bucket is empty,
+    # nil if error occurs
     # @raise [Aws::S3::Errors::ServiceError] if there's an error accessing the S3 service
     # @example
     #   list_objects('my-bucket') #=> [{key: 'example.txt', last_modified: '2023-01-01', ...}, ...]

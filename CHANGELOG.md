@@ -1,5 +1,17 @@
 ## [Unreleased]
 
+## [1.5.1] - 2024-12-07
+
+**Improvements:**
+
+- Extracted the logic for syncing items by ID into a separate method `sync_items_by_id` for better readability and maintainability.
+- Improved the writing of missing environment variables to the .env file in the S3Supabase module by ensuring the file content ends with a newline character.
+- Refactored the `all_items` method to use `beginning_of_day` for today's timestamp, improving the accuracy of the timestamp calculation.
+
+**Bug Fixes:**
+
+- Fixed the issue of having parameter lists longer than 5 parameters by refactoring the method to use a hash for named parameters.
+
 ## [1.5.0] - 2024-12-06
 
 **Improvements:**

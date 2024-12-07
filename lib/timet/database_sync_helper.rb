@@ -198,21 +198,30 @@ module Timet
       remote_items = remote_db.execute('SELECT * FROM items ORDER BY updated_at DESC')
       local_items = local_db.execute_sql('SELECT * FROM items ORDER BY updated_at DESC')
 
-      remote_by_id = items_to_hash(remote_items)
-      local_by_id = items_to_hash(local_items)
-      all_ids = (remote_by_id.keys + local_by_id.keys).uniq
+      sync_items_by_id(
+        local_db,
+        items_to_hash(local_items),
+        items_to_hash(remote_items)
+      )
+    end
 
-      all_ids.each do |id|
-        remote_item = remote_by_id[id]
-        local_item = local_by_id[id]
+    # Syncs items between local and remote databases based on their IDs
+    #
+    # @param local_db [SQLite3::Database] The local database connection
+    # @param local_items_by_id [Hash] Local items indexed by ID
+    # @param remote_items_by_id [Hash] Remote items indexed by ID
+    # @return [void]
+    def self.sync_items_by_id(local_db, local_items_by_id, remote_items_by_id)
+      all_item_ids = (remote_items_by_id.keys + local_items_by_id.keys).uniq
 
-        if remote_item && local_item
-          process_existing_item(id, local_item, remote_item, local_db)
-        elsif remote_item
-          puts "Adding remote item #{id} to local"
-          insert_item_from_hash(local_db, remote_item)
-        else # local_item exists
+      all_item_ids.each do |id|
+        if !remote_items_by_id[id]
           puts "Local item #{id} will be uploaded"
+        elsif !local_items_by_id[id]
+          puts "Adding remote item #{id} to local"
+          insert_item_from_hash(local_db, remote_items_by_id[id])
+        else
+          process_existing_item(id, local_items_by_id[id], remote_items_by_id[id], local_db)
         end
       end
     end
