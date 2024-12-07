@@ -232,5 +232,20 @@ module Timet
       end
       hour_blocks
     end
+
+    # Returns a Time object representing the start of the given day (midnight).
+    #
+    # @param time [Time] The time for which to find the beginning of day (defaults to current time).
+    # @return [Time] A new Time object set to midnight (00:00:00) of the given day.
+    #
+    # @example Get beginning of current day
+    #   TimeHelper.beginning_of_day # => 2024-12-07 00:00:00
+    #
+    # @example Get beginning of specific day
+    #   time = Time.new(2024, 12, 7, 15, 30, 45)
+    #   TimeHelper.beginning_of_day(time) # => 2024-12-07 00:00:00
+    def self.beginning_of_day(time = Time.now)
+      Time.new(time.year, time.month, time.day)
+    end
   end
 end
