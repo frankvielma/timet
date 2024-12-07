@@ -205,29 +205,24 @@ module Timet
       )
     end
 
-    # Syncs items by ID
+    # Syncs items between local and remote databases based on their IDs
     #
     # @param local_db [SQLite3::Database] The local database connection
     # @param local_items_by_id [Hash] Local items indexed by ID
     # @param remote_items_by_id [Hash] Remote items indexed by ID
     # @return [void]
     def self.sync_items_by_id(local_db, local_items_by_id, remote_items_by_id)
-      (remote_items_by_id.keys + local_items_by_id.keys).uniq.each do |id|
-        remote_item = remote_items_by_id[id]
-        local_item = local_items_by_id[id]
+      all_item_ids = (remote_items_by_id.keys + local_items_by_id.keys).uniq
 
-        if remote_item.nil?
+      all_item_ids.each do |id|
+        if !remote_items_by_id[id]
           puts "Local item #{id} will be uploaded"
-          next
-        end
-
-        if local_item.nil?
+        elsif !local_items_by_id[id]
           puts "Adding remote item #{id} to local"
-          insert_item_from_hash(local_db, remote_item)
-          next
+          insert_item_from_hash(local_db, remote_items_by_id[id])
+        else
+          process_existing_item(id, local_items_by_id[id], remote_items_by_id[id], local_db)
         end
-
-        process_existing_item(id, local_item, remote_item, local_db)
       end
     end
 
