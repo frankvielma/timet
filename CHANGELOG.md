@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+## [1.5.2] - 2024-12-12
+
+**Improvements:**
+
+- Added command validation during application initialization to ensure only valid arguments are processed.
+- Updated the `insert_item` method in the `Database` class to accept parameters via `*args` for better flexibility.
+- Updated dependencies:
+  - `aws-partitions` to `1.1021.0`
+  - `rubocop` to `1.69.2`
+  - `rubocop-rspec` to `3.3.0`
+  - `sqlite3` to `2.4.1`
+
+**Bug Fixes:**
+
+- Fixed potential issues with invalid arguments causing the application to crash during initialization.
+
 ## [1.5.1] - 2024-12-07
 
 **Improvements:**
