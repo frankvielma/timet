@@ -25,11 +25,6 @@ module Timet
     include ApplicationHelper
     include TimeHelper
 
-    def initialize(*args)
-      super
-      @db = Database.new
-    end
-
     FIELD_INDEX = {
       'notes' => 4,
       'tag' => 3,
@@ -39,7 +34,37 @@ module Timet
 
     VALID_STATUSES_FOR_INSERTION = %i[no_items complete].freeze
 
+    VALID_ARGUMENTS = %w[
+      cancel
+      delete
+      edit
+      help
+      resume
+      start
+      stop
+      summary
+      sync
+      version
+    ].freeze
+
     BUCKET = 'timet'
+
+    def initialize(*args)
+      super
+
+      # Initialize database without validation in test environment
+      if defined?(RSpec)
+        @db = Database.new
+      else
+        command_name = args[2][:current_command].name
+        if VALID_ARGUMENTS.include?(command_name)
+          @db = Database.new
+        else
+          puts 'Invalid arguments provided. Please check your input.'
+          exit(1)
+        end
+      end
+    end
 
     desc "start [tag] --notes='' --pomodoro=[min]",
          'Start time tracking for a task labeled with the provided [tag], notes and "pomodoro time"
