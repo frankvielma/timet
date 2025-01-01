@@ -104,7 +104,7 @@ module Timet
     #   calculate_value_and_bar_length(50, 100, 2) #=> [50.0, 25]
     def calculate_value_and_bar_length(duration, total)
       value = duration.to_f / total
-      percentage_value = (duration.to_f / total * 100).round(1)
+      percentage_value = (value * 100).round(1)
       bar_length = (value * MAX_BAR_LENGTH).round
       [percentage_value, bar_length]
     end
