@@ -82,7 +82,7 @@ module Timet
       weeks = []
       time_block.each_key do |date_string|
         date = Date.parse(date_string)
-        day = date.strftime('%a')[0..1]
+        day = date.strftime('%a')[0..2]
 
         format_and_print_date_info(date_string, day, weeks, start_hour)
 
@@ -119,7 +119,7 @@ module Timet
 
       week = format_and_print_week(date_string, weeks, start_hour)
 
-      print '┆'.gray + "#{week} #{weekend} #{day} " + '┆- '.gray
+      print '┆'.gray + "#{week} #{weekend} #{day}" + '┆- '.gray
     end
 
     # Formats and prints the week information including the separator if necessary.
