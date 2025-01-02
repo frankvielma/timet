@@ -1,6 +1,22 @@
 # frozen_string_literal: true
 
 module Timet
+  #
+  # The TimeBlockChart class is responsible for generating and printing a visual representation
+  # of time blocks for a given set of data. It uses character mapping to represent different
+  # time ranges and provides methods to print the chart with headers, footers, and colored blocks.
+  #
+  # Example usage:
+  #   time_block = {
+  #     "2023-10-01" => { "08" => [3600, "work"], "09" => [1800, "break"] },
+  #     "2023-10-02" => { "10" => [4500, "work"] }
+  #   }
+  #   colors = { "work" => 31, "break" => 32 }
+  #   chart = TimeBlockChart.new(time_block)
+  #   chart.print_time_block_chart(time_block, colors)
+  #
+  # @attr_reader [Integer] start_hour The starting hour of the time block
+  # @attr_reader [Integer] end_hour The ending hour of the time block
   class TimeBlockChart
     # Character mapping for different time ranges
     CHAR_MAPPING = {
