@@ -15,7 +15,6 @@ module Timet
   class TimeReport
     include TimeReportHelper
     include Table
-    include TimeBlockChart
     include TagDistribution
 
     # Provides access to the database instance.
@@ -74,7 +73,8 @@ module Timet
       time_block = table
 
       colors = @items.map { |x| x[3] }.uniq.each_with_index.to_h
-      print_time_block_chart(time_block, colors)
+      chart = TimeBlockChart.new(time_block)
+      chart.print_time_block_chart(time_block, colors)
 
       tag_distribution(colors)
     end

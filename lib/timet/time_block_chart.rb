@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 module Timet
-  # This module is responsible for formatting the output of the `timet` application.
-  # It provides methods for formatting the table header, separators, and rows.
-  module TimeBlockChart
+  class TimeBlockChart
+    # Character mapping for different time ranges
     CHAR_MAPPING = {
       0..120 => '_',
       121..450 => '▁',
@@ -16,68 +15,46 @@ module Timet
       3151..3600 => '█'
     }.freeze
 
+    # Separator character for the chart
     SEPARATOR_CHAR = '░'
 
-    # Prints a time block chart based on the provided time block and colors.
+    # Initializes a new TimeBlockChart
     #
-    # @param time_block [Hash] A hash where the keys are time blocks and the values are hashes of time slots and their
-    # corresponding values.
-    #   Example: { "block1" => { 10 => "value1", 11 => "value2" }, "block2" => { 12 => "value3" } }
-    # @param colors [Hash] A hash where the keys are time slots and the values are the colors to be used
-    # for those slots.
-    #   Example: { 10 => "red", 11 => "blue", 12 => "green" }
-    #
-    # @return [void] This method does not return a value; it prints the chart directly to the output.
-    #
-    # @example
-    #   time_block = { "block1" => { 10 => "value1", 11 => "value2" }, "block2" => { 12 => "value3" } }
-    #   colors = { 10 => "red", 11 => "blue", 12 => "green" }
-    #   print_time_block_chart(time_block, colors)
-    #
-    # @note This method relies on two helper methods: `print_header` and `print_blocks`.
-    #   Ensure these methods are defined and available in the scope where `print_time_block_chart` is called.
-    #
-    # @see #print_header
-    # @see #print_blocks
-    def print_time_block_chart(time_block, colors)
-      start_hour = time_block.values.map(&:keys).flatten.uniq.min.to_i
-      end_hour = time_block.values.map(&:keys).flatten.uniq.max.to_i
-      print_header(start_hour, end_hour)
-      print_blocks(time_block, colors, start_hour, end_hour)
+    # @param [Hash] time_block The time block data
+    def initialize(time_block)
+      @start_hour = time_block.values.map(&:keys).flatten.uniq.min.to_i
+      @end_hour = time_block.values.map(&:keys).flatten.uniq.max.to_i
     end
 
-    # Prints the header of the time block chart.
+    # Prints the time block chart
     #
-    # The header includes a visual representation of the time slots from the given start time to 23.
-    # Each time slot is formatted as a two-digit number and aligned to the right within a fixed width.
+    # @param [Hash] time_block The time block data
+    # @param [Hash] colors The color mapping for different tags
+    # @return [void]
+    def print_time_block_chart(time_block, colors)
+      print_header
+      print_blocks(time_block, colors)
+    end
+
+    private
+
+    # Prints the header of the chart
     #
-    # @param start_hour [Integer] The starting time for the chart. This should be an integer between 0 and 23.
-    #
-    # @return [void] This method does not return a value; it prints the header directly to the output.
-    #
-    # @example
-    #   print_header(10)
-    #   # Output:
-    #   #
-    #   #      ⏳ ↦ [ 10  11  12  13  14  15  16  17  18  19  20  21  22  23]
-    #
-    # @note The method assumes that the start_hour is within the valid range of 0 to 23.
-    #   If the start_hour is outside this range, the output may not be as expected.
-    def print_header(start_hour, end_hour)
+    # @return [void]
+    def print_header
       puts
       print ' ' * 19
-      (start_hour..end_hour + 1).each { |hour| print format('%02d', hour).rjust(4) }
+      (@start_hour..@end_hour + 1).each { |hour| print format('%02d', hour).rjust(4) }
       puts
-      puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (end_hour - start_hour + 1) * 4}╴╴╴┼".gray
+      puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (@end_hour - @start_hour + 1) * 4}╴╴╴┼".gray
     end
 
-    # Prints the time blocks for each date in the given time block data structure.
+    # Prints the time blocks
     #
-    # @param time_block [Hash] A hash where keys are date strings and values are time block data.
-    # @param colors [Hash] A hash containing color codes for formatting.
-    # @param start_hour [Integer] The starting hour for the time blocks.
+    # @param [Hash] time_block The time block data
+    # @param [Hash] colors The color mapping for different tags
     # @return [void]
-    def print_blocks(time_block, colors, start_hour, end_hour)
+    def print_blocks(time_block, colors)
       return unless time_block
 
       weeks = []
@@ -85,19 +62,19 @@ module Timet
         date = Date.parse(date_string)
         day = date.strftime('%a')[0..2]
 
-        format_and_print_date_info(date_string, day, weeks, start_hour, end_hour)
+        format_and_print_date_info(date_string, day, weeks)
 
         time_block_initial = time_block[date_string]
-        print_time_blocks(start_hour, end_hour, time_block_initial, colors)
+        print_time_blocks(time_block_initial, colors)
 
         calculate_and_print_hours(time_block_initial)
       end
-      print_footer(start_hour, end_hour)
+      print_footer
     end
 
-    # Calculates the total hours from the given time block data and prints it.
+    # Calculates and prints the total hours for a day
     #
-    # @param time_block_initial [Hash] A hash containing time block data for a specific date.
+    # @param [Hash] time_block_initial The initial time block data for a day
     # @return [void]
     def calculate_and_print_hours(time_block_initial)
       total_seconds = time_block_initial.values.map { |item| item[0] }.sum
@@ -106,40 +83,38 @@ module Timet
       puts
     end
 
-    # Formats and prints the date information including the week and day.
+    # Formats and prints the date information
     #
-    # @param date_string [String] The date string in a parsable format.
-    # @param day [String] The abbreviated day of the week (e.g., "Mo" for Monday).
-    # @param weeks [Array<Integer>] An array storing the week numbers.
-    # @param start_hour [Integer] The starting hour for the time blocks.
+    # @param [String] date_string The date string
+    # @param [String] day The day of the week
+    # @param [Array] weeks The list of weeks
     # @return [void]
-    def format_and_print_date_info(date_string, day, weeks, start_hour, end_hour)
+    def format_and_print_date_info(date_string, day, weeks)
       weekend = date_string
       day = day.red if %w[Sa Su].include?(day)
       weekend = weekend.red if %w[Sa Su].include?(day)
 
-      week = format_and_print_week(date_string, weeks, start_hour, end_hour)
+      week = format_and_print_week(date_string, weeks)
 
       print '┆'.gray + "#{week} #{weekend} #{day}" + '┆- '.gray
     end
 
-    # Formats and prints the week information including the separator if necessary.
+    # Formats and prints the week information
     #
-    # @param date_string [String] The date string in a parsable format.
-    # @param weeks [Array<Integer>] An array storing the week numbers.
-    # @param start_hour [Integer] The starting hour for the time blocks.
-    # @return [String] The formatted week string.
-    def format_and_print_week(date_string, weeks, start_hour, end_hour)
+    # @param [String] date_string The date string
+    # @param [Array] weeks The list of weeks
+    # @return [String] The formatted week string
+    def format_and_print_week(date_string, weeks)
       week, current_index = determine_week(date_string, weeks)
-      print_separator(start_hour, end_hour, week, current_index)
+      print_separator(week, current_index)
       week
     end
 
-    # Determines the week string based on the date and the previous week.
+    # Determines the week for a given date
     #
-    # @param date_string [String] The date string in a parsable format.
-    # @param weeks [Array<Integer>] An array storing the week numbers.
-    # @return [Array<String, Integer>] An array containing the formatted week string and the current index.
+    # @param [String] date_string The date string
+    # @param [Array] weeks The list of weeks
+    # @return [Array] The week string and current index
     def determine_week(date_string, weeks)
       weeks << Date.parse(date_string).cweek
       current_index = weeks.size - 1
@@ -152,62 +127,44 @@ module Timet
       [week, current_index]
     end
 
-    # Prints the separator line if the week string is not empty and the current index is positive.
+    # Prints the separator line
     #
-    # @param start_hour [Integer] The starting hour for the time blocks.
-    # @param week [String] The formatted week string.
-    # @param current_index [Integer] The current index in the weeks array.
+    # @param [String] week The week string
+    # @param [Integer] current_index The current index
     # @return [void]
-    def print_separator(start_hour, end_hour, week, current_index)
+    def print_separator(week, current_index)
       return unless week != '  ' && current_index.positive?
 
       sep = SEPARATOR_CHAR
-      puts "┆#{sep * 17}┼#{sep * (end_hour - start_hour + 1) * 4}#{sep * 3}┼#{sep * 4}".gray
+      puts "┆#{sep * 17}┼#{sep * (@end_hour - @start_hour + 1) * 4}#{sep * 3}┼#{sep * 4}".gray
     end
 
-    # Prints the footer of the report.
+    # Prints the footer of the chart
     #
-    # @param start_hour [Integer] The start time used to calculate the footer length.
-    # @return [void] This method does not return a value; it prints directly to the standard output.
-    def print_footer(start_hour, end_hour)
+    # @return [void]
+    def print_footer
       timet = "\e]8;;https://github.com/frankvielma/timet/\aTimet\e]8;;\a".green
-      puts '└╴╴╴╴╴╴╴'.gray + timet + "╴╴╴╴╴┴#{'╴' * (end_hour - start_hour + 1) * 4}╴╴╴┴".gray
+      puts '└╴╴╴╴╴╴╴'.gray + timet + "╴╴╴╴╴┴#{'╴' * (@end_hour - @start_hour + 1) * 4}╴╴╴┴".gray
       puts
     end
 
-    # Prints time blocks for each hour from the start time to 23.
+    # Prints the time blocks for a given day
     #
-    # @param start_time [Integer] The starting hour for printing time blocks.
-    # @param time_block_initial [Hash] A hash containing time block data, where keys are formatted hours and values
-    # are arrays containing block data.
-    # @param colors [Hash] A hash mapping tags to color codes.
+    # @param [Hash] time_block_initial The initial time block data for a day
+    # @param [Hash] colors The color mapping for different tags
     # @return [void]
-    #
-    # @example
-    #   time_block_initial = {
-    #     '01' => ['block_char_data', 'tag']
-    #   }
-    #   colors = { 'tag' => 1 }
-    #   print_time_blocks(1, time_block_initial, colors) # Prints time blocks for hours 1 to 23
-    def print_time_blocks(start_time, end_hour, time_block_initial, colors)
-      (start_time..end_hour).each do |hour|
+    def print_time_blocks(time_block_initial, colors)
+      (@start_hour..@end_hour).each do |hour|
         tag, block_char = get_formatted_block_char(hour, time_block_initial)
         print_colored_block(block_char, tag, colors)
       end
     end
 
-    # Returns the formatted block character and its associated tag for a given hour.
+    # Gets the formatted block character for a given hour
     #
-    # @param hour [Integer] The hour for which to retrieve the block character.
-    # @param time_block_initial [Hash] A hash containing time block data, where keys are formatted hours and values
-    # are arrays containing block data.
-    # @return [Array<(String, String)>] An array containing the tag and the block character.
-    #
-    # @example
-    #   time_block_initial = {
-    #     '01' => ['block_char_data', 'tag']
-    #   }
-    #   get_formatted_block_char(1, time_block_initial) #=> ['tag', 'block_char']
+    # @param [Integer] hour The hour
+    # @param [Hash] time_block_initial The initial time block data for a day
+    # @return [Array] The tag and block character
     def get_formatted_block_char(hour, time_block_initial)
       formatted_hour = format('%02d', hour)
       hour_data = time_block_initial[formatted_hour]
@@ -215,15 +172,12 @@ module Timet
       [tag, get_block_char(hour_data&.first)]
     end
 
-    # Prints a colored block character based on the provided tag and block character.
+    # Prints the colored block character
     #
-    # @param block_char [String] The block character to be printed.
-    # @param tag [String] The tag associated with the block character, used to determine the color.
-    # @param colors [Hash] A hash mapping tags to color codes.
-    #
-    # @example
-    #   colors = { 'tag' => 1 }
-    #   print_colored_block('X', 'tag', colors) # Prints a colored block character 'XX'
+    # @param [String] block_char The block character
+    # @param [String] tag The tag
+    # @param [Hash] colors The color mapping for different tags
+    # @return [void]
     def print_colored_block(block_char, tag, colors)
       color_code = colors[tag]
       block = block_char * 2
@@ -231,10 +185,10 @@ module Timet
       print colored_block.rjust(4)
     end
 
-    # Determines the block character based on the value.
+    # Gets the block character for a given value
     #
-    # @param value [Integer] The value to determine the block character for.
-    # @return [String] The block character corresponding to the value.
+    # @param [Integer, nil] value The value
+    # @return [String] The block character
     def get_block_char(value)
       return ' ' unless value
 
