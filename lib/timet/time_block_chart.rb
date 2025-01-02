@@ -142,8 +142,12 @@ module Timet
     def determine_week(date_string, weeks)
       weeks << Date.parse(date_string).cweek
       current_index = weeks.size - 1
-      current_week = format('%02d', weeks[current_index])
-      week = current_week == weeks[current_index - 1] && current_index.positive? ? '  ' : current_week.to_s.underline
+      current_week = weeks[current_index]
+      week = if current_week == weeks[current_index - 1] && current_index.positive?
+               '  '
+             else
+               format('%02d', current_week).to_s.underline
+             end
       [week, current_index]
     end
 
