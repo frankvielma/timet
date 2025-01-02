@@ -41,6 +41,17 @@ module Timet
     def process_and_print_tags(time_stats, total, colors)
       print_summary(time_stats, total)
       print_tags_info(time_stats, total, colors)
+      print_footer
+    end
+
+    # Prints the footer information.
+    #
+    # @return [void] This method outputs the footer information to the standard output.
+    def print_footer
+      puts '-' * 45
+      puts 'T:'.rjust(4).red + 'The total duration'.gray
+      puts 'AVG:'.rjust(4).red + 'The average duration'.gray
+      puts 'SD:'.rjust(4).red + 'The standard deviation of the durations'.gray
     end
 
     # Prints the summary information including total duration, average duration, and standard deviation.
@@ -104,7 +115,7 @@ module Timet
     #   calculate_value_and_bar_length(50, 100, 2) #=> [50.0, 25]
     def calculate_value_and_bar_length(duration, total)
       value = duration.to_f / total
-      percentage_value = (duration.to_f / total * 100).round(1)
+      percentage_value = (value * 100).round(1)
       bar_length = (value * MAX_BAR_LENGTH).round
       [percentage_value, bar_length]
     end

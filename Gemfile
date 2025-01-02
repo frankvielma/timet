@@ -4,14 +4,14 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'aws-sdk-s3', '~> 1.172'
+gem 'aws-sdk-s3', '~> 1.176'
 gem 'base64', '~> 0.2.0'
-gem 'csv', '~> 3.3.0'
+gem 'csv', '~> 3.3'
 gem 'descriptive_statistics', '~> 2.5'
 gem 'dotenv', '~> 3.1'
 gem 'icalendar', '~> 2.10.3'
 gem 'rake', '~> 13.2'
-gem 'sqlite3', '~> 2.3'
+gem 'sqlite3', '~> 2.5'
 gem 'thor', '~> 1.3'
 gem 'tty-prompt', '~> 0.23.1'
 

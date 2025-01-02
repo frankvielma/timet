@@ -34,8 +34,6 @@ module Timet
     #   - :avg [Numeric] The average duration.
     #   - :sd [Numeric] The standard deviation of the durations.
     def totals
-      @duration_by_tag.values.flatten
-
       durations = @duration_by_tag.values.flatten
       { total: @total_duration, avg: durations.mean, sd: durations.standard_deviation }
     end

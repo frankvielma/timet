@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+## [1.5.3] - 2025-01-02
+
+**Improvements:**
+
+- Upgraded dependencies in `Gemfile` and `Gemfile.lock` to their latest compatible versions, including `aws-sdk-s3`, `csv`, `sqlite3`, and others.
+- Refactored `TimeBlockChart` from a module to a class, encapsulating `start_hour` and `end_hour` as instance variables for better state management.
+- Added a `print_footer` method to `tag_distribution.rb` to provide clear explanations for summary metrics (total duration, average duration, and standard deviation).
+- Improved documentation for the `TimeBlockChart` class, including example usage and `attr_reader` for `start_hour` and `end_hour`.
+- Simplified method signatures in `TimeBlockChart` by removing redundant parameters and leveraging instance variables.
+
+**Bug Fixes:**
+
+- Fixed an issue in `tag_distribution.rb` where the calculation of `percentage_value` was redundant and simplified the logic.
+- Corrected the display of the day abbreviation in `TimeBlockChart` to include the full three-letter abbreviation (e.g., "Mon" instead of "Mo").
+- Removed unused code in `time_statistics.rb` that was not contributing to the `totals` method.
+
 ## [1.5.2] - 2024-12-12
 
 **Improvements:**

@@ -51,7 +51,8 @@ module Timet
     # @note The method formats the date value and checks if it is valid.
     # @note If the date value is valid, it updates the time field with the new value.
     # @note If the date value is invalid, it prints an error message.
-    def process_and_update_time_field(item, field, date_value, id)
+    def process_and_update_time_field(*args)
+      item, field, date_value, id = args
       formatted_date = TimeHelper.format_time_string(date_value)
 
       return print_error(date_value) unless formatted_date
@@ -107,7 +108,8 @@ module Timet
     #
     # @example Validate a new 'start' time value
     #   valid_time_value?(item, 'start', 1633072800, 1)
-    def valid_time_value?(item, field, new_value_epoch, id)
+    def valid_time_value?(*args)
+      item, field, new_value_epoch, id = args
       item_start = fetch_item_start(item)
       item_end = fetch_item_end(item)
       item_before_end = fetch_item_before_end(id, item_start)
