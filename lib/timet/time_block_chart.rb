@@ -41,8 +41,9 @@ module Timet
     # @see #print_blocks
     def print_time_block_chart(time_block, colors)
       start_hour = time_block.values.map(&:keys).flatten.uniq.min.to_i
-      print_header(start_hour)
-      print_blocks(time_block, colors, start_hour)
+      end_hour = time_block.values.map(&:keys).flatten.uniq.max.to_i
+      print_header(start_hour, end_hour)
+      print_blocks(time_block, colors, start_hour, end_hour)
     end
 
     # Prints the header of the time block chart.
@@ -62,12 +63,12 @@ module Timet
     #
     # @note The method assumes that the start_hour is within the valid range of 0 to 23.
     #   If the start_hour is outside this range, the output may not be as expected.
-    def print_header(start_hour)
+    def print_header(start_hour, end_hour)
       puts
       print ' ' * 19
-      (start_hour..23).each { |hour| print format('%02d', hour).rjust(4) }
+      (start_hour..end_hour + 1).each { |hour| print format('%02d', hour).rjust(4) }
       puts
-      puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (24 - start_hour) * 4}╴╴╴┼".gray
+      puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (end_hour - start_hour + 1) * 4}╴╴╴┼".gray
     end
 
     # Prints the time blocks for each date in the given time block data structure.
@@ -76,7 +77,7 @@ module Timet
     # @param colors [Hash] A hash containing color codes for formatting.
     # @param start_hour [Integer] The starting hour for the time blocks.
     # @return [void]
-    def print_blocks(time_block, colors, start_hour)
+    def print_blocks(time_block, colors, start_hour, end_hour)
       return unless time_block
 
       weeks = []
@@ -84,14 +85,14 @@ module Timet
         date = Date.parse(date_string)
         day = date.strftime('%a')[0..2]
 
-        format_and_print_date_info(date_string, day, weeks, start_hour)
+        format_and_print_date_info(date_string, day, weeks, start_hour, end_hour)
 
         time_block_initial = time_block[date_string]
-        print_time_blocks(start_hour, time_block_initial, colors)
+        print_time_blocks(start_hour, end_hour, time_block_initial, colors)
 
         calculate_and_print_hours(time_block_initial)
       end
-      print_footer(start_hour)
+      print_footer(start_hour, end_hour)
     end
 
     # Calculates the total hours from the given time block data and prints it.
@@ -112,12 +113,12 @@ module Timet
     # @param weeks [Array<Integer>] An array storing the week numbers.
     # @param start_hour [Integer] The starting hour for the time blocks.
     # @return [void]
-    def format_and_print_date_info(date_string, day, weeks, start_hour)
+    def format_and_print_date_info(date_string, day, weeks, start_hour, end_hour)
       weekend = date_string
       day = day.red if %w[Sa Su].include?(day)
       weekend = weekend.red if %w[Sa Su].include?(day)
 
-      week = format_and_print_week(date_string, weeks, start_hour)
+      week = format_and_print_week(date_string, weeks, start_hour, end_hour)
 
       print '┆'.gray + "#{week} #{weekend} #{day}" + '┆- '.gray
     end
@@ -128,9 +129,9 @@ module Timet
     # @param weeks [Array<Integer>] An array storing the week numbers.
     # @param start_hour [Integer] The starting hour for the time blocks.
     # @return [String] The formatted week string.
-    def format_and_print_week(date_string, weeks, start_hour)
+    def format_and_print_week(date_string, weeks, start_hour, end_hour)
       week, current_index = determine_week(date_string, weeks)
-      print_separator(start_hour, week, current_index)
+      print_separator(start_hour, end_hour, week, current_index)
       week
     end
 
@@ -157,20 +158,20 @@ module Timet
     # @param week [String] The formatted week string.
     # @param current_index [Integer] The current index in the weeks array.
     # @return [void]
-    def print_separator(start_hour, week, current_index)
+    def print_separator(start_hour, end_hour, week, current_index)
       return unless week != '  ' && current_index.positive?
 
       sep = SEPARATOR_CHAR
-      puts "┆#{sep * 17}┼#{sep * (24 - start_hour) * 4}#{sep * 3}┼#{sep * 4}".gray
+      puts "┆#{sep * 17}┼#{sep * (end_hour - start_hour + 1) * 4}#{sep * 3}┼#{sep * 4}".gray
     end
 
     # Prints the footer of the report.
     #
     # @param start_hour [Integer] The start time used to calculate the footer length.
     # @return [void] This method does not return a value; it prints directly to the standard output.
-    def print_footer(start_hour)
+    def print_footer(start_hour, end_hour)
       timet = "\e]8;;https://github.com/frankvielma/timet/\aTimet\e]8;;\a".green
-      puts '└╴╴╴╴╴╴╴'.gray + timet + "╴╴╴╴╴┴#{'╴' * (24 - start_hour) * 4}╴╴╴┴".gray
+      puts '└╴╴╴╴╴╴╴'.gray + timet + "╴╴╴╴╴┴#{'╴' * (end_hour - start_hour + 1) * 4}╴╴╴┴".gray
       puts
     end
 
@@ -188,8 +189,8 @@ module Timet
     #   }
     #   colors = { 'tag' => 1 }
     #   print_time_blocks(1, time_block_initial, colors) # Prints time blocks for hours 1 to 23
-    def print_time_blocks(start_time, time_block_initial, colors)
-      (start_time..23).each do |hour|
+    def print_time_blocks(start_time, end_hour, time_block_initial, colors)
+      (start_time..end_hour).each do |hour|
         tag, block_char = get_formatted_block_char(hour, time_block_initial)
         print_colored_block(block_char, tag, colors)
       end
