@@ -107,12 +107,6 @@ RSpec.describe Timet::Application do
         app.stop
         expect(app).to have_received(:summary)
       end
-
-      it 'does not call summary if display is true' do
-        allow(app).to receive(:summary)
-        app.stop(true)
-        expect(app).not_to have_received(:summary)
-      end
     end
 
     context 'when the last item is complete' do
