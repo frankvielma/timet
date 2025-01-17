@@ -12,8 +12,8 @@ module Timet
   #     "2023-10-02" => { "10" => [4500, "work"] }
   #   }
   #   colors = { "work" => 31, "break" => 32 }
-  #   chart = TimeBlockChart.new(time_block)
-  #   chart.print_time_block_chart(time_block, colors)
+  #   chart = TimeBlockChart.new(table)
+  #   chart.print_time_block_chart(table, colors)
   #
   # @attr_reader [Integer] start_hour The starting hour of the time block
   # @attr_reader [Integer] end_hour The ending hour of the time block
@@ -34,22 +34,49 @@ module Timet
     # Separator character for the chart
     SEPARATOR_CHAR = '░'
 
-    # Initializes a new TimeBlockChart
+    # Initializes a new TimeBlockChart instance.
     #
-    # @param [Hash] time_block The time block data
-    def initialize(time_block)
-      @start_hour = time_block.values.map(&:keys).flatten.uniq.min.to_i
-      @end_hour = time_block.values.map(&:keys).flatten.uniq.max.to_i
+    # This method sets up the time block chart by processing the time entries from the provided table
+    # and determining the start and end hours for the chart based on the time block data.
+    #
+    # @param table [Table] The table instance containing the time entries to be processed.
+    # @return [void] This method does not return a value; it initializes the instance variables.
+    #
+    # @note
+    #   - The `@time_block` instance variable is populated by processing the time entries from the table.
+    #   - The `@start_hour` and `@end_hour` instance variables are calculated based on the earliest and latest
+    #     hours present in the time block data.
+    #
+    # @see Table#process_time_entries
+    def initialize(table)
+      @time_block = table.process_time_entries(display: false)
+      @start_hour = @time_block.values.map(&:keys).flatten.uniq.min.to_i
+      @end_hour = @time_block.values.map(&:keys).flatten.uniq.max.to_i
     end
 
-    # Prints the time block chart
+    # Prints the time block chart.
     #
-    # @param [Hash] time_block The time block data
-    # @param [Hash] colors The color mapping for different tags
-    # @return [void]
-    def print_time_block_chart(time_block, colors)
+    # This method formats and prints the time block chart, including the header and the time blocks
+    # for each entry. The chart is color-coded based on the provided color mapping for different tags.
+    #
+    # @param table [Hash] The time block data to be displayed in the chart.
+    # @param colors [Hash] A mapping of tags to colors, used to color-code the time blocks.
+    # @return [void] This method does not return a value; it performs side effects such as printing the chart.
+    #
+    # @example Print a time block chart
+    #   chart = TimeBlockChart.new(table)
+    #   chart.print_time_block_chart(table, colors)
+    #
+    # @note
+    #   - The method first prints the header of the chart, which includes the time range.
+    #   - It then prints the time blocks, using the provided color mapping to visually distinguish
+    #     between different tags.
+    #
+    # @see #print_header
+    # @see #print_blocks
+    def print_time_block_chart(table, colors)
       print_header
-      print_blocks(time_block, colors)
+      print_blocks(table, colors)
     end
 
     private
@@ -65,22 +92,44 @@ module Timet
       puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (@end_hour - @start_hour + 1) * 4}╴╴╴┼".gray
     end
 
-    # Prints the time blocks
+    # Prints the time blocks for each date in the time block data.
     #
-    # @param [Hash] time_block The time block data
-    # @param [Hash] colors The color mapping for different tags
-    # @return [void]
-    def print_blocks(time_block, colors)
-      return unless time_block
+    # This method iterates over the time block data, formats and prints the date information,
+    # prints the time blocks for each date using the provided color mapping, and calculates
+    # and prints the total hours for each day. It also prints a footer at the end.
+    #
+    # @param table [Hash] The time block data containing the time entries for each date.
+    # @param colors [Hash] A mapping of tags to colors, used to color-code the time blocks.
+    # @return [void] This method does not return a value; it performs side effects such as printing
+    #   the time blocks and related information.
+    #
+    # @example Print time blocks
+    #   chart = TimeBlockChart.new(table)
+    #   chart.print_blocks(table, colors)
+    #
+    # @note
+    #   - The method skips processing if the `table` parameter is `nil`.
+    #   - For each date in the time block data, it formats and prints the date and day of the week.
+    #   - It prints the time blocks using the provided color mapping to visually distinguish
+    #     between different tags.
+    #   - It calculates and prints the total hours for each day.
+    #   - A footer is printed at the end to provide a visual separation.
+    #
+    # @see #format_and_print_date_info
+    # @see #print_time_blocks
+    # @see #calculate_and_print_hours
+    # @see #print_footer
+    def print_blocks(table, colors)
+      return unless table
 
       weeks = []
-      time_block.each_key do |date_string|
+      @time_block.each_key do |date_string|
         date = Date.parse(date_string)
         day = date.strftime('%a')[0..2]
 
         format_and_print_date_info(date_string, day, weeks)
 
-        time_block_initial = time_block[date_string]
+        time_block_initial = @time_block[date_string]
         print_time_blocks(time_block_initial, colors)
 
         calculate_and_print_hours(time_block_initial)

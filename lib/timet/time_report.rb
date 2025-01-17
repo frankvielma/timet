@@ -14,7 +14,6 @@ module Timet
   # a formatted table with the relevant information.
   class TimeReport
     include TimeReportHelper
-    include Table
     include TagDistribution
 
     # Provides access to the database instance.
@@ -32,37 +31,55 @@ module Timet
     # Initializes a new instance of the TimeReport class.
     #
     # @param db [Database] The database instance to use for fetching data.
-    # @param options [Hash] A hash containing optional parameters.
-    # @option options [String, nil] :filter The filter to apply when fetching items. Possible values include 'today',
-    #   'yesterday', 'week', 'month', or a date range in the format 'YYYY-MM-DD..YYYY-MM-DD'.
-    # @option options [String, nil] :tag The tag to filter the items by.
-    # @option options [String, nil] :csv The filename to use when exporting the report to CSV.
-    # @option options [String, nil] :ics The filename to use when exporting the report to iCalendar.
+    # @param options [Hash] A hash containing optional parameters for configuring the report.
+    # @option options [String, nil] :filter The filter to apply when fetching items. Possible values include:
+    #   - 'today': Filters items for the current day.
+    #   - 'yesterday': Filters items for the previous day.
+    #   - 'week': Filters items for the current week.
+    #   - 'month': Filters items for the current month.
+    #   - A date range in the format 'YYYY-MM-DD..YYYY-MM-DD': Filters items within the specified date range.
+    # @option options [String, nil] :tag The tag to filter the items by. Only items with this tag will be included.
+    # @option options [String, nil] :csv The filename to use when exporting the report to CSV. If provided, the report
+    #   will be exported to the specified file.
+    # @option options [String, nil] :ics The filename to use when exporting the report to iCalendar format. If provided,
+    #   the report will be exported to the specified file.
     #
-    # @return [void] This method does not return a value; it performs side effects such as initializing the
-    # instance variables.
+    # @return [void] This method does not return a value; it initializes the instance variables and prepares the report.
     #
     # @example Initialize a new TimeReport instance with a filter and tag
     #   TimeReport.new(db, filter: 'today', tag: 'work', csv: 'report.csv', ics: 'icalendar.ics')
+    #
+    # @example Initialize a new TimeReport instance with a date range filter
+    #   TimeReport.new(db, filter: '2023-10-01..2023-10-31', tag: 'project')
+    #
+    # @note
+    #   - If no filter is provided, all items from the database will be fetched.
+    #   - The `@table` instance variable is initialized with the filtered items and filter configuration.
     def initialize(db, options = {})
       @db = db
       @csv_filename = options[:csv]
       @ics_filename = options[:ics]
       @filter = formatted_filter(options[:filter])
       @items = options[:filter] ? filter_items(@filter, options[:tag]) : @db.all_items
+      @table = Table.new(@filter, @items, @db)
     end
 
     # Displays the report of tracked time entries.
+    #
+    # This method formats and prints the report, including the table header, rows, total duration,
+    # a time block chart, and tag distribution. If no tracked time entries are found for the specified filter,
+    # it displays a message indicating no data is available.
     #
     # @return [void] This method does not return a value; it performs side effects such as printing the report.
     #
     # @example Display the report
     #   time_report.display
     #
-    # @note The method formats and prints the table header, rows, and total duration.
-    #
-    # @param items [Array<Hash>] The list of time entries to be displayed.
-    # @param options [Hash] Additional options for customizing the display (e.g., color scheme).
+    # @note
+    #   - The method checks if there are any tracked time entries. If not, it prints a message and exits.
+    #   - It uses the `@table` instance to format and display the table.
+    #   - A time block chart is generated and printed using the `TimeBlockChart` class.
+    #   - The tag distribution is calculated and displayed based on the unique colors assigned to tags.
     #
     # @see #table
     # @see #print_time_block_chart
@@ -70,30 +87,38 @@ module Timet
     def display
       return puts 'No tracked time found for the specified filter.' if @items.empty?
 
-      time_block = table
-
+      @table.table
       colors = @items.map { |x| x[3] }.uniq.each_with_index.to_h
-      chart = TimeBlockChart.new(time_block)
-      chart.print_time_block_chart(time_block, colors)
-
+      chart = TimeBlockChart.new(@table)
+      chart.print_time_block_chart(@table, colors)
       tag_distribution(colors)
     end
 
     # Displays a single row of the report.
     #
-    # @param item [Array] The item to display.
+    # This method formats and prints a single row of the report, including the table header, the specified row,
+    # a separator, and the total duration. It is used to display individual time entries in a structured format.
+    #
+    # @param item [Array] The item (time entry) to display. The item is expected to contain the necessary data
+    #   for the row, such as the time, description, and duration.
     #
     # @return [void] This method does not return a value; it performs side effects such as printing the row.
     #
     # @example Display a single row
     #   time_report.show_row(item)
     #
-    # @note The method formats and prints the table header, row, and total duration.
+    # @note
+    #   - The method uses the `@table` instance to format and display the table header and row.
+    #   - A separator is printed after the row to visually distinguish it from other rows.
+    #   - The total duration is displayed at the end of the row.
+    #
+    # @see #table
+    # @see #display_time_entry
     def show_row(item)
-      header
-      display_time_entry(item)
-      puts separator
-      total
+      @table.header
+      @table.display_time_entry(item)
+      puts @table.separator
+      @table.total
     end
 
     private
