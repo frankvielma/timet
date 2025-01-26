@@ -9,3 +9,6 @@ Metrics/MethodLength:
   Max: 12
 
 require: rubocop-rspec
+
+RSpec/ExampleLength:
+  Max: 10 

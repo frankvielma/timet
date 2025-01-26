@@ -49,21 +49,33 @@ RSpec.describe Timet::TimeReport, type: :integration do
   end
 
   describe 'filtering' do
-    it 'filters entries for today' do
+    it 'filters entries for today and returns the correct number of items' do
       report = described_class.new(db, filter: 'today')
       expect(report.items.length).to eq(1)
+    end
+
+    it 'filters entries for today and returns the correct type of work' do
+      report = described_class.new(db, filter: 'today')
       expect(report.items.first[3]).to eq('work')
     end
 
     it 'filters entries for yesterday' do
       report = described_class.new(db, filter: 'yesterday')
       expect(report.items.length).to eq(1)
+    end
+
+    it 'verifies the first item is a meeting' do
+      report = described_class.new(db, filter: 'yesterday')
       expect(report.items.first[3]).to eq('meeting')
     end
 
     it 'filters by tag' do
       report = described_class.new(db, filter: 'today', tag: 'work')
       expect(report.items.length).to eq(1)
+    end
+
+    it 'verifies the first item is tagged as work' do
+      report = described_class.new(db, filter: 'today', tag: 'work')
       expect(report.items.first[3]).to eq('work')
     end
   end
@@ -77,7 +89,33 @@ RSpec.describe Timet::TimeReport, type: :integration do
 
         csv_content = CSV.read(temp_csv.path)
         expect(csv_content.length).to eq(2) # Header + 1 entry
+      ensure
+        temp_csv.close
+        temp_csv.unlink
+      end
+    end
+
+    it 'verifies the CSV header' do
+      temp_csv = Tempfile.new(['test_export', '.csv'])
+      begin
+        report = described_class.new(db, filter: 'today', csv: temp_csv.path)
+        report.send(:write_csv, temp_csv.path)
+
+        csv_content = CSV.read(temp_csv.path)
         expect(csv_content[0]).to eq(%w[ID Start End Tag Notes])
+      ensure
+        temp_csv.close
+        temp_csv.unlink
+      end
+    end
+
+    it 'verifies the CSV content' do
+      temp_csv = Tempfile.new(['test_export', '.csv'])
+      begin
+        report = described_class.new(db, filter: 'today', csv: temp_csv.path)
+        report.send(:write_csv, temp_csv.path)
+
+        csv_content = CSV.read(temp_csv.path)
         expect(csv_content[1][3]).to eq('work')
       ensure
         temp_csv.close
