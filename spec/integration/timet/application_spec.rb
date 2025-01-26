@@ -50,37 +50,59 @@ RSpec.describe Timet::Application, type: :integration do
   end
 
   describe 'time tracking commands' do
-    it 'starts time tracking' do
-      # Start tracking
+    it 'starts time tracking and outputs tag' do
       expect { app.start('work', 'Testing task') }.to output(/work/).to_stdout
+    end
 
-      # Verify item was created
+    it 'starts time tracking and creates a new item' do
+      app.start('work', 'Testing task')
       items = app.instance_variable_get(:@db).all_items
       expect(items.length).to eq(1)
+    end
+
+    it 'starts time tracking and sets the correct tag' do
+      app.start('work', 'Testing task')
+      items = app.instance_variable_get(:@db).all_items
       expect(items.first[3]).to eq('work')
+    end
+
+    it 'starts time tracking and sets the correct notes' do
+      app.start('work', 'Testing task')
+      items = app.instance_variable_get(:@db).all_items
       expect(items.first[4]).to eq('Testing task')
     end
 
-    it 'stops time tracking' do
-      # Start tracking
+    it 'stops time tracking and outputs tag' do
       app.start('work', 'Testing task')
-
-      # Stop tracking
       expect { app.stop }.to output(/work/).to_stdout
+    end
 
-      # Verify end time was set
+    it 'stops time tracking and sets the end time' do
+      app.start('work', 'Testing task')
+      app.stop
       items = app.instance_variable_get(:@db).all_items
       expect(items.first[2]).not_to be_nil
     end
 
-    it 'creates a task' do
-      # Create a task
-      app.start('meeting', 'First meeting')
+    it 'creates a task and outputs tag' do
+      expect { app.start('meeting', 'First meeting') }.to output(/meeting/).to_stdout
+    end
 
-      # Verify item was created
+    it 'creates a task and creates a new item' do
+      app.start('meeting', 'First meeting')
       items = app.instance_variable_get(:@db).all_items
       expect(items.length).to eq(1)
+    end
+
+    it 'creates a task and sets the correct tag' do
+      app.start('meeting', 'First meeting')
+      items = app.instance_variable_get(:@db).all_items
       expect(items.first[3]).to eq('meeting')
+    end
+
+    it 'creates a task and sets the correct notes' do
+      app.start('meeting', 'First meeting')
+      items = app.instance_variable_get(:@db).all_items
       expect(items.first[4]).to eq('First meeting')
     end
 
@@ -103,43 +125,34 @@ RSpec.describe Timet::Application, type: :integration do
       expect { app.resume }.to output(/meeting/).to_stdout
     end
 
-    it 'verifies new item was created with same tag and notes on resume' do
-      # Create and complete a task
+    it 'resumes task and creates new item with same tag' do
       app.start('meeting', 'First meeting')
       app.stop
-
-      # Resume the task
       app.resume
-
-      # Verify a new item was created with same tag and notes
       items = app.instance_variable_get(:@db).all_items
-      expect(items).to match(
-        [
-          a_collection_including(
-            a_kind_of(Integer),
-            a_kind_of(Integer),
-            a_kind_of(Integer),
-            'meeting',
-            'First meeting',
-            a_kind_of(Integer)
-          ),
-          anything
-        ]
-      )
+      expect(items[1][3]).to eq('meeting')
     end
 
-    it 'cancels active time tracking and outputs a confirmation message' do
-      expect { app.cancel }.to output(/Canceled active time tracking/).to_stdout
-    end
-
-    it 'cancels active time tracking and deletes the tracked item' do
-      app.cancel # Execute cancel to ensure deletion
-      items = db.all_items
-      expect(items.length).to eq(0)
+    it 'resumes task and creates new item with same notes' do
+      app.start('meeting', 'First meeting')
+      app.stop
+      app.resume
+      items = app.instance_variable_get(:@db).all_items
+      expect(items[1][4]).to eq('First meeting')
     end
   end
 
-  describe 'reporting and summary' do
+  it 'cancels active time tracking and outputs a confirmation message' do
+    expect { app.cancel }.to output(/Canceled active time tracking/).to_stdout
+  end
+
+  it 'cancels active time tracking and deletes the tracked item' do
+    app.cancel # Execute cancel to ensure deletion
+    items = db.all_items
+    expect(items.length).to eq(0)
+  end
+
+  describe 'Timet::Application reporting and summary' do
     before do
       create_test_data
     end
@@ -157,7 +170,7 @@ RSpec.describe Timet::Application, type: :integration do
     def insert_test_item(today, hour, tag, notes)
       db.execute_sql(
         "INSERT INTO items (start, end, tag, notes, deleted, created_at, updated_at, pomodoro)
-        VALUES (?, ?, ?, ?, 0, ?, ?, 0)",
+          VALUES (?, ?, ?, ?, 0, ?, ?, 0)",
         [Time.new(today.year, today.month, today.day, hour, 0, 0).to_i,
          Time.new(today.year, today.month, today.day, hour + 1, 0, 0).to_i,
          tag,
@@ -200,7 +213,7 @@ RSpec.describe Timet::Application, type: :integration do
       ]
     end
 
-    describe 'exports data to CSV' do
+    describe 'Timet::Application exports data to CSV' do
       let(:temp_csv) { Tempfile.new(['test_export', '.csv']) }
 
       after do
@@ -239,7 +252,7 @@ RSpec.describe Timet::Application, type: :integration do
     end
   end
 
-  describe 'task editing' do
+  describe 'Timet::Application task editing' do
     let!(:task_id) do
       app.start('work', 'Original task')
       app.stop
