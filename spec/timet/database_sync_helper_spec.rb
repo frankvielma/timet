@@ -24,8 +24,10 @@ RSpec.describe Timet::DatabaseSyncHelper do
 
       it 'processes the remote database' do
         described_class.sync(local_db, bucket)
-        expect(described_class).to have_received(:process_remote_database).with(local_db, remote_storage,
-                                                                                bucket, Timet::Database::DEFAULT_DATABASE_PATH)
+        expect(described_class).to have_received(:process_remote_database).with(local_db,
+                                                                                remote_storage,
+                                                                                bucket,
+                                                                                Timet::Database::DEFAULT_DATABASE_PATH)
       end
     end
 

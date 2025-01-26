@@ -9,7 +9,6 @@ RSpec.describe Timet::Database do
   let(:last_item) do
     db.execute_sql('SELECT * FROM items ORDER BY id DESC LIMIT 1').first
   end
-  let(:test_tag) { 'Test Task' }
 
   after do
     db.close
@@ -96,6 +95,8 @@ RSpec.describe Timet::Database do
   end
 
   describe '#last_item' do
+    let(:test_tag) { 'Test Task' }
+
     it 'returns the last item from the items table' do
       start_time = Time.now.utc.to_i
       tag = 'Test Task'
@@ -126,6 +127,8 @@ RSpec.describe Timet::Database do
   end
 
   describe '#item_status' do
+    let(:test_tag) { 'Test Task' }
+
     context 'when no items exist' do
       it 'returns :no_items' do
         expect(db.item_status).to eq(:no_items)
