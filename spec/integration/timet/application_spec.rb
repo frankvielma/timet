@@ -50,7 +50,7 @@ RSpec.describe Timet::Application, type: :integration do
   end
 
   describe 'time tracking commands' do
-    it 'starts and stops time tracking' do
+    it 'starts time tracking' do
       # Start tracking
       expect { app.start('work', 'Testing task') }.to output(/work/).to_stdout
 
@@ -59,6 +59,11 @@ RSpec.describe Timet::Application, type: :integration do
       expect(items.length).to eq(1)
       expect(items.first[3]).to eq('work')
       expect(items.first[4]).to eq('Testing task')
+    end
+
+    it 'stops time tracking' do
+      # Start tracking
+      app.start('work', 'Testing task')
 
       # Stop tracking
       expect { app.stop }.to output(/work/).to_stdout
@@ -68,32 +73,59 @@ RSpec.describe Timet::Application, type: :integration do
       expect(items.first[2]).not_to be_nil
     end
 
-    it 'creates and completes a task' do
-      # Create and complete a task
+    it 'creates a task' do
+      # Create a task
       app.start('meeting', 'First meeting')
-      app.stop
 
-      # Verify item was created and completed
+      # Verify item was created
       items = app.instance_variable_get(:@db).all_items
       expect(items.length).to eq(1)
       expect(items.first[3]).to eq('meeting')
       expect(items.first[4]).to eq('First meeting')
+    end
+
+    it 'completes a task' do
+      # Create and complete a task
+      app.start('meeting', 'First meeting')
+      app.stop
+
+      # Verify end time is set (completed)
+      items = app.instance_variable_get(:@db).all_items
       expect(items.first[2]).not_to be_nil # Verify end time is set (completed)
     end
 
-    it 'resumes the last task' do
+    it 'resumes the last task and outputs confirmation' do
       # Create and complete a task
       app.start('meeting', 'First meeting')
       app.stop
 
       # Resume the task
       expect { app.resume }.to output(/meeting/).to_stdout
+    end
+
+    it 'verifies new item was created with same tag and notes on resume' do
+      # Create and complete a task
+      app.start('meeting', 'First meeting')
+      app.stop
+
+      # Resume the task
+      app.resume
 
       # Verify a new item was created with same tag and notes
       items = app.instance_variable_get(:@db).all_items
-      expect(items.length).to eq(2)
-      expect(items.first[3]).to eq('meeting')
-      expect(items.first[4]).to eq('First meeting')
+      expect(items).to match(
+        [
+          a_collection_including(
+            a_kind_of(Integer),
+            a_kind_of(Integer),
+            a_kind_of(Integer),
+            'meeting',
+            'First meeting',
+            a_kind_of(Integer)
+          ),
+          anything
+        ]
+      )
     end
 
     it 'cancels active time tracking and outputs a confirmation message' do
@@ -118,44 +150,54 @@ RSpec.describe Timet::Application, type: :integration do
       # Clear existing items
       db.execute_sql('DELETE FROM items')
 
-      # Today's entries with explicit deleted = 0
-      db.execute_sql(
-        "INSERT INTO items (start, end, tag, notes, deleted, created_at, updated_at, pomodoro)
-        VALUES (?, ?, 'work', 'Task 1', 0, ?, ?, 0)",
-        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
-         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i,
-         Time.now.to_i,
-         Time.now.to_i]
-      )
+      insert_test_item(today, 9, 'work', 'Task 1')
+      insert_test_item(today, 11, 'meeting', 'Meeting 1')
+    end
 
+    def insert_test_item(today, hour, tag, notes)
       db.execute_sql(
         "INSERT INTO items (start, end, tag, notes, deleted, created_at, updated_at, pomodoro)
-        VALUES (?, ?, 'meeting', 'Meeting 1', 0, ?, ?, 0)",
-        [Time.new(today.year, today.month, today.day, 11, 0, 0).to_i,
-         Time.new(today.year, today.month, today.day, 12, 0, 0).to_i,
+        VALUES (?, ?, ?, ?, 0, ?, ?, 0)",
+        [Time.new(today.year, today.month, today.day, hour, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, hour + 1, 0, 0).to_i,
+         tag,
+         notes,
          Time.now.to_i,
          Time.now.to_i]
       )
     end
 
-    it 'generates summary for today' do
+    it 'generates summary for today and outputs date' do
       filter = 'today'
-      items = [
+      Timet::Table.new(filter, test_items_data, db)
+      expect { app.summary(filter) }.to output(match(/#{Date.today}/)).to_stdout
+    end
+
+    it 'generates summary for today and outputs tags' do
+      filter = 'today'
+      Timet::Table.new(filter, test_items_data, db)
+      expect { app.summary(filter) }.to output(match(/meetin/).and(match(/work/))).to_stdout
+    end
+
+    it 'generates summary for today and outputs total duration' do
+      filter = 'today'
+      Timet::Table.new(filter, test_items_data, db)
+      expect { app.summary(filter) }.to output(match(/02:00:00/)).to_stdout
+    end
+
+    it 'generates summary for today and outputs average duration' do
+      filter = 'today'
+      Timet::Table.new(filter, test_items_data, db)
+      expect { app.summary(filter) }.to output(match(/AVG: 60.0min/)).to_stdout
+    end
+
+    def test_items_data
+      [
         [1, Time.new(Date.today.year, Date.today.month, Date.today.day, 9, 0, 0).to_i,
          Time.new(Date.today.year, Date.today.month, Date.today.day, 10, 0, 0).to_i, 'work', 'Task 1'],
         [2, Time.new(Date.today.year, Date.today.month, Date.today.day, 11, 0, 0).to_i,
          Time.new(Date.today.year, Date.today.month, Date.today.day, 12, 0, 0).to_i, 'meeting', 'Meeting 1']
       ]
-
-      Timet::Table.new(filter, items, db)
-
-      expect { app.summary(filter) }.to output(
-        match(/#{Date.today}/)
-          .and(match(/meetin/))
-          .and(match(/work/))
-          .and(match(/02:00:00/))
-          .and(match(/AVG: 60.0min/))
-      ).to_stdout
     end
 
     describe 'exports data to CSV' do
