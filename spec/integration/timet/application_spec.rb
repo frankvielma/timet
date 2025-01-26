@@ -7,7 +7,6 @@ require 'tempfile'
 require 'date'
 
 RSpec.describe Timet::Application, type: :integration do
-  let(:db) { app.instance_variable_get(:@db) }
   let(:app) do
     command_double = instance_double(
       Thor::Command,
@@ -25,7 +24,8 @@ RSpec.describe Timet::Application, type: :integration do
     described_class.new(*args)
   end
 
-  let(:db_path) { Tempfile.new(['test_db', '.sqlite3']).path }
+  let(:db_path) { ':memory:' } # In-memory database
+  let(:db) { Timet::Database.new(db_path) }
 
   before do
     # Stub the Database initialization to use our test database
@@ -205,12 +205,17 @@ RSpec.describe Timet::Application, type: :integration do
     end
 
     def test_items_data
+      today = Date.today
       [
-        [1, Time.new(Date.today.year, Date.today.month, Date.today.day, 9, 0, 0).to_i,
-         Time.new(Date.today.year, Date.today.month, Date.today.day, 10, 0, 0).to_i, 'work', 'Task 1'],
-        [2, Time.new(Date.today.year, Date.today.month, Date.today.day, 11, 0, 0).to_i,
-         Time.new(Date.today.year, Date.today.month, Date.today.day, 12, 0, 0).to_i, 'meeting', 'Meeting 1']
+        build_test_item(1, today, 9, 'work', 'Task 1'),
+        build_test_item(2, today, 11, 'meeting', 'Meeting 1')
       ]
+    end
+
+    def build_test_item(id, date, hour, tag, notes)
+      start_time = Time.new(date.year, date.month, date.day, hour, 0, 0).to_i
+      end_time = Time.new(date.year, date.month, date.day, hour + 1, 0, 0).to_i
+      [id, start_time, end_time, tag, notes]
     end
 
     describe 'Timet::Application exports data to CSV' do
