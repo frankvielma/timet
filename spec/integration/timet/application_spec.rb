@@ -8,10 +8,8 @@ require 'date'
 
 RSpec.describe Timet::Application, type: :integration do
   let(:db) { app.instance_variable_get(:@db) }
-  let(:tempfile) { Tempfile.new(['test_db', '.sqlite3']) }
-  let(:db_path) { tempfile.path }
-  let(:command_double) do
-    instance_double(
+  let(:app) do
+    command_double = instance_double(
       Thor::Command,
       name: 'start',
       description: 'Start tracking time',
@@ -23,10 +21,11 @@ RSpec.describe Timet::Application, type: :integration do
       options_relation: {},
       required_options: []
     )
+    args = [[], {}, { current_command: command_double }]
+    described_class.new(*args)
   end
 
-  let(:args) { [[], {}, { current_command: command_double }] }
-  let(:app) { described_class.new(*args) }
+  let(:db_path) { Tempfile.new(['test_db', '.sqlite3']).path }
 
   before do
     # Stub the Database initialization to use our test database
@@ -205,24 +204,44 @@ RSpec.describe Timet::Application, type: :integration do
       app.instance_variable_get(:@db).fetch_last_id
     end
 
-    it 'edits task notes' do
+    it 'edits task notes and outputs confirmation' do
       # Stub TTY::Prompt to avoid interactive prompts
       prompt = instance_double(TTY::Prompt)
       allow(TTY::Prompt).to receive(:new).and_return(prompt)
       allow(prompt).to receive_messages(select: 'notes', ask: 'Updated notes')
 
       expect { app.edit(task_id) }.to output(/Updated notes/).to_stdout
+    end
+
+    it 'updates task notes in database' do
+      # Stub TTY::Prompt to avoid interactive prompts
+      prompt = instance_double(TTY::Prompt)
+      allow(TTY::Prompt).to receive(:new).and_return(prompt)
+      allow(prompt).to receive_messages(select: 'notes', ask: 'Updated notes')
+
+      app.edit(task_id)
 
       # Verify notes were updated
       item = db.find_item(task_id)
       expect(item[4]).to eq('Updated notes')
     end
 
-    it 'deletes a task' do
+    it 'deletes a task and outputs confirmation' do
       # Stub TTY::Prompt confirmation
-      allow_any_instance_of(TTY::Prompt).to receive(:yes?).and_return(true)
+      prompt = instance_double(TTY::Prompt)
+      allow(TTY::Prompt).to receive(:new).and_return(prompt)
+      allow(prompt).to receive(:yes?).and_return(true)
 
       expect { app.delete(task_id) }.to output(/Deleted/).to_stdout
+    end
+
+    it 'deletes task from database' do
+      # Stub TTY::Prompt confirmation
+      prompt = instance_double(TTY::Prompt)
+      allow(TTY::Prompt).to receive(:new).and_return(prompt)
+      allow(prompt).to receive(:yes?).and_return(true)
+
+      app.delete(task_id)
 
       # Verify task was deleted
       items = db.all_items
