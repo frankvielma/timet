@@ -37,11 +37,16 @@ RSpec.describe Timet::DatabaseSyncHelper do
         allow(remote_storage).to receive(:upload_file)
       end
 
-      it 'uploads the local database' do
+      it 'outputs a message when uploading local database' do
         expect do
           described_class.sync(local_db, bucket)
         end.to output(/No remote database found, uploading local database/).to_stdout
-        expect(remote_storage).to have_received(:upload_file).with(bucket, Timet::Database::DEFAULT_DATABASE_PATH,
+      end
+
+      it 'uploads the local database' do
+        described_class.sync(local_db, bucket)
+        expect(remote_storage).to have_received(:upload_file).with(bucket,
+                                                                   Timet::Database::DEFAULT_DATABASE_PATH,
                                                                    'timet.db')
       end
     end
@@ -86,7 +91,8 @@ RSpec.describe Timet::DatabaseSyncHelper do
       it 'handles database differences' do
         described_class.process_remote_database(local_db, remote_storage, bucket, local_db_path)
         expect(described_class).to have_received(:handle_database_differences).with(local_db, remote_storage,
-                                                                                    bucket, local_db_path, temp_file.path)
+                                                                                    bucket, local_db_path,
+                                                                                    temp_file.path)
       end
     end
   end
