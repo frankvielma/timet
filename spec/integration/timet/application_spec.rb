@@ -7,6 +7,7 @@ require 'tempfile'
 require 'date'
 
 RSpec.describe Timet::Application, type: :integration do
+  let(:db) { app.instance_variable_get(:@db) }
   let(:tempfile) { Tempfile.new(['test_db', '.sqlite3']) }
   let(:db_path) { tempfile.path }
   let(:command_double) do
@@ -32,8 +33,7 @@ RSpec.describe Timet::Application, type: :integration do
     allow(Timet::Database).to receive(:new).and_return(Timet::Database.new(db_path))
 
     # Create the test database schema
-    @db = app.instance_variable_get(:@db)
-    @db.execute_sql(<<-SQL)
+    db.execute_sql(<<-SQL)
       CREATE TABLE IF NOT EXISTS items (
         id INTEGER PRIMARY KEY,
         start INTEGER,
@@ -69,6 +69,19 @@ RSpec.describe Timet::Application, type: :integration do
       expect(items.first[2]).not_to be_nil
     end
 
+    it 'creates and completes a task' do
+      # Create and complete a task
+      app.start('meeting', 'First meeting')
+      app.stop
+
+      # Verify item was created and completed
+      items = app.instance_variable_get(:@db).all_items
+      expect(items.length).to eq(1)
+      expect(items.first[3]).to eq('meeting')
+      expect(items.first[4]).to eq('First meeting')
+      expect(items.first[2]).not_to be_nil # Verify end time is set (completed)
+    end
+
     it 'resumes the last task' do
       # Create and complete a task
       app.start('meeting', 'First meeting')
@@ -84,28 +97,32 @@ RSpec.describe Timet::Application, type: :integration do
       expect(items.first[4]).to eq('First meeting')
     end
 
-    it 'cancels active time tracking' do
-      app.start('study', 'Learning Ruby')
+    it 'cancels active time tracking and outputs a confirmation message' do
       expect { app.cancel }.to output(/Canceled active time tracking/).to_stdout
+    end
 
-      # Verify item was deleted
-      items = app.instance_variable_get(:@db).all_items
+    it 'cancels active time tracking and deletes the tracked item' do
+      app.cancel # Execute cancel to ensure deletion
+      items = db.all_items
       expect(items.length).to eq(0)
     end
   end
 
   describe 'reporting and summary' do
     before do
-      # Create some test data
+      create_test_data
+    end
+
+    def create_test_data
       today = Date.today
-      db = app.instance_variable_get(:@db)
 
       # Clear existing items
       db.execute_sql('DELETE FROM items')
 
       # Today's entries with explicit deleted = 0
       db.execute_sql(
-        "INSERT INTO items (start, end, tag, notes, deleted, created_at, updated_at, pomodoro) VALUES (?, ?, 'work', 'Task 1', 0, ?, ?, 0)",
+        "INSERT INTO items (start, end, tag, notes, deleted, created_at, updated_at, pomodoro)
+        VALUES (?, ?, 'work', 'Task 1', 0, ?, ?, 0)",
         [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
          Time.new(today.year, today.month, today.day, 10, 0, 0).to_i,
          Time.now.to_i,
@@ -113,7 +130,8 @@ RSpec.describe Timet::Application, type: :integration do
       )
 
       db.execute_sql(
-        "INSERT INTO items (start, end, tag, notes, deleted, created_at, updated_at, pomodoro) VALUES (?, ?, 'meeting', 'Meeting 1', 0, ?, ?, 0)",
+        "INSERT INTO items (start, end, tag, notes, deleted, created_at, updated_at, pomodoro)
+        VALUES (?, ?, 'meeting', 'Meeting 1', 0, ?, ?, 0)",
         [Time.new(today.year, today.month, today.day, 11, 0, 0).to_i,
          Time.new(today.year, today.month, today.day, 12, 0, 0).to_i,
          Time.now.to_i,
@@ -130,7 +148,7 @@ RSpec.describe Timet::Application, type: :integration do
          Time.new(Date.today.year, Date.today.month, Date.today.day, 12, 0, 0).to_i, 'meeting', 'Meeting 1']
       ]
 
-      Timet::Table.new(filter, items, @db)
+      Timet::Table.new(filter, items, db)
 
       expect { app.summary(filter) }.to output(
         match(/#{Date.today}/)
@@ -141,26 +159,41 @@ RSpec.describe Timet::Application, type: :integration do
       ).to_stdout
     end
 
-    it 'exports data to CSV' do
-      temp_csv = Tempfile.new(['test_export', '.csv'])
-      begin
-        # Mock Thor options
-        allow(app).to receive(:options).and_return({ csv: temp_csv.path })
+    describe 'exports data to CSV' do
+      let(:temp_csv) { Tempfile.new(['test_export', '.csv']) }
 
-        app.summary('today')
-
-        # Ensure the file exists and has content
-        expect(File.exist?(temp_csv.path)).to be true
-
-        # Read and verify CSV content
-        csv_content = CSV.read(temp_csv.path)
-        expect(csv_content.length).to eq(3) # Header + 2 entries
-        expect(csv_content[0]).to eq(%w[ID Start End Tag Notes])
-        expect(csv_content[1][3]).to eq('meeting')
-        expect(csv_content[2][3]).to eq('work')
-      ensure
+      after do
         temp_csv.close
         temp_csv.unlink
+      end
+
+      before do
+        allow(app).to receive(:options).and_return({ csv: temp_csv.path })
+        app.summary('today')
+      end
+
+      it 'exports data to CSV file' do
+        expect(File.exist?(temp_csv.path)).to be true
+      end
+
+      it 'exports CSV with correct header' do
+        csv_content = CSV.read(temp_csv.path)
+        expect(csv_content[0]).to eq(%w[ID Start End Tag Notes])
+      end
+
+      it 'exports CSV with correct number of rows' do
+        csv_content = CSV.read(temp_csv.path)
+        expect(csv_content.length).to eq(3) # Header + 2 entries
+      end
+
+      it 'exports CSV with correct first data row tag' do
+        csv_content = CSV.read(temp_csv.path)
+        expect(csv_content[1][3]).to eq('meeting')
+      end
+
+      it 'exports CSV with correct second data row tag' do
+        csv_content = CSV.read(temp_csv.path)
+        expect(csv_content[2][3]).to eq('work')
       end
     end
   end
@@ -174,13 +207,14 @@ RSpec.describe Timet::Application, type: :integration do
 
     it 'edits task notes' do
       # Stub TTY::Prompt to avoid interactive prompts
-      allow_any_instance_of(TTY::Prompt).to receive(:select).and_return('notes')
-      allow_any_instance_of(TTY::Prompt).to receive(:ask).and_return('Updated notes')
+      prompt = instance_double(TTY::Prompt)
+      allow(TTY::Prompt).to receive(:new).and_return(prompt)
+      allow(prompt).to receive_messages(select: 'notes', ask: 'Updated notes')
 
       expect { app.edit(task_id) }.to output(/Updated notes/).to_stdout
 
       # Verify notes were updated
-      item = app.instance_variable_get(:@db).find_item(task_id)
+      item = db.find_item(task_id)
       expect(item[4]).to eq('Updated notes')
     end
 
@@ -191,7 +225,7 @@ RSpec.describe Timet::Application, type: :integration do
       expect { app.delete(task_id) }.to output(/Deleted/).to_stdout
 
       # Verify task was deleted
-      items = app.instance_variable_get(:@db).all_items
+      items = db.all_items
       expect(items.length).to eq(0)
     end
   end
