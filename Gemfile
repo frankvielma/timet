@@ -16,6 +16,7 @@ gem 'thor', '~> 1.3'
 gem 'tty-prompt', '~> 0.23.1'
 
 group :development do
+  gem 'rexml', '~> 3.4'
   gem 'rubocop', '~> 1.71'
   gem 'rubocop-rspec', '~> 3.4', require: false
 end
