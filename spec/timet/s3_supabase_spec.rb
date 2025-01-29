@@ -1,16 +1,11 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'rspec'
-require 'aws-sdk-s3'
-require 'logger'
-require 'dotenv'
-require 'fileutils'
 
-RSpec.describe Timet::S3Supabase do
+RSpec.shared_context 'when S3Supabase is set up' do
   let(:s3_endpoint) { 'http://localhost:9000' }
   let(:s3_access_key) { 'test' }
-  let(:s3_secret_key) { 'testtest' }
+  let(:s3_secret_key) { 'test123' }
   let(:s3_region) { 'us-west-1' }
   let(:bucket_name) { 'test-bucket' }
   let(:env_file_path) { File.join('/tmp', '.timet', '.env') }
@@ -33,27 +28,29 @@ RSpec.describe Timet::S3Supabase do
     allow(Aws::S3::Client).to receive(:new).and_return(s3_client_mock)
 
     if File.exist?(Timet::S3Supabase::ENV_FILE_PATH)
-      FileUtils.mv(Timet::S3Supabase::ENV_FILE_PATH, "#{Timet::S3Supabase::ENV_FILE_PATH}.backup",
-                   force: true)
+      FileUtils.mv(Timet::S3Supabase::ENV_FILE_PATH, "#{Timet::S3Supabase::ENV_FILE_PATH}.backup", force: true)
     end
     ENV.delete('S3_ENDPOINT') # Ensure it's missing
   end
 
   after do
     if File.exist?("#{Timet::S3Supabase::ENV_FILE_PATH}.backup")
-      FileUtils.mv("#{Timet::S3Supabase::ENV_FILE_PATH}.backup", Timet::S3Supabase::ENV_FILE_PATH,
-                   force: true)
+      FileUtils.mv("#{Timet::S3Supabase::ENV_FILE_PATH}.backup", Timet::S3Supabase::ENV_FILE_PATH, force: true)
     end
   end
+end
+
+RSpec.describe Timet::S3Supabase do
+  include_context 'S3Supabase setup'
 
   describe '#initialize' do
     it 'initializes successfully with valid environment variables' do
-      expect { Timet::S3Supabase.new }.not_to raise_error
+      expect { described_class.new }.not_to raise_error
     end
   end
 
   describe '#create_bucket' do
-    let(:s3_supabase) { Timet::S3Supabase.new }
+    let(:s3_supabase) { described_class.new }
 
     it 'creates a bucket successfully' do
       allow(s3_client_mock).to receive(:create_bucket).with(bucket: bucket_name)
@@ -68,10 +65,10 @@ RSpec.describe Timet::S3Supabase do
   end
 
   describe '#list_objects' do
-    let(:s3_supabase) { Timet::S3Supabase.new }
-    let(:empty_response) { double('response', contents: []) }
-    let(:object_mock) { double('object', key: 'test.txt', last_modified: Time.now, to_h: {}) }
-    let(:populated_response) { double('response', contents: [object_mock]) }
+    let(:s3_supabase) { described_class.new }
+    let(:empty_response) { instance_double(Aws::S3::Types::ListObjectsV2Output, contents: []) }
+    let(:object_mock) { instance_double(Aws::S3::Types::Object, key: 'test.txt', last_modified: Time.now, to_h: {}) }
+    let(:populated_response) { instance_double(Aws::S3::Types::ListObjectsV2Output, contents: [object_mock]) }
 
     it 'returns false for empty bucket' do
       allow(s3_client_mock).to receive(:list_objects_v2)
@@ -89,7 +86,7 @@ RSpec.describe Timet::S3Supabase do
   end
 
   describe '#upload_file' do
-    let(:s3_supabase) { Timet::S3Supabase.new }
+    let(:s3_supabase) { described_class.new }
     let(:file_path) { 'test.txt' }
     let(:object_key) { 'uploaded.txt' }
 
@@ -98,7 +95,7 @@ RSpec.describe Timet::S3Supabase do
     end
 
     after do
-      File.unlink(file_path) if File.exist?(file_path)
+      FileUtils.rm_f(file_path)
     end
 
     it 'uploads file successfully' do

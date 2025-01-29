@@ -211,8 +211,6 @@ module Timet
       missing_vars << 'S3_ACCESS_KEY' if S3_ACCESS_KEY.nil? || S3_ACCESS_KEY.empty?
       missing_vars << 'S3_SECRET_KEY' if S3_SECRET_KEY.nil? || S3_SECRET_KEY.empty?
 
-      puts "DEBUG: Missing vars: #{missing_vars.inspect}"
-
       return if missing_vars.empty?
 
       raise CustomError, "Missing required environment variables (.env): #{missing_vars.join(', ')}"
