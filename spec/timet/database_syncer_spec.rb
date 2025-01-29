@@ -7,8 +7,8 @@ require 'timet/s3_supabase'
 
 RSpec.describe Timet::DatabaseSyncer do
   let(:database_syncer) { Class.new { include Timet::DatabaseSyncer }.new }
-  let(:local_db) { instance_double(SQLite3::Database) }
-  let(:remote_storage) { instance_double(Timet::S3Supabase) }
+  let(:local_db) { instance_spy(SQLite3::Database) }
+  let(:remote_storage) { instance_spy(Timet::S3Supabase) }
   let(:bucket) { 'test_bucket' }
   let(:local_db_path) { 'path/to/local/db' }
   let(:remote_path) { 'path/to/remote/db' }
@@ -25,25 +25,26 @@ RSpec.describe Timet::DatabaseSyncer do
     it 'handles sync error' do
       allow(database_syncer).to receive(:sync_with_remote_database)
         .and_raise(SQLite3::Exception.new('Sync error'))
-      expect(remote_storage).to receive(:upload_file)
-        .with(bucket, local_db_path, 'timet.db')
       expect do
         database_syncer.handle_database_differences(local_db, remote_storage, bucket, local_db_path,
                                                     remote_path)
       end.to output(/Error opening remote database: Sync error/).to_stdout
+      expect(remote_storage).to have_received(:upload_file)
+        .with(bucket, local_db_path, 'timet.db')
     end
   end
 
   describe '#handle_sync_error' do
     it 'uploads local database to remote storage' do
       error = SQLite3::Exception.new('Sync error')
-      expect(remote_storage).to receive(:upload_file).with(bucket, local_db_path, 'timet.db')
+      allow(remote_storage).to receive(:upload_file) # Stub upload_file method
       database_syncer.handle_sync_error(error, remote_storage, bucket, local_db_path)
+      expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
     end
   end
 
   describe '#sync_with_remote_database' do
-    let(:db_remote) { instance_double(SQLite3::Database) }
+    let(:db_remote) { instance_spy(SQLite3::Database) }
 
     before do
       allow(database_syncer).to receive(:open_remote_database).and_return(db_remote)
@@ -52,10 +53,9 @@ RSpec.describe Timet::DatabaseSyncer do
     end
 
     it 'sets results_as_hash for both databases' do
-      expect(db_remote).to receive(:results_as_hash=).with(true)
-      expect(local_db).to receive(:results_as_hash=).with(true)
-
       database_syncer.sync_with_remote_database(local_db, remote_path, remote_storage, bucket, local_db_path)
+      expect(db_remote).to have_received(:results_as_hash=).with(true)
+      expect(local_db).to have_received(:results_as_hash=).with(true)
     end
   end
 
@@ -79,8 +79,9 @@ RSpec.describe Timet::DatabaseSyncer do
 
     it 'processes database items and uploads local database' do
       allow(database_syncer).to receive(:process_database_items)
-      expect(remote_storage).to receive(:upload_file).with(bucket, local_db_path, 'timet.db')
+      allow(remote_storage).to receive(:upload_file) # Stub upload_file method
       database_syncer.sync_databases(local_db, db_remote, remote_storage, bucket, local_db_path)
+      expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
     end
   end
 end
