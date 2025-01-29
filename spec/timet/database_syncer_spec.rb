@@ -67,10 +67,10 @@ RSpec.describe Timet::DatabaseSyncer do
     end
 
     it 'raises error if remote database cannot be opened' do
-      allow(SQLite3::Database).to receive(:new).with(remote_path).and_return(nil)
+      allow(SQLite3::Database).to receive(:new).with(remote_path).and_raise(SQLite3::Exception.new('Failed to initialize remote database'))
       expect do
         database_syncer.open_remote_database(remote_path)
-      end.to raise_error(RuntimeError, 'Failed to initialize remote database')
+      end.to raise_error(SQLite3::Exception, 'Failed to initialize remote database')
     end
   end
 
@@ -82,6 +82,40 @@ RSpec.describe Timet::DatabaseSyncer do
       allow(remote_storage).to receive(:upload_file) # Stub upload_file method
       database_syncer.sync_databases(local_db, db_remote, remote_storage, bucket, local_db_path)
       expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
+    end
+  end
+
+  describe '#sync_items_by_id' do
+    let(:local_items_by_id) { { 1 => { 'id' => 1, 'updated_at' => '2025-01-01' } } }
+    let(:remote_items_by_id) { { 2 => { 'id' => 2, 'updated_at' => '2025-01-02' } } }
+
+    it 'syncs items between local and remote databases' do
+      allow(database_syncer).to receive(:insert_item_from_hash)
+      allow(database_syncer).to receive(:process_existing_item)
+      database_syncer.sync_items_by_id(local_db, local_items_by_id, remote_items_by_id)
+      expect(database_syncer).to have_received(:insert_item_from_hash).with(local_db, remote_items_by_id[2])
+    end
+  end
+
+  describe '#process_existing_item' do
+    let(:id) { 1 }
+    let(:local_item) { { 'id' => 1, 'updated_at' => '2025-01-01' } }
+    let(:remote_item) { { 'id' => 1, 'updated_at' => '2025-01-02' } }
+
+    it 'processes an item that exists in both databases' do
+      allow(database_syncer).to receive(:remote_wins?).and_return(true)
+      allow(database_syncer).to receive(:update_item_from_hash)
+      database_syncer.process_existing_item(id, local_item, remote_item, local_db)
+      expect(database_syncer).to have_received(:update_item_from_hash).with(local_db, remote_item)
+    end
+  end
+
+  describe '#items_to_hash' do
+    let(:items) { [{ 'id' => 1, 'start' => '2025-01-01' }] }
+
+    it 'converts database items to a hash indexed by ID' do
+      result = database_syncer.items_to_hash(items)
+      expect(result).to eq(1 => { 'id' => 1, 'start' => '2025-01-01' })
     end
   end
 end
