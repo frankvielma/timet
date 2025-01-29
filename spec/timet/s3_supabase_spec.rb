@@ -41,7 +41,7 @@ RSpec.shared_context 'when S3Supabase is set up' do
 end
 
 RSpec.describe Timet::S3Supabase do
-  include_context 'S3Supabase setup'
+  include_context 'when S3Supabase is set up'
 
   describe '#initialize' do
     it 'initializes successfully with valid environment variables' do
