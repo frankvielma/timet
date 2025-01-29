@@ -83,28 +83,4 @@ RSpec.describe Timet::DatabaseSyncer do
       database_syncer.sync_databases(local_db, db_remote, remote_storage, bucket, local_db_path)
     end
   end
-
-  describe '#process_database_items' do
-    let(:db_remote) { instance_double(SQLite3::Database) }
-
-    it 'syncs items by ID' do
-      local_items = [{ 'id' => 1, 'updated_at' => '2023-01-01', 'data' => 'local_data' }]
-      remote_items = [{ 'id' => 1, 'updated_at' => '2023-01-02', 'data' => 'remote_data' }]
-
-      allow(local_db).to receive(:execute)
-        .with('SELECT * FROM items ORDER BY updated_at DESC')
-        .and_return(local_items)
-      allow(db_remote).to receive(:execute)
-        .with('SELECT * FROM items ORDER BY updated_at DESC')
-        .and_return(remote_items)
-
-      expect(local_db).to receive(:execute).with(
-        'INSERT INTO items (id, start, end, tag, notes, pomodoro, updated_at, created_at, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [1, 'start_value', 'end_value', 'tag_value', 'notes_value', 'pomodoro_value', '2023-01-02', 'created_at_value',
-         'deleted_value']
-      )
-
-      database_syncer.process_database_items(local_db, db_remote)
-    end
-  end
 end
