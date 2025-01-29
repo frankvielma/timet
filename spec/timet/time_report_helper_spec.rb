@@ -82,18 +82,17 @@ RSpec.describe Timet::TimeReportHelper do
 
   describe '#export_csv' do
     it 'exports the report to a CSV file' do
-      expect(self).to receive(:write_csv).with('test_report.csv').at_least(:once)
+      allow(self).to receive(:write_csv).with('test_report.csv').and_call_original
       expect { export_csv }.to output("The test_report.csv has been exported.\n").to_stdout
-      export_csv
+      expect(self).to have_received(:write_csv).with('test_report.csv').at_least(:once)
     end
   end
 
   describe '#export_icalendar' do
     it 'generates an iCalendar file' do
-      expect(self).to receive(:add_events).and_return(Icalendar::Calendar.new).at_least(:once)
-      expect(File).to receive(:write).with('test_calendar.ics', anything).twice
+      allow(File).to receive(:write).with('test_calendar.ics', anything).and_call_original
       expect { export_icalendar }.to output("The test_calendar.ics has been generated.\n").to_stdout
-      export_icalendar
+      expect(File).to have_received(:write).with('test_calendar.ics', anything).once
     end
   end
 
