@@ -52,15 +52,14 @@ module Timet
     def initialize(*args)
       super
 
-      # Initialize database without validation in test environment
       if defined?(RSpec)
         @db = Database.new
       else
-        command_name = args[2][:current_command].name
+        command_name = args.dig(2, :current_command, :name)
         if VALID_ARGUMENTS.include?(command_name)
           @db = Database.new
         else
-          puts 'Invalid arguments provided. Please check your input.'
+          warn 'Invalid arguments provided. Please check your input.'
           exit(1)
         end
       end

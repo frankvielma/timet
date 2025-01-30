@@ -140,6 +140,11 @@ RSpec.describe Timet::Application, type: :integration do
       items = app.instance_variable_get(:@db).all_items
       expect(items[1][4]).to eq('First meeting')
     end
+
+    it 'resumes a task that is in progress and outputs a message' do
+      app.start('work', 'Testing task')
+      expect { app.resume }.to output(/A task is currently being tracked./).to_stdout
+    end
   end
 
   it 'cancels active time tracking and outputs a confirmation message' do
