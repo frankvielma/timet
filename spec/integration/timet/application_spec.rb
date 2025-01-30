@@ -308,4 +308,14 @@ RSpec.describe Timet::Application, type: :integration do
       expect(items.length).to eq(0)
     end
   end
+
+  describe 'Timet::Application version and sync' do
+    it 'outputs the version' do
+      expect { app.version }.to output(/#{Timet::VERSION}/).to_stdout
+    end
+
+    it 'outputs the sync message' do
+      expect { app.sync }.to output(/Syncing database with remote storage.../).to_stdout
+    end
+  end
 end
