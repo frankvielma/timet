@@ -67,7 +67,9 @@ RSpec.describe Timet::DatabaseSyncer do
     end
 
     it 'raises error if remote database cannot be opened' do
-      allow(SQLite3::Database).to receive(:new).with(remote_path).and_raise(SQLite3::Exception.new('Failed to initialize remote database'))
+      allow(SQLite3::Database).to receive(:new)
+        .with(remote_path)
+        .and_raise(SQLite3::Exception.new('Failed to initialize remote database'))
       expect do
         database_syncer.open_remote_database(remote_path)
       end.to raise_error(SQLite3::Exception, 'Failed to initialize remote database')
