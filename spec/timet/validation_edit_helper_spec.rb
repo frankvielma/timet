@@ -70,11 +70,40 @@ RSpec.describe Timet::ValidationEditHelper do
 
   describe '#process_and_update_time_field' do
     context 'when date_value is valid' do
+      let(:current_time) { Time.now }
+      let(:test_data) do
+        {
+          item: [1, current_time.to_i],
+          next_item: { Timet::Application::FIELD_INDEX['start'] => current_time.to_i },
+          prev_item: { Timet::Application::FIELD_INDEX['end'] => current_time.to_i },
+          time_field: 'start',
+          date_value: current_time.strftime('%H:%M:%S')
+        }
+      end
+
+      before do
+        # Setup db responses
+        allow(db).to receive(:find_item).with(test_data[:item][0] + 1).and_return(test_data[:next_item])
+        allow(db).to receive(:find_item).with(test_data[:item][0] - 1).and_return(test_data[:prev_item])
+        allow(db).to receive(:update_item)
+
+        # Setup TimeHelper
+        allow(Timet::TimeHelper).to receive_messages(current_timestamp: current_time.to_i,
+                                                     format_time_string: test_data[:date_value])
+
+        # Initialize validation_helper properly instead of stubbing it
+        validation_helper.instance_variable_set(:@db, db)
+      end
+
       it 'updates the time field' do
-        allow(validation_helper).to receive_messages(update_time_field: Time.now, valid_time_value?: true)
-        validation_helper.send(:process_and_update_time_field, item, time_field_data[:time_field],
-                               time_field_data[:date_value], item[0])
-        expect(db).to have_received(:update_item).with(item[0], time_field_data[:time_field], Time.now.to_i)
+        validation_helper.send(:process_and_update_time_field, test_data[:item], test_data[:time_field],
+                               test_data[:date_value], test_data[:item][0])
+
+        expect(db).to have_received(:update_item).with(
+          test_data[:item][0],
+          test_data[:time_field],
+          kind_of(Integer)
+        )
       end
     end
 
