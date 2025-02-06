@@ -54,4 +54,34 @@ RSpec.describe Timet::TimeHelper do
       end
     end
   end
+
+  describe '.parse_time_components' do
+    it 'parses a 6-digit string correctly' do
+      expect(described_class.parse_time_components('123456')).to eq([12, 34, 56])
+    end
+
+    it 'parses a 4-digit string correctly' do
+      expect(described_class.parse_time_components('1234')).to eq([12, 34, 0])
+    end
+
+    it 'parses a 3-digit string correctly' do
+      expect(described_class.parse_time_components('123')).to eq([12, 30, 0])
+    end
+
+    it 'parses a 2-digit string correctly' do
+      expect(described_class.parse_time_components('12')).to eq([12, 0, 0])
+    end
+
+    it 'parses a 1-digit string correctly' do
+      expect(described_class.parse_time_components('1')).to eq([1, 0, 0])
+    end
+
+    it 'handles empty string' do
+      expect(described_class.parse_time_components('')).to eq([0, 0, 0])
+    end
+
+    it 'handles non-numeric characters' do
+      expect(described_class.parse_time_components('abc')).to eq([0, 0, 0])
+    end
+  end
 end
