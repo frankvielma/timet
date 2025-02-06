@@ -37,6 +37,40 @@ RSpec.shared_context 'when S3Supabase is set up' do
       FileUtils.mv("#{Timet::S3Supabase::ENV_FILE_PATH}.backup", Timet::S3Supabase::ENV_FILE_PATH, force: true)
     end
   end
+
+  describe '#download_file' do
+    let(:s3_supabase) { described_class.new }
+    let(:bucket_name) { 'test-bucket' }
+    let(:object_key) { 'test-object' }
+    let(:download_path) { 'downloaded_file.txt' }
+    let(:response_body) { 'file content' }
+    let(:response_mock) { instance_double(Aws::S3::Types::GetObjectOutput, body: StringIO.new(response_body)) }
+
+    before do
+      allow(s3_client_mock).to receive(:get_object).with(bucket: bucket_name, key: object_key).and_return(response_mock)
+      allow(File).to receive(:binwrite).with(download_path, response_body).and_return(response_body.length)
+      allow(s3_supabase.instance_variable_get(:@logger)).to receive(:info)
+    end
+
+    after do
+      FileUtils.rm_f(download_path) if File.exist?(download_path)
+    end
+
+    it 'downloads file successfully' do
+      s3_supabase.download_file(bucket_name, object_key, download_path)
+      expect(File).to have_received(:binwrite).with(download_path, response_body)
+      expect(s3_supabase.instance_variable_get(:@logger)).to have_received(:info).with("File '#{object_key}' downloaded successfully.")
+    end
+
+    it 'handles service error' do
+      allow(s3_client_mock).to receive(:get_object).with(bucket: bucket_name, key: object_key)
+                                                   .and_raise(Aws::S3::Errors::ServiceError.new(nil,
+                                                                                                'Service error'))
+      allow(s3_supabase.instance_variable_get(:@logger)).to receive(:error)
+      s3_supabase.download_file(bucket_name, object_key, download_path)
+      expect(s3_supabase.instance_variable_get(:@logger)).to have_received(:error).with('Error downloading file: Service error')
+    end
+  end
 end
 
 RSpec.describe Timet::S3Supabase do
