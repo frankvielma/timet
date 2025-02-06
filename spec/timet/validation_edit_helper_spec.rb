@@ -56,6 +56,17 @@ RSpec.describe Timet::ValidationEditHelper do
         )
       end
     end
+
+    context 'when valid_time_value? returns false' do
+      it 'prints an error message with new_date' do
+        allow(Timet::TimeHelper).to receive(:format_time_string).and_return('12:00:00')
+        allow(validation_helper).to receive(:valid_time_value?).and_return(false)
+        expect do
+          validation_helper.send(:process_and_update_time_field, item, time_field_data[:time_field], '12:00:00',
+                                 item[0])
+        end.to output(/Invalid date: 2024-10-08 12:00:00 -0400/).to_stdout
+      end
+    end
   end
 
   describe '#update_time_field' do
@@ -114,6 +125,17 @@ RSpec.describe Timet::ValidationEditHelper do
           validation_helper.send(:process_and_update_time_field, item, time_field_data[:time_field], 'invalid-time',
                                  item[0])
         end.to output(/Invalid date: invalid-time/).to_stdout
+      end
+    end
+
+    context 'when valid_time_value? returns false' do
+      it 'prints an error message with new_date' do
+        allow(Timet::TimeHelper).to receive(:format_time_string).and_return('12:00:00')
+        allow(validation_helper).to receive(:valid_time_value?).and_return(false)
+        expect do
+          validation_helper.send(:process_and_update_time_field, item, time_field_data[:time_field], '12:00:00',
+                                 item[0])
+        end.to output(/Invalid date: 2024-10-08 12:00:00 -0400/).to_stdout
       end
     end
   end
