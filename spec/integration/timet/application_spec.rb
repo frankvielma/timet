@@ -337,6 +337,15 @@ RSpec.describe Timet::Application, type: :integration do
       app.play_sound_and_notify(60, 'test_tag')
     end
 
+    it 'calls run_linux_session with different parameters' do
+      stub_const('RUBY_PLATFORM', 'linux') # Keep this line to simulate Linux platform
+      expect(app).to receive(:run_linux_session).with(30, 'test_tag_2')
+      allow(app).to receive(:play_sound_and_notify).and_wrap_original do |method, time, tag| # Stub play_sound_and_notify
+        method.call(time, tag) if RUBY_PLATFORM.downcase.include?('linux') # Call original only for Linux
+      end
+      app.play_sound_and_notify(30, 'test_tag_2')
+    end
+
     it 'calls run_mac_session on Darwin (macOS)' do
       stub_const('RUBY_PLATFORM', 'darwin') # Keep this line to simulate macOS platform
       expect(app).to receive(:run_mac_session).with(60, 'test_tag')
