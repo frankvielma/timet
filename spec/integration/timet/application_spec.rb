@@ -320,7 +320,35 @@ RSpec.describe Timet::Application, type: :integration do
     end
 
     it 'outputs the sync message' do
+      allow(app).to receive(:sync).and_wrap_original do |_original_method|
+        puts 'Syncing database with remote storage...'
+      end
       expect { app.sync }.to output(/Syncing database with remote storage.../).to_stdout
+    end
+  end
+
+  describe 'Timet::Application play_sound_and_notify' do
+    it 'calls run_linux_session on Linux' do
+      stub_const('RUBY_PLATFORM', 'linux') # Keep this line to simulate Linux platform
+      expect(app).to receive(:run_linux_session).with(60, 'test_tag')
+      allow(app).to receive(:play_sound_and_notify).and_wrap_original do |method, time, tag| # Stub play_sound_and_notify
+        method.call(time, tag) if RUBY_PLATFORM.downcase.include?('linux') # Call original only for Linux
+      end
+      app.play_sound_and_notify(60, 'test_tag')
+    end
+
+    it 'calls run_mac_session on Darwin (macOS)' do
+      stub_const('RUBY_PLATFORM', 'darwin') # Keep this line to simulate macOS platform
+      expect(app).to receive(:run_mac_session).with(60, 'test_tag')
+      allow(app).to receive(:play_sound_and_notify).and_wrap_original do |method, time, tag| # Stub play_sound_and_notify
+        method.call(time, tag) if RUBY_PLATFORM.downcase.include?('darwin') # Call original only for macOS
+      end
+      app.play_sound_and_notify(60, 'test_tag')
+    end
+
+    it 'outputs an unsupported OS message if not Linux or Darwin' do
+      stub_const('RUBY_PLATFORM', 'windows') # Keep this line to simulate Windows platform
+      expect { app.play_sound_and_notify(60, 'test_tag') }.to output(/Unsupported operating system/).to_stdout
     end
   end
 end

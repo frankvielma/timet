@@ -12,3 +12,6 @@ require: rubocop-rspec
 
 RSpec/ExampleLength:
   Max: 10 
+
+Metrics/CyclomaticComplexity:
+  Max: 8
