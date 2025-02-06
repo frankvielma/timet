@@ -179,6 +179,7 @@ module Timet
       @logger.info "Object '#{object_key}' deleted successfully."
     rescue Aws::S3::Errors::ServiceError => e
       @logger.error "Error deleting object: #{e.message}"
+      raise e
     end
 
     # Deletes a bucket and all its contents.
@@ -197,6 +198,7 @@ module Timet
       @logger.info "Bucket '#{bucket_name}' deleted successfully."
     rescue Aws::S3::Errors::ServiceError => e
       @logger.error "Error deleting bucket: #{e.message}"
+      raise e
     end
 
     private

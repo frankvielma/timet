@@ -30,7 +30,6 @@ RSpec.shared_context 'when S3Supabase is set up' do
     if File.exist?(Timet::S3Supabase::ENV_FILE_PATH)
       FileUtils.mv(Timet::S3Supabase::ENV_FILE_PATH, "#{Timet::S3Supabase::ENV_FILE_PATH}.backup", force: true)
     end
-    ENV.delete('S3_ENDPOINT') # Ensure it's missing
   end
 
   after do
@@ -46,6 +45,19 @@ RSpec.describe Timet::S3Supabase do
   describe '#initialize' do
     it 'initializes successfully with valid environment variables' do
       expect { described_class.new }.not_to raise_error
+    end
+  end
+
+  describe '.ensure_env_file_exists' do
+    let(:temp_env_path) { File.join('/tmp', '.timet_test', '.env') }
+
+    it 'adds missing environment variables to the .env file' do
+      Timet.ensure_env_file_exists(env_file_path)
+      content = File.read(env_file_path)
+      expect(content).to include("S3_ENDPOINT='http://localhost:9000'")
+      expect(content).to include("S3_ACCESS_KEY='test'")
+      expect(content).to include("S3_SECRET_KEY='test123'")
+      expect(content).to include("S3_REGION='us-west-1'")
     end
   end
 
@@ -102,6 +114,51 @@ RSpec.describe Timet::S3Supabase do
       allow(s3_client_mock).to receive(:put_object)
       expect { s3_supabase.upload_file(bucket_name, file_path, object_key) }
         .not_to raise_error
+    end
+  end
+
+  describe '#delete_object' do
+    let(:s3_supabase) { described_class.new }
+    let(:bucket_name) { 'test-bucket' }
+    let(:object_key) { 'test-object' }
+
+    it 'deletes object successfully' do
+      allow(s3_client_mock).to receive(:delete_object).with(bucket: bucket_name, key: object_key).and_return(true)
+      expect { s3_supabase.delete_object(bucket_name, object_key) }.not_to raise_error
+    end
+
+    it 'handles service error' do
+      allow(s3_client_mock).to receive(:delete_object).with(bucket: bucket_name, key: object_key)
+                                                      .and_raise(Aws::S3::Errors::ServiceError.new(nil,
+                                                                                                   'Service error'))
+      expect { s3_supabase.delete_object(bucket_name, object_key) }.to raise_error(Aws::S3::Errors::ServiceError)
+    end
+  end
+
+  describe '#delete_bucket' do
+    let(:s3_supabase) { described_class.new }
+    let(:bucket_name) { 'test-bucket' }
+    let(:object_mock) { instance_double(Aws::S3::Types::Object, key: 'test-object') }
+
+    before do
+      allow(s3_client_mock).to receive(:list_objects_v2).with(bucket: bucket_name).and_return(
+        instance_double(Aws::S3::Types::ListObjectsV2Output, contents: [object_mock])
+      )
+      allow(object_mock).to receive(:to_h).and_return({})
+      allow(object_mock).to receive(:last_modified).and_return(Time.now)
+      allow(s3_supabase).to receive(:delete_object).with(bucket_name, 'test-object').and_return(true)
+    end
+
+    it 'deletes bucket and all its contents successfully' do
+      allow(s3_client_mock).to receive(:delete_bucket).with(bucket: bucket_name).and_return(true)
+      expect { s3_supabase.delete_bucket(bucket_name) }.not_to raise_error
+    end
+
+    it 'handles service error' do
+      allow(s3_client_mock).to receive(:delete_bucket).with(bucket: bucket_name)
+                                                      .and_raise(Aws::S3::Errors::ServiceError.new(nil,
+                                                                                                   'Service error'))
+      expect { s3_supabase.delete_bucket(bucket_name) }.to raise_error(Aws::S3::Errors::ServiceError)
     end
   end
 end
