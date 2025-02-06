@@ -57,6 +57,8 @@ module Timet
     # @note This method ensures proper resource cleanup by using ensure block
     def self.with_temp_file
       temp_file = Tempfile.new('remote_db')
+      raise 'Temporary file path is nil' unless temp_file.path
+
       yield temp_file
     ensure
       temp_file.close

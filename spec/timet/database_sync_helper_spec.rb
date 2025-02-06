@@ -96,4 +96,34 @@ RSpec.describe Timet::DatabaseSyncHelper do
       end
     end
   end
+
+  describe '.with_temp_file' do
+    it 'yields a temporary file and ensures it is closed and unlinked' do
+      Timet::DatabaseSyncHelper.with_temp_file do |temp_file|
+        expect(File.exist?(temp_file.path)).to be(true)
+      end
+    end
+  end
+
+  describe '.databases_are_in_sync?' do
+    let(:remote_path) { Tempfile.new('remote_db').path }
+    let(:local_path) { Tempfile.new('local_db').path }
+
+    after do
+      File.delete(remote_path) if File.exist?(remote_path)
+      File.delete(local_path) if File.exist?(local_path)
+    end
+
+    it 'returns true if databases are identical' do
+      File.write(remote_path, 'test content')
+      File.write(local_path, 'test content')
+      expect(described_class.databases_are_in_sync?(remote_path, local_path)).to be(true)
+    end
+
+    it 'returns false if databases are not identical' do
+      File.write(remote_path, 'different content')
+      File.write(local_path, 'test content')
+      expect(described_class.databases_are_in_sync?(remote_path, local_path)).to be(false)
+    end
+  end
 end
