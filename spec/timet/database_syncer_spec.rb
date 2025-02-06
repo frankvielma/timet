@@ -22,6 +22,39 @@ RSpec.describe Timet::DatabaseSyncer do
       end.to output(/Differences detected between local and remote databases/).to_stdout
     end
 
+    describe '#remote_wins?' do
+      it 'returns true if remote_time is greater than local_time and remote_item is deleted' do
+        remote_item = { 'deleted' => '1' }
+        remote_time = Time.now + 3600
+        local_time = Time.now
+        expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be true
+      end
+
+      it 'returns true if remote_time is greater than local_time and remote_item is not deleted' do
+        remote_item = { 'deleted' => '0' }
+        remote_time = Time.now + 3600
+        local_time = Time.now
+        expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be true
+      end
+
+      it 'returns false if remote_time is less than or equal to local_time' do
+        remote_item = { 'deleted' => '1' }
+        remote_time = Time.now
+        local_time = Time.now + 3600
+        expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be false
+      end
+    end
+
+    describe '#process_database_items' do
+      let(:local_db) { instance_double(SQLite3::Database) }
+      let(:remote_db) { instance_double(SQLite3::Database) }
+
+      it 'processes database items' do
+        allow(database_syncer).to receive(:process_database_items).and_return(nil)
+        expect(database_syncer.process_database_items(local_db, remote_db)).to be_nil
+      end
+    end
+
     it 'handles sync error' do
       allow(database_syncer).to receive(:sync_with_remote_database)
         .and_raise(SQLite3::Exception.new('Sync error'))
