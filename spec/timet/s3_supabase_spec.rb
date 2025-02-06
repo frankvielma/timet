@@ -53,7 +53,7 @@ RSpec.shared_context 'when S3Supabase is set up' do
     end
 
     after do
-      FileUtils.rm_f(download_path) if File.exist?(download_path)
+      FileUtils.rm_f(download_path)
     end
 
     it 'downloads file successfully' do
@@ -178,8 +178,7 @@ RSpec.describe Timet::S3Supabase do
       allow(s3_client_mock).to receive(:list_objects_v2).with(bucket: bucket_name).and_return(
         instance_double(Aws::S3::Types::ListObjectsV2Output, contents: [object_mock])
       )
-      allow(object_mock).to receive(:to_h).and_return({})
-      allow(object_mock).to receive(:last_modified).and_return(Time.now)
+      allow(object_mock).to receive_messages(to_h: {}, last_modified: Time.now)
       allow(s3_supabase).to receive(:delete_object).with(bucket_name, 'test-object').and_return(true)
     end
 

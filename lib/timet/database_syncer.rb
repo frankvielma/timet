@@ -206,8 +206,10 @@ module Timet
     # @param include_id [Boolean] Whether to include ID at start (insert) or end (update)
     # @return [Array] Array of values for database operation
     def get_item_values(item, include_id_at_start: false)
-      values = ITEM_FIELDS.map { |field| item[field] }
-      include_id_at_start ? [item['id'], *values] : [*values, item['id']]
+      @database_fields ||= ITEM_FIELDS
+      values = @database_fields.map { |field| item[field] }
+      # include_id_at_start ? [item['id'], *values] : [*values, item['id']]
+      include_id_at_start ? [item['id'], *values] : values
     end
   end
 end

@@ -99,7 +99,7 @@ RSpec.describe Timet::DatabaseSyncHelper do
 
   describe '.with_temp_file' do
     it 'yields a temporary file and ensures it is closed and unlinked' do
-      Timet::DatabaseSyncHelper.with_temp_file do |temp_file|
+      described_class.with_temp_file do |temp_file|
         expect(File.exist?(temp_file.path)).to be(true)
       end
     end
@@ -110,8 +110,8 @@ RSpec.describe Timet::DatabaseSyncHelper do
     let(:local_path) { Tempfile.new('local_db').path }
 
     after do
-      File.delete(remote_path) if File.exist?(remote_path)
-      File.delete(local_path) if File.exist?(local_path)
+      FileUtils.rm_f(remote_path)
+      FileUtils.rm_f(local_path)
     end
 
     it 'returns true if databases are identical' do

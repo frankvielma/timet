@@ -120,6 +120,55 @@ RSpec.describe Timet::DatabaseSyncer do
     end
   end
 
+  describe '#get_item_values' do
+    let(:item) do
+      { 'id' => 1, 'start' => 'value1', 'end' => 'value2', 'tag' => 'value3', 'notes' => 'value4', 'pomodoro' => 'value5',
+        'updated_at' => 'value6', 'created_at' => 'value7', 'deleted' => 'value8' }
+    end
+
+    context 'when include_id_at_start is false' do
+      it 'returns values without the item ID at the start' do
+        expect(database_syncer.get_item_values(item,
+                                               include_id_at_start: false)).to eq(%w[value1 value2 value3 value4 value5
+                                                                                     value6 value7 value8])
+      end
+    end
+
+    context 'when include_id_at_start is true' do
+      it 'returns values with the item ID at the start' do
+        expect(database_syncer.get_item_values(item,
+                                               include_id_at_start: true)).to eq([1, 'value1', 'value2', 'value3',
+                                                                                  'value4', 'value5', 'value6', 'value7', 'value8'])
+      end
+    end
+
+    context 'when item has missing fields' do
+      let(:item) do
+        { 'id' => 1, 'start' => 'value1', 'end' => 'value2', 'tag' => 'value3', 'notes' => 'value4', 'pomodoro' => 'value5',
+          'updated_at' => 'value6', 'created_at' => 'value7', 'deleted' => 'value8' }
+      end
+
+      it 'returns values with nil for missing fields' do
+        expect(database_syncer.get_item_values(item,
+                                               include_id_at_start: false)).to eq(%w[value1 value2 value3 value4 value5
+                                                                                     value6 value7 value8])
+      end
+    end
+
+    context 'when item has nil values for fields' do
+      let(:item) do
+        { 'id' => 1, 'start' => nil, 'end' => 'value2', 'tag' => 'value3', 'notes' => 'value4', 'pomodoro' => 'value5',
+          'updated_at' => 'value6', 'created_at' => 'value7', 'deleted' => 'value8' }
+      end
+
+      it 'returns values with nil for nil fields' do
+        expect(database_syncer.get_item_values(item,
+                                               include_id_at_start: false)).to eq([nil, 'value2', 'value3', 'value4',
+                                                                                   'value5', 'value6', 'value7', 'value8'])
+      end
+    end
+  end
+
   describe '#sync_items_by_id' do
     let(:local_items_by_id) { { 1 => { 'id' => 1, 'updated_at' => '2025-01-01' } } }
     let(:remote_items_by_id) { { 2 => { 'id' => 2, 'updated_at' => '2025-01-02' } } }
