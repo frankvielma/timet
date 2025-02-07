@@ -111,7 +111,7 @@ module Timet
     def run_linux_session(time, tag)
       notification_command = "notify-send --icon=clock '#{show_message(tag)}'"
       command = "sleep #{time} && tput bel && tt stop 0 && #{notification_command} &"
-      pid = spawn(command)
+      pid = Kernel.spawn(command)
       Process.detach(pid)
     end
 
@@ -123,7 +123,7 @@ module Timet
     def run_mac_session(time, tag)
       notification_command = "osascript -e 'display notification \"#{show_message(tag)}\"'"
       command = "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && #{notification_command} &"
-      pid = spawn(command)
+      pid = Kernel.spawn(command)
       Process.detach(pid)
     end
 
