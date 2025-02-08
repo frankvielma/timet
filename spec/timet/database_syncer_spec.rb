@@ -12,6 +12,8 @@ RSpec.describe Timet::DatabaseSyncer do
   let(:bucket) { 'test_bucket' }
   let(:local_db_path) { 'path/to/local/db' }
   let(:remote_path) { 'path/to/remote/db' }
+  let(:local_items) { [{ 'id' => 1, 'updated_at' => '2024-01-01' }] }
+  let(:remote_items) { [{ 'id' => 2, 'updated_at' => '2024-01-02' }] }
 
   describe '#handle_database_differences' do
     it 'syncs with remote database' do
@@ -22,55 +24,21 @@ RSpec.describe Timet::DatabaseSyncer do
       end.to output(/Differences detected between local and remote databases/).to_stdout
     end
 
-    describe '#remote_wins?' do
-      it 'returns true if remote_time is greater than local_time and remote_item is deleted' do
-        remote_item = { 'deleted' => '1' }
-        remote_time = Time.now + 3600
-        local_time = Time.now
-        expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be true
-      end
-
-      it 'returns true if remote_time is greater than local_time and remote_item is not deleted' do
-        remote_item = { 'deleted' => '0' }
-        remote_time = Time.now + 3600
-        local_time = Time.now
-        expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be true
-      end
-
-      it 'returns false if remote_time is less than or equal to local_time' do
-        remote_item = { 'deleted' => '1' }
-        remote_time = Time.now
-        local_time = Time.now + 3600
-        expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be false
-      end
-    end
-
-    describe '#process_database_items' do
-      let(:local_db) { instance_double(SQLite3::Database) }
-      let(:remote_db) { instance_double(SQLite3::Database) }
-
-      it 'processes database items' do
-        allow(database_syncer).to receive(:process_database_items).and_return(nil)
-        expect(database_syncer.process_database_items(local_db, remote_db)).to be_nil
-      end
-    end
-
     it 'handles sync error' do
-      allow(database_syncer).to receive(:sync_with_remote_database)
-        .and_raise(SQLite3::Exception.new('Sync error'))
+      error = SQLite3::Exception.new('Sync error')
+      allow(database_syncer).to receive(:sync_with_remote_database).and_raise(error)
       expect do
         database_syncer.handle_database_differences(local_db, remote_storage, bucket, local_db_path,
                                                     remote_path)
       end.to output(/Error opening remote database: Sync error/).to_stdout
-      expect(remote_storage).to have_received(:upload_file)
-        .with(bucket, local_db_path, 'timet.db')
+      expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
     end
   end
 
   describe '#handle_sync_error' do
     it 'uploads local database to remote storage' do
       error = SQLite3::Exception.new('Sync error')
-      allow(remote_storage).to receive(:upload_file) # Stub upload_file method
+      allow(remote_storage).to receive(:upload_file)
       database_syncer.handle_sync_error(error, remote_storage, bucket, local_db_path)
       expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
     end
@@ -114,9 +82,33 @@ RSpec.describe Timet::DatabaseSyncer do
 
     it 'processes database items and uploads local database' do
       allow(database_syncer).to receive(:process_database_items)
-      allow(remote_storage).to receive(:upload_file) # Stub upload_file method
+      allow(remote_storage).to receive(:upload_file)
       database_syncer.sync_databases(local_db, db_remote, remote_storage, bucket, local_db_path)
       expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
+    end
+  end
+
+  describe '#process_database_items' do
+    let(:local_db) { instance_double(Timet::Database) }
+    let(:remote_db) { instance_double(SQLite3::Database) }
+
+    before do
+      allow(local_db).to receive(:execute_sql).and_return(local_items)
+      allow(remote_db).to receive(:execute).and_return(remote_items)
+      allow(database_syncer).to receive(:sync_items_by_id)
+    end
+
+    it 'fetches items from both databases' do
+      database_syncer.process_database_items(local_db, remote_db)
+      expect(local_db).to have_received(:execute_sql).with('SELECT * FROM items ORDER BY updated_at DESC')
+      expect(remote_db).to have_received(:execute).with('SELECT * FROM items ORDER BY updated_at DESC')
+    end
+
+    it 'calls sync_items_by_id with the correct arguments' do
+      local_items_hash = { 1 => { 'id' => 1, 'updated_at' => '2024-01-01' } }
+      remote_items_hash = { 2 => { 'id' => 2, 'updated_at' => '2024-01-02' } }
+      database_syncer.process_database_items(local_db, remote_db)
+      expect(database_syncer).to have_received(:sync_items_by_id).with(local_db, local_items_hash, remote_items_hash)
     end
   end
 
@@ -219,6 +211,29 @@ RSpec.describe Timet::DatabaseSyncer do
     it 'converts database items to a hash indexed by ID' do
       result = database_syncer.items_to_hash(items)
       expect(result).to eq(1 => { 'id' => 1, 'start' => '2025-01-01' })
+    end
+  end
+
+  describe '#remote_wins?' do
+    it 'returns true if remote_time is greater than local_time and remote_item is deleted' do
+      remote_item = { 'deleted' => '1' }
+      remote_time = Time.now + 3600
+      local_time = Time.now
+      expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be true
+    end
+
+    it 'returns true if remote_time is greater than local_time and remote_item is not deleted' do
+      remote_item = { 'deleted' => '0' }
+      remote_time = Time.now + 3600
+      local_time = Time.now
+      expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be true
+    end
+
+    it 'returns false if remote_time is less than or equal to local_time' do
+      remote_item = { 'deleted' => '1' }
+      remote_time = Time.now
+      local_time = Time.now + 3600
+      expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be false
     end
   end
 end
