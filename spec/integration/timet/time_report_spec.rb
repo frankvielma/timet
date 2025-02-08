@@ -22,26 +22,7 @@ RSpec.describe Timet::TimeReport, type: :integration do
 				deleted INTEGER DEFAULT 0
 			)
     SQL
-
-    # Insert test data
-    today = Date.today
-    yesterday = today - 1
-
-    # Today's entries
-    db.execute_sql(
-      "INSERT INTO items (start, end, tag, notes) VALUES
-			(?, ?, 'work', 'Testing task 1')",
-      [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
-       Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
-    )
-
-    # Yesterday's entries
-    db.execute_sql(
-      "INSERT INTO items (start, end, tag, notes) VALUES
-			(?, ?, 'meeting', 'Testing task 2')",
-      [Time.new(yesterday.year, yesterday.month, yesterday.day, 14, 0, 0).to_i,
-       Time.new(yesterday.year, yesterday.month, yesterday.day, 15, 0, 0).to_i]
-    )
+    db.execute_sql('DELETE FROM items')
   end
 
   after do
@@ -50,38 +31,104 @@ RSpec.describe Timet::TimeReport, type: :integration do
 
   describe 'filtering' do
     it 'filters entries for today and returns the correct number of items' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
       report = described_class.new(db, filter: 'today')
       expect(report.items.length).to eq(1)
     end
 
     it 'filters entries for today and returns the correct type of work' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
       report = described_class.new(db, filter: 'today')
       expect(report.items.first[3]).to eq('work')
     end
 
     it 'filters entries for yesterday' do
+      yesterday = Date.today - 1
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'meeting', 'Testing task 2')",
+        [Time.new(yesterday.year, yesterday.month, yesterday.day, 14, 0, 0).to_i,
+         Time.new(yesterday.year, yesterday.month, yesterday.day, 15, 0, 0).to_i]
+      )
       report = described_class.new(db, filter: 'yesterday')
       expect(report.items.length).to eq(1)
     end
 
     it 'verifies the first item is a meeting' do
+      yesterday = Date.today - 1
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'meeting', 'Testing task 2')",
+        [Time.new(yesterday.year, yesterday.month, yesterday.day, 14, 0, 0).to_i,
+         Time.new(yesterday.year, yesterday.month, yesterday.day, 15, 0, 0).to_i]
+      )
       report = described_class.new(db, filter: 'yesterday')
       expect(report.items.first[3]).to eq('meeting')
     end
 
     it 'filters by tag' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
       report = described_class.new(db, filter: 'today', tag: 'work')
       expect(report.items.length).to eq(1)
     end
 
     it 'verifies the first item is tagged as work' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
       report = described_class.new(db, filter: 'today', tag: 'work')
       expect(report.items.first[3]).to eq('work')
+    end
+
+    it 'filters entries by date range' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
+      report = described_class.new(db, filter: "#{today}..#{today}")
+      expect(report.items.length).to eq(1)
+    end
+
+    it 'handles invalid filter' do
+      report = described_class.new(db, filter: 'invalid_filter')
+      expect(report.items).to eq([])
     end
   end
 
   describe 'CSV export' do
     it 'exports entries to CSV' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
       temp_csv = Tempfile.new(['test_export', '.csv'])
       begin
         report = described_class.new(db, filter: 'today', csv: temp_csv.path)
@@ -96,6 +143,13 @@ RSpec.describe Timet::TimeReport, type: :integration do
     end
 
     it 'verifies the CSV header' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
       temp_csv = Tempfile.new(['test_export', '.csv'])
       begin
         report = described_class.new(db, filter: 'today', csv: temp_csv.path)
@@ -110,6 +164,13 @@ RSpec.describe Timet::TimeReport, type: :integration do
     end
 
     it 'verifies the CSV content' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+			(?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
       temp_csv = Tempfile.new(['test_export', '.csv'])
       begin
         report = described_class.new(db, filter: 'today', csv: temp_csv.path)
