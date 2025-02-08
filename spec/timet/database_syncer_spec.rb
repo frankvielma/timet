@@ -35,6 +35,39 @@ RSpec.describe Timet::DatabaseSyncer do
     end
   end
 
+  describe '#insert_item_from_hash' do
+    let(:dummy) do
+      Class.new do
+        include Timet::DatabaseSyncer
+      end.new
+    end
+    let(:db) { double('SQLite3::Database') }
+    let(:item) do
+      {
+        'id' => 1,
+        'start' => '2025-02-08 10:00:00',
+        'end' => '2025-02-08 11:00:00',
+        'tag' => 'test',
+        'notes' => 'testing insert',
+        'pomodoro' => 0,
+        'updated_at' => '2025-02-08 09:00:00',
+        'created_at' => '2025-02-08 08:00:00',
+        'deleted' => 0
+      }
+    end
+
+    it 'executes the correct SQL query with proper values' do
+      expected_fields = "id, #{Timet::DatabaseSyncer::ITEM_FIELDS.join(', ')}"
+      expected_placeholders = Array.new(Timet::DatabaseSyncer::ITEM_FIELDS.length + 1, '?').join(', ')
+      expected_sql = "INSERT INTO items (#{expected_fields}) VALUES (#{expected_placeholders})"
+      expected_values = dummy.get_item_values(item, include_id_at_start: true)
+
+      expect(db).to receive(:execute_sql).with(expected_sql, expected_values)
+
+      dummy.insert_item_from_hash(db, item)
+    end
+  end
+
   describe '#handle_sync_error' do
     it 'uploads local database to remote storage' do
       error = SQLite3::Exception.new('Sync error')
