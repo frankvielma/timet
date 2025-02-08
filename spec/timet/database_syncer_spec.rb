@@ -238,6 +238,38 @@ RSpec.describe Timet::DatabaseSyncer do
     end
   end
 
+  describe '#process_existing_item' do
+    let(:id) { 1 }
+    let(:local_item) { { 'id' => 1, 'updated_at' => '2025-01-01' } }
+    let(:remote_item) { { 'id' => 1, 'updated_at' => '2025-01-02' } }
+
+    context 'when remote time is newer' do
+      it 'updates from remote' do
+        allow(database_syncer).to receive(:remote_wins?).and_return(true)
+        allow(database_syncer).to receive(:update_item_from_hash)
+        database_syncer.process_existing_item(id, local_item, remote_item, local_db)
+        expect(database_syncer).to have_received(:update_item_from_hash).with(local_db, remote_item)
+      end
+    end
+
+    context 'when local time is newer' do
+      it 'returns :remote_update and prints local status' do
+        local_time = Time.now + 3600
+        remote_time = Time.now
+        local_item = { 'updated_at' => local_time.to_i.to_s }
+        remote_item = { 'updated_at' => remote_time.to_i.to_s }
+
+        result = database_syncer.process_existing_item(
+          id,
+          local_item,
+          remote_item,
+          local_db
+        )
+        expect(result).to eq(:remote_update)
+      end
+    end
+  end
+
   describe '#items_to_hash' do
     let(:items) { [{ 'id' => 1, 'start' => '2025-01-01' }] }
 
