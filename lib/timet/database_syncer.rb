@@ -208,7 +208,6 @@ module Timet
     def get_item_values(item, include_id_at_start: false)
       @database_fields ||= ITEM_FIELDS
       values = @database_fields.map { |field| item[field] }
-      # include_id_at_start ? [item['id'], *values] : [*values, item['id']]
       include_id_at_start ? [item['id'], *values] : values
     end
   end

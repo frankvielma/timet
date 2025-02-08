@@ -269,4 +269,73 @@ RSpec.describe Timet::DatabaseSyncer do
       expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be false
     end
   end
+
+  describe '#update_item_from_hash' do
+    let(:db) { double('SQLite3::Database') }
+    let(:item) do
+      {
+        'id' => 1,
+        'start' => '2025-02-08 10:00:00',
+        'end' => '2025-02-08 11:00:00',
+        'tag' => 'test',
+        'notes' => 'testing update',
+        'pomodoro' => 0,
+        'updated_at' => '2025-02-08 09:00:00',
+        'created_at' => '2025-02-08 08:00:00',
+        'deleted' => 0
+      }
+    end
+    let(:expected_fields) { "#{Timet::DatabaseSyncer::ITEM_FIELDS.join(' = ?, ')} = ?" }
+
+    it 'executes the correct SQL query with proper values' do
+      expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
+      expected_values = database_syncer.get_item_values(item)
+
+      allow(db).to receive(:execute_sql).with(expected_sql, expected_values)
+
+      database_syncer.update_item_from_hash(db, item)
+    end
+
+    it 'updates the item with new values' do
+      new_item = {
+        'id' => 1,
+        'start' => '2025-02-08 12:00:00',
+        'end' => '2025-02-08 13:00:00',
+        'tag' => 'updated',
+        'notes' => 'updated notes',
+        'pomodoro' => 1,
+        'updated_at' => '2025-02-08 11:00:00',
+        'created_at' => '2025-02-08 10:00:00',
+        'deleted' => 0
+      }
+
+      expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
+      expected_values = database_syncer.get_item_values(new_item)
+
+      allow(db).to receive(:execute_sql).with(expected_sql, expected_values)
+
+      database_syncer.update_item_from_hash(db, new_item)
+    end
+
+    it 'handles missing fields gracefully' do
+      incomplete_item = {
+        'id' => 1,
+        'start' => '2025-02-08 12:00:00',
+        'end' => '2025-02-08 13:00:00',
+        'tag' => 'updated',
+        'notes' => 'updated notes',
+        'pomodoro' => 1,
+        'updated_at' => '2025-02-08 11:00:00',
+        'created_at' => '2025-02-08 10:00:00'
+      }
+
+      expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
+      expected_values = database_syncer.get_item_values(incomplete_item)
+
+      allow(db).to receive(:execute_sql).with(expected_sql, expected_values)
+      expect(db).to receive(:execute_sql).with(expected_sql, expected_values)
+
+      database_syncer.update_item_from_hash(db, incomplete_item)
+    end
+  end
 end
