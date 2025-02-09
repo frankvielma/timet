@@ -285,8 +285,6 @@ module Timet
       :complete
     end
 
-    private
-
     # Moves the old database file to the new location if it exists.
     #
     # @param database_path [String] The path to the new SQLite database file.
@@ -314,7 +312,7 @@ module Timet
     # @raise [StandardError] If there is an issue executing the SQL queries, an error may be raised.
     #
     def update_time_columns
-      result = execute_sql('SELECT * FROM items where updated_at is null or created_at is null')
+      result = execute_sql('SELECT * FROM items WHERE updated_at IS NULL OR created_at IS NULL')
       result.each do |item|
         id = item[0]
         end_time = item[2]

@@ -305,6 +305,7 @@ module Timet
     desc 'sync', 'Sync local db with supabase external db'
     def sync
       puts 'Syncing database with remote storage...'
+      puts 'Sync method called'
       DatabaseSyncHelper.sync(@db, BUCKET)
     end
   end

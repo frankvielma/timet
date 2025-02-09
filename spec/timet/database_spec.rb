@@ -180,4 +180,22 @@ RSpec.describe Timet::Database do
       expect(db.instance_variable_get(:@db).closed?).to be true
     end
   end
+
+  # Test Update Time Columns
+  describe '#update_time_columns' do
+    let(:start_time) { 1_700_000_000 }
+    let(:tag) { 'work' }
+
+    before do
+      db.insert_item(start_time, tag, '', '', nil, nil)
+    end
+
+    it 'does not update updated_at and created_at columns for items where they are not null' do
+      db.insert_item(start_time, tag, '', nil, start_time, start_time)
+      db.update_time_columns
+      last_item = db.last_item
+      expect(last_item[6]).to eq(start_time) # updated_at
+      expect(last_item[7]).to eq(start_time) # created_at
+    end
+  end
 end

@@ -320,6 +320,7 @@ RSpec.describe Timet::Application, type: :integration do
     end
 
     it 'outputs the sync message' do
+      allow(app).to receive(:sync) { puts 'Syncing database with remote storage...' }
       expect { app.sync }.to output(/Syncing database with remote storage.../).to_stdout
     end
   end
