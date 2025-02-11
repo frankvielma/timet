@@ -209,13 +209,19 @@ module Timet
     # @return [void]
     def validate_env_vars
       missing_vars = []
-      missing_vars << 'S3_ENDPOINT' if S3_ENDPOINT.nil? || S3_ENDPOINT.empty?
-      missing_vars << 'S3_ACCESS_KEY' if S3_ACCESS_KEY.nil? || S3_ACCESS_KEY.empty?
-      missing_vars << 'S3_SECRET_KEY' if S3_SECRET_KEY.nil? || S3_SECRET_KEY.empty?
+      missing_vars.concat(check_env_var('S3_ENDPOINT', S3_ENDPOINT))
+      missing_vars.concat(check_env_var('S3_ACCESS_KEY', S3_ACCESS_KEY))
+      missing_vars.concat(check_env_var('S3_SECRET_KEY', S3_SECRET_KEY))
 
       return if missing_vars.empty?
 
       raise CustomError, "Missing required environment variables (.env): #{missing_vars.join(', ')}"
+    end
+
+    def check_env_var(name, value)
+      return [] if value && !value.empty?
+
+      [name]
     end
 
     # Custom error class that suppresses the backtrace for cleaner error messages.
