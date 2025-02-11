@@ -5,7 +5,6 @@ require 'simplecov-lcov'
 
 SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true  # Ensure a single lcov.info file
 SimpleCov::Formatter::LcovFormatter.config.output_directory = 'coverage'   # Save it in coverage/
-SimpleCov::Formatter::LcovFormatter.config.output_name = 'lcov.info'       # Ensure correct filename
 
 SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
 SimpleCov.start
