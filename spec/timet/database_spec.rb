@@ -9,7 +9,6 @@ RSpec.describe Timet::Database do
   let(:last_item) do
     db.execute_sql('SELECT * FROM items ORDER BY id DESC LIMIT 1').first
   end
-  let(:test_tag) { 'Test Task' }
 
   after do
     db.close
@@ -96,6 +95,8 @@ RSpec.describe Timet::Database do
   end
 
   describe '#last_item' do
+    let(:test_tag) { 'Test Task' }
+
     it 'returns the last item from the items table' do
       start_time = Time.now.utc.to_i
       tag = 'Test Task'
@@ -126,6 +127,8 @@ RSpec.describe Timet::Database do
   end
 
   describe '#item_status' do
+    let(:test_tag) { 'Test Task' }
+
     context 'when no items exist' do
       it 'returns :no_items' do
         expect(db.item_status).to eq(:no_items)
@@ -175,6 +178,24 @@ RSpec.describe Timet::Database do
     it 'closes the database connection' do
       db.close
       expect(db.instance_variable_get(:@db).closed?).to be true
+    end
+  end
+
+  # Test Update Time Columns
+  describe '#update_time_columns' do
+    let(:start_time) { 1_700_000_000 }
+    let(:tag) { 'work' }
+
+    before do
+      db.insert_item(start_time, tag, '', '', nil, nil)
+    end
+
+    it 'does not update updated_at and created_at columns for items where they are not null' do
+      db.insert_item(start_time, tag, '', nil, start_time, start_time)
+      db.update_time_columns
+      last_item = db.last_item
+      expect(last_item[6]).to eq(start_time) # updated_at
+      expect(last_item[7]).to eq(start_time) # created_at
     end
   end
 end

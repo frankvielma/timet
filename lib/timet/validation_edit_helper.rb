@@ -83,17 +83,17 @@ module Timet
     #
     # @param item [Array] The tracking item to be updated.
     # @param field [String] The time field to be updated.
-    # @param formatted_value [String] The formatted date value.
+    # @param new_time [String] The new time value.
     #
     # @return [Time] The updated time value.
     #
     # @example Update the 'start' field of a tracking item with a formatted date value
-    #   update_time_field(item, 'start', '2023-10-01 12:00:00')
-    def update_time_field(item, field, formatted_value)
+    #   update_time_field(item, 'start', '11:10:00')
+    def update_time_field(item, field, new_time)
       field_index = Timet::Application::FIELD_INDEX[field]
       timestamp = item[field_index]
       current_time = Time.at(timestamp || TimeHelper.current_timestamp).to_s.split
-      current_time[1] = formatted_value
+      current_time[1] = new_time
       DateTime.strptime(current_time.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
     end
 

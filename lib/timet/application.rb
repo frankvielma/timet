@@ -52,15 +52,14 @@ module Timet
     def initialize(*args)
       super
 
-      # Initialize database without validation in test environment
       if defined?(RSpec)
         @db = Database.new
       else
-        command_name = args[2][:current_command].name
+        command_name = args.dig(2, :current_command, :name)
         if VALID_ARGUMENTS.include?(command_name)
           @db = Database.new
         else
-          puts 'Invalid arguments provided. Please check your input.'
+          warn 'Invalid arguments provided. Please check your input.'
           exit(1)
         end
       end
@@ -110,6 +109,7 @@ module Timet
 
     desc 'stop', 'Stop time tracking'
     # Stops the current tracking session if there is one in progress.
+    # After stopping the tracking session, it displays a summary of the tracked time.
     #
     # @return [void] This method does not return a value; it performs side effects such as updating the tracking item
     # and generating a summary.
@@ -120,15 +120,14 @@ module Timet
     # @note The method checks if the last tracking item is in progress by calling `@db.item_status`.
     # @note If the last item is in progress, it fetches the last item's ID using `@db.fetch_last_id` and updates it
     # with the current timestamp.
-    # @note The method then fetches the last item using `@db.last_item` and generates a summary if the result
-    # is not nil.
-    def stop(display = nil)
+    # @note The method always generates a summary after stopping the tracking session.
+    def stop
       return unless @db.item_status == :in_progress
 
       last_id = @db.fetch_last_id
       @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
 
-      summary unless display
+      summary
     end
 
     desc 'resume (r) [id]', 'Resume last task (id is an optional parameter) => tt resume'
@@ -306,6 +305,7 @@ module Timet
     desc 'sync', 'Sync local db with supabase external db'
     def sync
       puts 'Syncing database with remote storage...'
+      puts 'Sync method called'
       DatabaseSyncHelper.sync(@db, BUCKET)
     end
   end

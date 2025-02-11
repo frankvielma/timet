@@ -1,9 +1,21 @@
 # frozen_string_literal: true
 
+# require_relative 'color_codes'
+require 'timet/time_report_helper'
 module Timet
-  # This module is responsible for formatting the output of the `timet` application.
+  # This class is responsible for formatting the output of the `timet` application.
   # It provides methods for formatting the table header, separators, and rows.
-  module Table
+  class Table
+    include TimeReportHelper
+
+    attr_reader :filter, :items
+
+    def initialize(filter, items, db)
+      @filter = filter
+      @items = items
+      @db = db
+    end
+
     # Generates and displays a table summarizing time entries, including headers, time blocks, and total durations.
     #
     # @example
@@ -64,22 +76,26 @@ module Timet
 
     # Processes time entries and generates a time block structure.
     #
-    # @return [Hash] A nested hash representing the time block structure.
+    # This method iterates over each item in the `items` array, displays the time entry (if enabled),
+    # and processes the time block item to build a nested hash representing the time block structure.
+    #
+    # @param display [Boolean] Whether to display the time entry during processing. Defaults to `true`.
+    # @return [Hash] A nested hash representing the time block structure, where keys are dates and values
+    #                are processed time block items.
     #
     # @note
-    #   - The method iterates over each item in the `items` array.
-    #   - For each item, it calls `display_time_entry` to display the time entry.
-    #   - It then processes the time block item using `process_time_block_item`.
+    #   - The method uses `display_time_entry` to display the time entry if `display` is `true`.
+    #   - It processes each time block item using `process_time_block_item`.
     #   - The `TimeHelper.extract_date` method is used to extract the date from the items.
     #
     # @see #display_time_entry
     # @see #process_time_block_item
     # @see TimeHelper#extract_date
-    def process_time_entries
+    def process_time_entries(display: true)
       time_block = Hash.new { |hash, key| hash[key] = {} }
 
-      items.each_with_index do |item, idx|
-        display_time_entry(item, TimeHelper.extract_date(items, idx))
+      @items.each_with_index do |item, idx|
+        display_time_entry(item, TimeHelper.extract_date(@items, idx)) if display
         time_block = process_time_block_item(item, time_block)
       end
 

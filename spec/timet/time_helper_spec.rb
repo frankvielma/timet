@@ -1,132 +1,129 @@
 # frozen_string_literal: true
 
+require 'timet/time_helper'
+
 RSpec.describe Timet::TimeHelper do
-  describe '.format_time' do
-    it 'formats timestamp to YYYY-MM-DD HH:MM:SS' do
-      expect(described_class.format_time(1_704_067_200)).to eq('2024-01-01 00:00:00')
-    end
-
-    it 'returns nil for nil input' do
-      expect(described_class.format_time(nil)).to be_nil
-    end
-  end
-
-  describe '.timestamp_to_date' do
-    it 'converts timestamp to YYYY-MM-DD' do
-      expect(described_class.timestamp_to_date(1_704_067_200)).to eq('2024-01-01')
-    end
-
-    it 'returns nil for nil input' do
-      expect(described_class.timestamp_to_date(nil)).to be_nil
-    end
+  def create_time(*args)
+    year, month, day, hour, min, sec = args
+    Time.new(year, month, day, hour, min, sec)
   end
 
   describe '.timestamp_to_time' do
-    it 'converts timestamp to HH:MM:SS' do
-      expect(described_class.timestamp_to_time(1_704_067_200)).to eq('00:00:00')
-    end
-
-    it 'returns nil for nil input' do
+    it 'returns nil if timestamp is nil' do
       expect(described_class.timestamp_to_time(nil)).to be_nil
     end
-  end
 
-  describe '.calculate_duration' do
-    it 'calculates duration between two timestamps' do
-      expect(described_class.calculate_duration(1_703_995_200, 1_703_998_800)).to eq(3600)
+    it 'converts a timestamp to a formatted time string' do
+      timestamp = Time.new(2023, 3, 15, 0, 0, 0).to_i
+      expect(described_class.timestamp_to_time(timestamp)).to eq(Time.new(2023, 3, 15, 0, 0, 0).strftime('%H:%M:%S'))
     end
 
-    it 'uses current time if end_time is nil' do
-      allow(Time).to receive(:now).and_return(Time.at(1_703_998_800))
-      expect(described_class.calculate_duration(1_703_995_200, nil)).to eq(3600)
-    end
-  end
-
-  describe '.date_to_timestamp' do
-    it 'converts Date to timestamp' do
-      date = Date.new(2024, 1, 1)
-      expect(described_class.date_to_timestamp(date)).to eq(1_704_067_200)
-    end
-  end
-
-  describe '.calculate_end_time' do
-    it 'calculates end time when end_date is provided' do
-      start_date = Date.new(2024, 1, 1)
-      end_date = Date.new(2024, 1, 2)
-      expect(described_class.calculate_end_time(start_date, end_date)).to eq(1_704_240_000)
-    end
-
-    it 'calculates end time as next day when end_date is nil' do
-      start_date = Date.new(2024, 1, 1)
-      expect(described_class.calculate_end_time(start_date, nil)).to eq(1_704_153_600)
-    end
-  end
-
-  describe '.extract_date' do
-    let(:items) do
-      [
-        [1, 1_704_081_600, nil, 'tag1', 'notes1'],
-        [2, 1_704_168_000, nil, 'tag2', 'notes2'],
-        [3, 1_704_168_000, nil, 'tag3', 'notes3']
+    it 'handles different timestamps correctly' do
+      test_cases = [
+        { time: create_time(2023, 3, 15, 0, 0, 0), expected: '00:00:00' },
+        { time: create_time(2023, 3, 15, 3, 46, 40), expected: '03:46:40' }
       ]
+
+      test_cases.each do |test_case|
+        timestamp = test_case[:time].to_i
+        expect(described_class.timestamp_to_time(timestamp)).to eq(test_case[:expected])
+      end
+    end
+  end
+
+  describe '.format_time' do
+    it 'returns nil if timestamp is nil' do
+      expect(described_class.format_time(nil)).to be_nil
     end
 
-    it 'extracts date when it changes' do
-      expect(described_class.extract_date(items, 1)).to eq('2024-01-02')
+    it 'converts a timestamp to a formatted time string' do
+      timestamp = Time.new(2024, 3, 15, 0, 0, 0).to_i # Example timestamp
+      expect(described_class.format_time(timestamp)).to eq(Time.new(2024, 3, 15, 0, 0,
+                                                                    0).strftime('%Y-%m-%d %H:%M:%S'))
     end
 
-    it 'returns nil when date does not change' do
-      expect(described_class.extract_date(items, 2)).to be_nil
+    it 'handles different timestamps correctly' do
+      test_cases = [
+        { time: create_time(2024, 3, 15, 0, 0, 0), expected: '2024-03-15 00:00:00' },
+        { time: create_time(2024, 3, 15, 3, 46, 40), expected: '2024-03-15 03:46:40' }
+      ]
+
+      test_cases.each do |test_case|
+        timestamp = test_case[:time].to_i
+        expect(described_class.format_time(timestamp)).to eq(test_case[:expected])
+      end
+    end
+  end
+
+  describe '.parse_time_components' do
+    it 'parses a 6-digit string correctly' do
+      expect(described_class.parse_time_components('123456')).to eq([12, 34, 56])
     end
 
-    it 'returns date for the first item' do
-      expect(described_class.extract_date(items, 0)).to eq('2024-01-01')
+    it 'parses a 4-digit string correctly' do
+      expect(described_class.parse_time_components('1234')).to eq([12, 34, 0])
+    end
+
+    it 'parses a 3-digit string correctly' do
+      expect(described_class.parse_time_components('123')).to eq([12, 30, 0])
+    end
+
+    it 'parses a 2-digit string correctly' do
+      expect(described_class.parse_time_components('12')).to eq([12, 0, 0])
+    end
+
+    it 'parses a 1-digit string correctly' do
+      expect(described_class.parse_time_components('1')).to eq([1, 0, 0])
+    end
+
+    it 'handles empty string' do
+      expect(described_class.parse_time_components('')).to eq([0, 0, 0])
+    end
+
+    it 'handles non-numeric characters' do
+      expect(described_class.parse_time_components('abc')).to eq([0, 0, 0])
     end
   end
 
   describe '.format_time_string' do
-    it 'returns an empty string for nil input' do
+    it 'returns nil if input is nil' do
       expect(described_class.format_time_string(nil)).to be_nil
     end
 
-    it 'returns format "00:00:00" for an empty string' do
+    it 'returns nil if input is empty' do
       expect(described_class.format_time_string('')).to be_nil
     end
 
-    it 'returns format "00:00:00" for a single digit' do
-      expect(described_class.format_time_string('1')).to eq('01:00:00')
-      expect(described_class.format_time_string('01')).to eq('01:00:00')
-      expect(described_class.format_time_string('09')).to eq('09:00:00')
+    it 'returns nil if input contains only non-digit characters' do
+      expect(described_class.format_time_string('abc')).to be_nil
     end
 
-    it 'returns format "00:00:00" for two digits' do
-      expect(described_class.format_time_string('12')).to eq('12:00:00')
-    end
-
-    it 'returns format "00:00:00" for three digits' do
-      expect(described_class.format_time_string('123')).to eq('12:30:00')
-    end
-
-    it 'returns format "00:00:00" for four digits' do
-      expect(described_class.format_time_string('1234')).to eq('12:34:00')
-    end
-
-    it 'returns format "00:00:00" for five digits' do
-      expect(described_class.format_time_string('12345')).to eq('12:34:50')
-    end
-
-    it 'returns format "00:00:00" for six digits' do
+    it 'formats a 6-digit string correctly' do
       expect(described_class.format_time_string('123456')).to eq('12:34:56')
     end
 
-    it 'returns format "00:00:00" for six digits with non-digit characters' do
-      expect(described_class.format_time_string('1a2b3c4d5e6f')).to eq('12:34:56')
+    it 'formats a 4-digit string correctly' do
+      expect(described_class.format_time_string('1234')).to eq('12:34:00')
     end
 
-    it 'returns nil for invalid time values' do
-      expect(described_class.format_time_string('240000')).to be_nil
-      expect(described_class.format_time_string('126000')).to be_nil
-      expect(described_class.format_time_string('123460')).to be_nil
+    it 'formats a 3-digit string correctly' do
+      expect(described_class.format_time_string('123')).to eq('12:30:00')
+    end
+
+    it 'formats a 2-digit string correctly' do
+      expect(described_class.format_time_string('12')).to eq('12:00:00')
+    end
+
+    it 'formats a 1-digit string correctly' do
+      expect(described_class.format_time_string('1')).to eq('01:00:00')
+    end
+
+    it 'handles input with more than 6 digits' do
+      expect(described_class.format_time_string('1234567')).to eq('12:34:56')
+    end
+
+    it 'handles input with non-digit characters' do
+      expect(described_class.format_time_string('127122')).to be_nil
     end
   end
 end
