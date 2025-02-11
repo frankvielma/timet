@@ -39,15 +39,18 @@ jobs:
           echo "S3_ACCESS_KEY=test" >> /tmp/.timet/.env
           echo "S3_SECRET_KEY=tst123" >> /tmp/.timet/.env
 
+      - name: Install SimpleCov-LCOV
+        run: gem install simplecov-lcov
+
       - name: Run tests with coverage
         run: |
           bundle exec rspec
         env:
           COVERAGE: true
 
-      - name: Debug SimpleCov Report
-        run: cat coverage/.resultset.json
-          
+      - name: Verify LCOV Output
+        run: ls -la coverage && cat coverage/lcov.info
+
       - name: Code Climate Run before-test
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter

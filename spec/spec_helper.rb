@@ -6,6 +6,8 @@ require 'simplecov-lcov'
 SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
 SimpleCov.start
 
+puts 'LCOV output enabled. Coverage files will be stored in coverage/lcov.info.'
+
 require 'dotenv'
 
 Dotenv.load('/tmp/.timet/.env')
