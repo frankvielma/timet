@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'dotenv'
 
 RSpec.shared_context 'when S3Supabase is set up' do
   let(:s3_endpoint) { 'http://localhost:9000' }

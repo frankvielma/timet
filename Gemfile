@@ -25,5 +25,4 @@ group :test do
   gem 'rspec', '~> 3.13'
   gem 'simplecov', '~> 0.22', require: false
   gem 'simplecov-lcov', '~> 0.8'
-
 end

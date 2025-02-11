@@ -14,11 +14,7 @@ SimpleCov::Formatter::LcovFormatter.config do |config|
   config.lcov_file_name = 'lcov.info'
 end
 
-SimpleCov.start do
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/vendor/'
-end
+SimpleCov.start
 
 require 'dotenv'
 

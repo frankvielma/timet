@@ -39,9 +39,6 @@ jobs:
           echo "S3_ACCESS_KEY=test" >> /tmp/.timet/.env
           echo "S3_SECRET_KEY=tst123" >> /tmp/.timet/.env
 
-      - name: Install SimpleCov-LCOV
-        run: gem install simplecov-lcov
-
       - name: Run tests with coverage
         run: |
           bundle exec rspec
@@ -64,7 +61,7 @@ jobs:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
       - name: Code Climate After-test
-        run: ./cc-test-reporter after-build -t lcov --exit-code $? --debug
+        run: ./cc-test-reporter after-build -t lcov --exit-code $?
         if: always()
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
