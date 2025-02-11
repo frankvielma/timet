@@ -56,6 +56,12 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
+
+      - name: test1
+        run: |
+          ls -la coverage/
+          cat coverage/codeclimate.json | head -n 20
+
       - name: Publish code coverage
         run: |
           ./cc-test-reporter format-coverage coverage/lcov.info -t lcov -o coverage/codeclimate.json
