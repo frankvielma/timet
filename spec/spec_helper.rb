@@ -3,6 +3,24 @@
 require 'simplecov'
 SimpleCov.start
 
+# Post-process SimpleCov results to replace null values with 0
+SimpleCov.at_exit do
+  SimpleCov.result.format!
+
+  coverage_file = 'coverage/.resultset.json'
+  if File.exist?(coverage_file)
+    data = JSON.parse(File.read(coverage_file))
+
+    data.each do |_, coverage|
+      coverage['coverage'].each do |_file, details|
+        details['lines'].map! { |line| line.nil? ? 0 : line }
+      end
+    end
+
+    File.write(coverage_file, JSON.pretty_generate(data))
+  end
+end
+
 require 'dotenv'
 
 Dotenv.load('/tmp/.timet/.env')
