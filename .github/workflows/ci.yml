@@ -48,9 +48,6 @@ jobs:
         env:
           COVERAGE: true
 
-      - name: Verify LCOV Output
-        run: ls -la coverage && cat coverage/lcov.info || echo "❌ lcov.info NOT FOUND"
-
       - name: Code Climate Run before-test
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
@@ -61,13 +58,13 @@ jobs:
 
       - name: Publish code coverage
         run: |
-          ./cc-test-reporter format-coverage -t lcov -o coverage/codeclimate.json coverage/timet.lcov
+          ./cc-test-reporter format-coverage -t lcov -o coverage/codeclimate.json coverage/timet.lcov --debug
           ./cc-test-reporter upload-coverage
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
       - name: Code Climate After-test
-        run: ./cc-test-reporter after-build --exit-code $?
+        run: ./cc-test-reporter after-build -t lcov --exit-code $? --debug
         if: always()
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
