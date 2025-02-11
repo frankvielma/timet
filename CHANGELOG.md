@@ -1,5 +1,26 @@
 ## [Unreleased]
 
+## [1.5.4] - 2025-02-11
+
+**Improvements:**
+- Added `.env` file creation in CI workflow for testing environment variables.
+- Updated Code Climate coverage reporting to use `simplecov-lcov` for LCOV format compatibility.
+- Refactored validation error message tests in `ValidationEditHelper` for clarity and maintainability.
+- Simplified environment variable validation in `S3Supabase` by introducing a helper method `check_env_var`.
+- Improved integration tests for `play_sound_and_notify` with better stubbing and platform-specific behavior checks.
+- Added comprehensive tests for `#process_existing_item`, `#update_item_from_hash`, and `#insert_item_from_hash` in `DatabaseSyncer`.
+- Enhanced database synchronization logic and moved `ITEM_FIELDS` to `DatabaseSyncer` for better organization.
+- Added `.format_time_string` method to `TimeHelper` with tests for various input formats.
+- Updated AWS SDK dependencies and improved database sync logging.
+- Consolidated integration tests and improved readability.
+- Improved error handling and added tests for `S3Supabase`.
+
+**Bug Fixes:**
+- Fixed environment variable validation in `S3Supabase` to handle `nil` values.
+- Resolved issues with database synchronization logic in `DatabaseSyncer`.
+- Fixed test setup and cleanup in `S3Supabase` and `DatabaseSyncer` specs.
+- Addressed edge cases in `#process_and_update_time_field` and `#valid_time_value?`.
+
 ## [1.5.3] - 2025-01-02
 
 **Improvements:**
