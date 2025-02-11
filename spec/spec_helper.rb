@@ -3,6 +3,10 @@
 require 'simplecov'
 SimpleCov.start
 
+require 'dotenv'
+
+Dotenv.load('/tmp/.timet/.env')
+
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'timet'
 
