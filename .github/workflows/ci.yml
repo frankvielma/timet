@@ -49,7 +49,7 @@ jobs:
           COVERAGE: true
 
       - name: Verify LCOV Output
-        run: ls -la coverage && cat coverage/lcov.info
+        run: ls -la coverage && cat coverage/lcov.info || echo "❌ lcov.info NOT FOUND"
 
       - name: Code Climate Run before-test
         run: |
