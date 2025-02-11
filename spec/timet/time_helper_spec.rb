@@ -84,4 +84,46 @@ RSpec.describe Timet::TimeHelper do
       expect(described_class.parse_time_components('abc')).to eq([0, 0, 0])
     end
   end
+
+  describe '.format_time_string' do
+    it 'returns nil if input is nil' do
+      expect(described_class.format_time_string(nil)).to be_nil
+    end
+
+    it 'returns nil if input is empty' do
+      expect(described_class.format_time_string('')).to be_nil
+    end
+
+    it 'returns nil if input contains only non-digit characters' do
+      expect(described_class.format_time_string('abc')).to be_nil
+    end
+
+    it 'formats a 6-digit string correctly' do
+      expect(described_class.format_time_string('123456')).to eq('12:34:56')
+    end
+
+    it 'formats a 4-digit string correctly' do
+      expect(described_class.format_time_string('1234')).to eq('12:34:00')
+    end
+
+    it 'formats a 3-digit string correctly' do
+      expect(described_class.format_time_string('123')).to eq('12:30:00')
+    end
+
+    it 'formats a 2-digit string correctly' do
+      expect(described_class.format_time_string('12')).to eq('12:00:00')
+    end
+
+    it 'formats a 1-digit string correctly' do
+      expect(described_class.format_time_string('1')).to eq('01:00:00')
+    end
+
+    it 'handles input with more than 6 digits' do
+      expect(described_class.format_time_string('1234567')).to eq('12:34:56')
+    end
+
+    it 'handles input with non-digit characters' do
+      expect(described_class.format_time_string('127122')).to be_nil
+    end
+  end
 end
