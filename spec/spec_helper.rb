@@ -3,13 +3,18 @@
 require 'simplecov'
 require 'simplecov-lcov'
 
-SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true  # Ensure a single lcov.info file
-SimpleCov::Formatter::LcovFormatter.config.output_directory = 'coverage'   # Save it in coverage/
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
+                                                                 SimpleCov::Formatter::LcovFormatter,
+                                                                 SimpleCov::Formatter::JSONFormatter
+                                                               ])
 
-SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
+SimpleCov::Formatter::LcovFormatter.config do |config|
+  config.report_with_single_file = true
+  config.output_directory = 'coverage'
+  config.lcov_file_name = 'lcov.info'
+end
+
 SimpleCov.start
-
-puts 'LCOV output enabled. Coverage files will be stored in coverage/lcov.info.'
 
 require 'dotenv'
 
