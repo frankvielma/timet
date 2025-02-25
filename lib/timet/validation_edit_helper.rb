@@ -92,9 +92,9 @@ module Timet
     def update_time_field(item, field, new_time)
       field_index = Timet::Application::FIELD_INDEX[field]
       timestamp = item[field_index]
-      current_time = Time.at(timestamp || TimeHelper.current_timestamp).to_s.split
-      current_time[1] = new_time
-      DateTime.strptime(current_time.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
+      edit_time = Time.at(timestamp || item[1]).to_s.split
+      edit_time[1] = new_time
+      DateTime.strptime(edit_time.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
     end
 
     # Validates if a new time value is valid for a specific time field (start or end).
