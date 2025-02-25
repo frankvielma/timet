@@ -363,11 +363,10 @@ RSpec.describe Timet::DatabaseSyncer do
 
       expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
       expected_values = database_syncer.get_item_values(incomplete_item)
-
-      allow(db).to receive(:execute_sql).with(expected_sql, expected_values)
-      expect(db).to receive(:execute_sql).with(expected_sql, expected_values)
+      allow(db).to receive(:execute_sql)
 
       database_syncer.update_item_from_hash(db, incomplete_item)
+      expect(db).to have_received(:execute_sql).with(expected_sql, expected_values)
     end
   end
 end
