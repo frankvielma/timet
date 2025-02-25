@@ -319,17 +319,21 @@ RSpec.describe Timet::DatabaseSyncer do
     end
     let(:expected_fields) { "#{Timet::DatabaseSyncer::ITEM_FIELDS.join(' = ?, ')} = ?" }
 
-    it 'executes the correct SQL query with proper values' do
-      expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
-      expected_values = database_syncer.get_item_values(item)
-
-      allow(db).to receive(:execute_sql).with(expected_sql, expected_values)
-
-      database_syncer.update_item_from_hash(db, item)
+    let(:incomplete_item) do
+      {
+        'id' => 1,
+        'start' => '2025-02-08 12:00:00',
+        'end' => '2025-02-08 13:00:00',
+        'tag' => 'updated',
+        'notes' => 'updated notes',
+        'pomodoro' => 1,
+        'updated_at' => '2025-02-08 11:00:00',
+        'created_at' => '2025-02-08 10:00:00'
+      }
     end
 
-    it 'updates the item with new values' do
-      new_item = {
+    let(:new_item) do
+      {
         'id' => 1,
         'start' => '2025-02-08 12:00:00',
         'end' => '2025-02-08 13:00:00',
@@ -340,31 +344,31 @@ RSpec.describe Timet::DatabaseSyncer do
         'created_at' => '2025-02-08 10:00:00',
         'deleted' => 0
       }
+    end
 
+    it 'executes the correct SQL query with proper values' do
+      expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
+      expected_values = database_syncer.get_item_values(item)
+
+      allow(db).to receive(:execute_sql)
+      database_syncer.update_item_from_hash(db, item)
+      expect(db).to have_received(:execute_sql).with(expected_sql, expected_values)
+    end
+
+    it 'updates the item with new values' do
       expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
       expected_values = database_syncer.get_item_values(new_item)
 
       allow(db).to receive(:execute_sql).with(expected_sql, expected_values)
 
       database_syncer.update_item_from_hash(db, new_item)
+      expect(db).to have_received(:execute_sql).with(expected_sql, expected_values)
     end
 
     it 'handles missing fields gracefully' do
-      incomplete_item = {
-        'id' => 1,
-        'start' => '2025-02-08 12:00:00',
-        'end' => '2025-02-08 13:00:00',
-        'tag' => 'updated',
-        'notes' => 'updated notes',
-        'pomodoro' => 1,
-        'updated_at' => '2025-02-08 11:00:00',
-        'created_at' => '2025-02-08 10:00:00'
-      }
-
       expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
       expected_values = database_syncer.get_item_values(incomplete_item)
       allow(db).to receive(:execute_sql)
-
       database_syncer.update_item_from_hash(db, incomplete_item)
       expect(db).to have_received(:execute_sql).with(expected_sql, expected_values)
     end
