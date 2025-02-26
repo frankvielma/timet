@@ -11,7 +11,10 @@ Metrics/MethodLength:
 plugins: rubocop-rspec
 
 RSpec/ExampleLength:
-  Max: 10 
+  Max: 15 
 
 Metrics/CyclomaticComplexity:
   Max: 8
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 15

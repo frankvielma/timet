@@ -190,11 +190,17 @@ RSpec.describe Timet::Database do
       db.insert_item(start_time, tag, '', '', nil, nil)
     end
 
-    it 'does not update updated_at and created_at columns for items where they are not null' do
+    it 'does not update updated_at column for items where it is not null' do
       db.insert_item(start_time, tag, '', nil, start_time, start_time)
       db.update_time_columns
       last_item = db.last_item
       expect(last_item[6]).to eq(start_time) # updated_at
+    end
+
+    it 'does not update created_at column for items where it is not null' do
+      db.insert_item(start_time, tag, '', nil, start_time, start_time)
+      db.update_time_columns
+      last_item = db.last_item
       expect(last_item[7]).to eq(start_time) # created_at
     end
   end
