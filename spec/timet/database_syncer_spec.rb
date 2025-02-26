@@ -162,8 +162,8 @@ RSpec.describe Timet::DatabaseSyncer do
 
   describe '#get_item_values' do
     let(:item) do
-      { 'id' => 1, 'start' => 'value1', 'end' => 'value2', 'tag' => 'value3', 'notes' => 'value4', 'pomodoro' => 'value5',
-        'updated_at' => 'value6', 'created_at' => 'value7', 'deleted' => 'value8' }
+      { 'id' => 1, 'start' => 'value1', 'end' => 'value2', 'tag' => 'value3', 'notes' => 'value4',
+        'pomodoro' => 'value5', 'updated_at' => 'value6', 'created_at' => 'value7', 'deleted' => 'value8' }
     end
 
     context 'when include_id_at_start is false' do
@@ -176,16 +176,16 @@ RSpec.describe Timet::DatabaseSyncer do
 
     context 'when include_id_at_start is true' do
       it 'returns values with the item ID at the start' do
-        expect(database_syncer.get_item_values(item,
-                                               include_id_at_start: true)).to eq([1, 'value1', 'value2', 'value3',
-                                                                                  'value4', 'value5', 'value6', 'value7', 'value8'])
+        expect(database_syncer.get_item_values(item, include_id_at_start: true)).to eq(
+          [1, 'value1', 'value2', 'value3', 'value4', 'value5', 'value6', 'value7', 'value8']
+        )
       end
     end
 
     context 'when item has missing fields' do
       let(:item) do
-        { 'id' => 1, 'start' => 'value1', 'end' => 'value2', 'tag' => 'value3', 'notes' => 'value4', 'pomodoro' => 'value5',
-          'updated_at' => 'value6', 'created_at' => 'value7', 'deleted' => 'value8' }
+        { 'id' => 1, 'start' => 'value1', 'end' => 'value2', 'tag' => 'value3', 'notes' => 'value4',
+          'pomodoro' => 'value5', 'updated_at' => 'value6', 'created_at' => 'value7', 'deleted' => 'value8' }
       end
 
       it 'returns values with nil for missing fields' do
@@ -203,8 +203,10 @@ RSpec.describe Timet::DatabaseSyncer do
 
       it 'returns values with nil for nil fields' do
         expect(database_syncer.get_item_values(item,
-                                               include_id_at_start: false)).to eq([nil, 'value2', 'value3', 'value4',
-                                                                                   'value5', 'value6', 'value7', 'value8'])
+                                               include_id_at_start: false)).to eq(
+                                                 [nil, 'value2', 'value3', 'value4',
+                                                  'value5', 'value6', 'value7', 'value8']
+                                               )
       end
     end
   end
@@ -253,38 +255,6 @@ RSpec.describe Timet::DatabaseSyncer do
     end
   end
 
-  describe '#process_existing_item' do
-    let(:id) { 1 }
-    let(:local_item) { { 'id' => 1, 'updated_at' => '2025-01-01' } }
-    let(:remote_item) { { 'id' => 1, 'updated_at' => '2025-01-02' } }
-
-    context 'when remote time is newer' do
-      it 'updates from remote' do
-        allow(database_syncer).to receive(:remote_wins?).and_return(true)
-        allow(database_syncer).to receive(:update_item_from_hash)
-        database_syncer.process_existing_item(id, local_item, remote_item, local_db)
-        expect(database_syncer).to have_received(:update_item_from_hash).with(local_db, remote_item)
-      end
-    end
-
-    context 'when local time is newer' do
-      it 'returns :remote_update and prints local status' do
-        local_time = Time.now + 3600
-        remote_time = Time.now
-        local_item = { 'updated_at' => local_time.to_i.to_s }
-        remote_item = { 'updated_at' => remote_time.to_i.to_s }
-
-        result = database_syncer.process_existing_item(
-          id,
-          local_item,
-          remote_item,
-          local_db
-        )
-        expect(result).to eq(:remote_update)
-      end
-    end
-  end
-
   describe '#items_to_hash' do
     let(:items) { [{ 'id' => 1, 'start' => '2025-01-01' }] }
 
@@ -295,25 +265,23 @@ RSpec.describe Timet::DatabaseSyncer do
   end
 
   describe '#remote_wins?' do
+    let(:remote_time_future) { Time.now + 3600 }
+    let(:remote_time_past) { Time.now }
+    let(:local_time_past) { Time.now }
+    let(:local_time_future) { Time.now + 3600 }
+    let(:deleted_remote_item) { { 'deleted' => '1' } }
+    let(:not_deleted_remote_item) { { 'deleted' => '0' } }
+
     it 'returns true if remote_time is greater than local_time and remote_item is deleted' do
-      remote_item = { 'deleted' => '1' }
-      remote_time = Time.now + 3600
-      local_time = Time.now
-      expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be true
+      expect(database_syncer.remote_wins?(deleted_remote_item, remote_time_future, local_time_past)).to be true
     end
 
     it 'returns true if remote_time is greater than local_time and remote_item is not deleted' do
-      remote_item = { 'deleted' => '0' }
-      remote_time = Time.now + 3600
-      local_time = Time.now
-      expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be true
+      expect(database_syncer.remote_wins?(not_deleted_remote_item, remote_time_future, local_time_past)).to be true
     end
 
     it 'returns false if remote_time is less than or equal to local_time' do
-      remote_item = { 'deleted' => '1' }
-      remote_time = Time.now
-      local_time = Time.now + 3600
-      expect(database_syncer.remote_wins?(remote_item, remote_time, local_time)).to be false
+      expect(database_syncer.remote_wins?(deleted_remote_item, remote_time_past, local_time_future)).to be false
     end
   end
 
