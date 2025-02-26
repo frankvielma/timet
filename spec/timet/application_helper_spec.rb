@@ -16,13 +16,18 @@ RSpec.describe Timet::ApplicationHelper do
   describe '#export_report' do
     let(:report) { instance_double(Timet::TimeReport, items: items) }
     let(:options) { {} }
+    let(:report_exporter) { class_spy(Timet::ApplicationHelper::ReportExporter) }
+
+    before do
+      stub_const('Timet::ApplicationHelper::ReportExporter', report_exporter)
+    end
 
     context 'when there are items in the report' do
       let(:items) { [1, 2, 3] }
 
       it 'calls export_csv_report and export_icalendar_report' do
-        expect(Timet::ApplicationHelper::ReportExporter).to receive(:export_csv_report).with(report, options)
-        expect(Timet::ApplicationHelper::ReportExporter).to receive(:export_icalendar_report).with(report, options)
+        export_report(report, options)
+        expect(report_exporter).to have_received(:export_csv_report).with(report, options)
         export_report(report, options)
       end
     end
@@ -40,7 +45,8 @@ RSpec.describe Timet::ApplicationHelper do
     let(:time) { 1500 }
     let(:tag) { 'work' }
     let(:expected_command) do
-      "sleep #{time} && tput bel && tt stop 0 && notify-send --icon=clock 'Pomodoro session complete (#{tag}). Time for a break.' &"
+      "sleep #{time} && tput bel && tt stop 0 && notify-send --icon=clock " \
+        "'Pomodoro session complete (#{tag}). Time for a break.' &"
     end
     let(:mock_pid) { 1234 }
 
