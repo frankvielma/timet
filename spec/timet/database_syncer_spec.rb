@@ -9,6 +9,7 @@ RSpec.describe Timet::DatabaseSyncer do
   let(:database_syncer) { Class.new { include Timet::DatabaseSyncer }.new }
   let(:local_db) { instance_spy(SQLite3::Database) }
   let(:remote_storage) { instance_spy(Timet::S3Supabase) }
+  let(:db_remote) { instance_spy(SQLite3::Database) }
   let(:bucket) { 'test_bucket' }
   let(:local_db_path) { 'path/to/local/db' }
   let(:remote_path) { 'path/to/remote/db' }
@@ -69,9 +70,10 @@ RSpec.describe Timet::DatabaseSyncer do
       expected_sql = "INSERT INTO items (#{expected_fields}) VALUES (#{expected_placeholders})"
       expected_values = dummy.get_item_values(item, include_id_at_start: true)
 
-      expect(db).to receive(:execute_sql).with(expected_sql, expected_values)
+      allow(db).to receive(:execute_sql)
 
       dummy.insert_item_from_hash(db, item)
+      expect(db).to have_received(:execute_sql).with(expected_sql, expected_values)
     end
   end
 
@@ -85,8 +87,6 @@ RSpec.describe Timet::DatabaseSyncer do
   end
 
   describe '#sync_with_remote_database' do
-    let(:db_remote) { instance_spy(SQLite3::Database) }
-
     before do
       allow(database_syncer).to receive(:open_remote_database).and_return(db_remote)
       allow(database_syncer).to receive(:sync_databases)
@@ -122,12 +122,22 @@ RSpec.describe Timet::DatabaseSyncer do
   end
 
   describe '#sync_databases' do
-    let(:db_remote) { instance_double(SQLite3::Database) }
+    subject(:sync_databases) do
+      database_syncer.sync_databases(local_db, db_remote, remote_storage, bucket, local_db_path)
+    end
 
-    it 'processes database items and uploads local database' do
+    before do
       allow(database_syncer).to receive(:process_database_items)
       allow(remote_storage).to receive(:upload_file)
-      database_syncer.sync_databases(local_db, db_remote, remote_storage, bucket, local_db_path)
+    end
+
+    it 'processes database items' do
+      sync_databases
+      expect(database_syncer).to have_received(:process_database_items).with(local_db, db_remote)
+    end
+
+    it 'uploads local database' do
+      sync_databases
       expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
     end
   end
