@@ -31,6 +31,13 @@ RSpec.describe Timet::DatabaseSyncer do
         database_syncer.handle_database_differences(local_db, remote_storage, bucket, local_db_path,
                                                     remote_path)
       end.to output(/Error opening remote database: Sync error/).to_stdout
+    end
+
+    it 'uploads the local database when a sync error occurs' do
+      error = SQLite3::Exception.new('Sync error')
+      allow(database_syncer).to receive(:sync_with_remote_database).and_raise(error)
+      database_syncer.handle_database_differences(local_db, remote_storage, bucket, local_db_path,
+                                                  remote_path)
       expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
     end
   end
@@ -89,6 +96,10 @@ RSpec.describe Timet::DatabaseSyncer do
     it 'sets results_as_hash for both databases' do
       database_syncer.sync_with_remote_database(local_db, remote_path, remote_storage, bucket, local_db_path)
       expect(db_remote).to have_received(:results_as_hash=).with(true)
+    end
+
+    it 'sets results_as_hash for local database' do
+      database_syncer.sync_with_remote_database(local_db, remote_path, remote_storage, bucket, local_db_path)
       expect(local_db).to have_received(:results_as_hash=).with(true)
     end
   end
@@ -131,9 +142,13 @@ RSpec.describe Timet::DatabaseSyncer do
       allow(database_syncer).to receive(:sync_items_by_id)
     end
 
-    it 'fetches items from both databases' do
+    it 'fetches items from the local database' do
       database_syncer.process_database_items(local_db, remote_db)
       expect(local_db).to have_received(:execute_sql).with('SELECT * FROM items ORDER BY updated_at DESC')
+    end
+
+    it 'fetches items from the remote database' do
+      database_syncer.process_database_items(local_db, remote_db)
       expect(remote_db).to have_received(:execute).with('SELECT * FROM items ORDER BY updated_at DESC')
     end
 
