@@ -121,67 +121,51 @@ RSpec.describe Timet::TimeReport, type: :integration do
   end
 
   describe 'CSV export' do
-    it 'exports entries to CSV' do
-      today = Date.today
-      db.execute_sql(
-        "INSERT INTO items (start, end, tag, notes) VALUES
-			(?, ?, 'work', 'Testing task 1')",
-        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
-         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
-      )
-      temp_csv = Tempfile.new(['test_export', '.csv'])
-      begin
-        report = described_class.new(db, filter: 'today', csv: temp_csv.path)
-        report.send(:write_csv, temp_csv.path)
+    let(:today) { Date.today }
+    let(:start_time) { Time.new(today.year, today.month, today.day, 9, 0, 0).to_i }
+    let(:end_time) { Time.new(today.year, today.month, today.day, 10, 0, 0).to_i }
+    let(:csv_header) { %w[ID Start End Tag Notes] }
+    let(:csv_entry) { [anything, start_time, end_time, 'work', 'Testing task 1'] }
 
-        csv_content = CSV.read(temp_csv.path)
-        expect(csv_content.length).to eq(2) # Header + 1 entry
-      ensure
-        temp_csv.close
-        temp_csv.unlink
-      end
+    before do
+      db.execute_sql(
+        'INSERT INTO items (start, end, tag, notes) VALUES (?, ?, ?, ?)',
+        [start_time, end_time, 'work', 'Testing task 1']
+      )
+    end
+
+    def read_csv(path)
+      CSV.read(path)
+    end
+
+    it 'exports entries to CSV' do
+      temp_csv = Tempfile.new(['test_export', '.csv'])
+      report = described_class.new(db, filter: 'today', csv: temp_csv.path)
+      report.send(:write_csv, temp_csv.path)
+
+      csv_content = read_csv(temp_csv.path)
+      expect(csv_content.length).to eq(2)
+      temp_csv.close!
     end
 
     it 'verifies the CSV header' do
-      today = Date.today
-      db.execute_sql(
-        "INSERT INTO items (start, end, tag, notes) VALUES
-			(?, ?, 'work', 'Testing task 1')",
-        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
-         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
-      )
       temp_csv = Tempfile.new(['test_export', '.csv'])
-      begin
-        report = described_class.new(db, filter: 'today', csv: temp_csv.path)
-        report.send(:write_csv, temp_csv.path)
+      report = described_class.new(db, filter: 'today', csv: temp_csv.path)
+      report.send(:write_csv, temp_csv.path)
 
-        csv_content = CSV.read(temp_csv.path)
-        expect(csv_content[0]).to eq(%w[ID Start End Tag Notes])
-      ensure
-        temp_csv.close
-        temp_csv.unlink
-      end
+      csv_content = read_csv(temp_csv.path)
+      expect(csv_content[0]).to eq(csv_header)
+      temp_csv.close!
     end
 
     it 'verifies the CSV content' do
-      today = Date.today
-      db.execute_sql(
-        "INSERT INTO items (start, end, tag, notes) VALUES
-			(?, ?, 'work', 'Testing task 1')",
-        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
-         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
-      )
       temp_csv = Tempfile.new(['test_export', '.csv'])
-      begin
-        report = described_class.new(db, filter: 'today', csv: temp_csv.path)
-        report.send(:write_csv, temp_csv.path)
+      report = described_class.new(db, filter: 'today', csv: temp_csv.path)
+      report.send(:write_csv, temp_csv.path)
 
-        csv_content = CSV.read(temp_csv.path)
-        expect(csv_content[1][3]).to eq('work')
-      ensure
-        temp_csv.close
-        temp_csv.unlink
-      end
+      csv_content = read_csv(temp_csv.path)
+      expect(csv_content[1][3]).to eq('work')
+      temp_csv.close!
     end
   end
 

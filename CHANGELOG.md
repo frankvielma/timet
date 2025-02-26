@@ -1,8 +1,33 @@
-## [Unreleased]
+## [1.5.5] - 2025-02-26
+
+**Improvements:**
+
+- Refactored `DatabaseSyncer` specs to improve clarity, maintainability, and reduce redundancy.
+  - Removed `#process_existing_item` as its logic was redundant.
+  - Improved `#remote_wins?` tests with `let` blocks and better descriptions.
+  - Split multi-expectation tests into smaller, focused tests.
+  - Improved test descriptions for accuracy and clarity.
+  - Reorganized tests into more logical `describe` blocks.
+  - Moved S3 download tests to the `Timet::S3Supabase` `describe` block.
+  - Improved CSV export tests with extracted common data, centralized database setup, and a helper method.
+  - Improved message expectations in `#export_report` using `class_spy` and `have_received`.
+  - Improved test readability in `ApplicationHelper` with `let` blocks and separate `it` blocks.
+  - Refactored `DatabaseSyncer` specs with `let` blocks, focused examples, and explicit `expect` assertions.
+  - Prefer `have_received` for setting message expectations.
+  - Improved granularity in specs with smaller, focused examples and shared test data.
+- Updated gem dependencies to latest versions.
+- Overall code cleanup and improved test structure.
+- Update the way rubocop plugins are defined in the config.
+- Removed unnecessary comments.
+
+**Bug Fixes:**
+
+- Fixed a bug in the time field update logic in `validation_edit_helper`, specifically regarding the end time.
 
 ## [1.5.4] - 2025-02-11
 
 **Improvements:**
+
 - Added `.env` file creation in CI workflow for testing environment variables.
 - Updated Code Climate coverage reporting to use `simplecov-lcov` for LCOV format compatibility.
 - Refactored validation error message tests in `ValidationEditHelper` for clarity and maintainability.
@@ -16,6 +41,7 @@
 - Improved error handling and added tests for `S3Supabase`.
 
 **Bug Fixes:**
+
 - Fixed environment variable validation in `S3Supabase` to handle `nil` values.
 - Resolved issues with database synchronization logic in `DatabaseSyncer`.
 - Fixed test setup and cleanup in `S3Supabase` and `DatabaseSyncer` specs.
