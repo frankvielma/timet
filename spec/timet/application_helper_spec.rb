@@ -37,41 +37,50 @@ RSpec.describe Timet::ApplicationHelper do
   end
 
   describe '#run_linux_session' do
-    it 'constructs the correct command and detaches the process' do
-      time = 1500
-      tag = 'work'
-      expected_command = "sleep #{time} && tput bel && tt stop 0 && notify-send --icon=clock 'Pomodoro session complete (#{tag}). Time for a break.' &"
-      mock_pid = 1234
+    let(:time) { 1500 }
+    let(:tag) { 'work' }
+    let(:expected_command) do
+      "sleep #{time} && tput bel && tt stop 0 && notify-send --icon=clock 'Pomodoro session complete (#{tag}). Time for a break.' &"
+    end
+    let(:mock_pid) { 1234 }
 
-      # Ensure stub is applied before calling the method
+    before do
       allow(Kernel).to receive(:spawn).and_return(mock_pid)
       allow(Process).to receive(:detach)
+    end
 
-      # Call the method
+    it 'spawns the correct command' do
       run_linux_session(time, tag)
-
-      # Validate spawn and detach were called
       expect(Kernel).to have_received(:spawn).with(expected_command).once
+    end
+
+    it 'detaches the process' do
+      run_linux_session(time, tag)
       expect(Process).to have_received(:detach).with(mock_pid).once
     end
   end
 
   describe '#run_mac_session' do
-    it 'constructs the correct command and detaches the process' do
-      time = 1500
-      tag = 'work'
-      expected_command = "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && osascript -e 'display notification \"Pomodoro session complete (work). Time for a break.\"' &"
-      mock_pid = 1235
+    let(:time) { 1500 }
+    let(:tag) { 'work' }
+    let(:expected_command) do
+      "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && " \
+        "osascript -e 'display notification \"Pomodoro session complete (#{tag}). Time for a break.\"' &"
+    end
+    let(:mock_pid) { 1235 }
 
-      # Ensure stub is applied before calling the method
+    before do
       allow(Kernel).to receive(:spawn).and_return(mock_pid)
       allow(Process).to receive(:detach)
+    end
 
-      # Call the method
+    it 'spawns the correct command' do
       run_mac_session(time, tag)
-
-      # Validate spawn and detach were called
       expect(Kernel).to have_received(:spawn).with(expected_command).once
+    end
+
+    it 'detaches the process' do
+      run_mac_session(time, tag)
       expect(Process).to have_received(:detach).with(mock_pid).once
     end
   end
