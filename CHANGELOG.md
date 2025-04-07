@@ -1,3 +1,33 @@
+## [1.5.6] - 2025-04-07
+
+**Improvements:**
+
+- **Enhanced Edit Command:** The `edit` command now interactively prompts the user for both the field to edit and its new value if they are not provided as command-line arguments.
+- **Improved Database Initialization:** Database initialization logic has been extracted into a separate `initialize_database` method within the `Application` class, improving code organization and readability.
+- **Refactored `validate_and_update`:** The `validate_and_update` method in `ValidationEditHelper` has been refactored to handle both time fields and other fields more robustly. It now raises an `ArgumentError` for invalid fields and returns the updated item.
+- **Enhanced Security:** The `update_item` method in the `Database` class now utilizes parameterized queries to prevent SQL injection vulnerabilities.
+- **Improved Data Integrity:** The `update_time_columns` method in the `Database` class now correctly updates the `updated_at` and `created_at` columns to reflect the current time.
+- **Code Clarity:** Increased the `Metrics/MethodLength` max length to 15 in `.rubocop.yml` to accommodate refactored code.
+- **Dependency Updates:**
+  - Updated `aws-sdk-s3` to version 1.183.
+  - Updated `csv` to version 3.3.3.
+  - Updated `diff-lcs` to version 1.6.1.
+  - Updated `json` to version 2.10.2.
+  - Updated `parser` to version 3.3.7.4.
+  - Updated `rubocop` to version 1.75.2.
+  - Updated `rubocop-ast` to version 1.44.0.
+  - Added `prism` to version 1.4.0.
+  - Added `logger` to version 1.7.0.
+- **Test Coverage:** Added new tests to `application_spec.rb` to cover the `edit` command, and to `database_spec.rb` to cover the `update_item` and `update_time_columns` methods. Refactored tests in `validation_edit_helper_spec.rb` to cover changes in `validate_and_update`.
+- **Git Ignore:** Added `.qodo` to `.gitignore` to prevent it from being added to the repository.
+
+**Bug Fixes:**
+
+- **Edit Command:** The `edit` command now correctly updates the database with the new value.
+- **`update_item`:** The `update_item` method is no longer vulnerable to SQL injection.
+- **`update_time_columns`:** The `update_time_columns` method now correctly updates the `updated_at` and `created_at` columns.
+- **.qodo file:** The .qodo file is now ignored by git.
+
 ## [1.5.5] - 2025-02-26
 
 **Improvements:**

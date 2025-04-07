@@ -9,32 +9,42 @@ module Timet
     # Constants for time fields.
     TIME_FIELDS = %w[start end].freeze
 
-    # Validates and updates a tracking item's field with a new value.
+    # Validates and updates an item's attribute based on the provided field and new value.
     #
-    # @param item [Array] The tracking item to be updated.
+    # @param item [Array] The item to be updated.
     # @param field [String] The field to be updated.
-    # @param new_value [String, nil] The new value to be set for the specified field.
+    # @param new_value [String] The new value for the field.
     #
-    # @return [Array, nil] The updated tracking item if the update was successful, otherwise nil.
+    # @return [Array] The updated item.
     #
-    # @example Validate and update the 'notes' field of a tracking item
-    #   validate_and_update(item, 'notes', 'Updated notes')
-    #
-    # @note The method checks if the field is a time field (start or end) and processes it accordingly.
-    # @note If the field is not a time field, it directly updates the field with the new value.
-    # @note The method returns the updated tracking item if the update was successful.
+    # @raise [ArgumentError] If the field is invalid or the new value is invalid.
     def validate_and_update(item, field, new_value)
-      return if new_value.nil?
-
-      id = item[0]
-
-      if TIME_FIELDS.include?(field)
-        process_and_update_time_field(item, field, new_value, id)
+      case field
+      when 'notes'
+        item[4] = new_value
+      when 'tag'
+        item[3] = new_value
+      when 'start'
+        item[1] = validate_time(new_value)
+      when 'end'
+        item[2] = validate_time(new_value)
       else
-        @db.update_item(id, field, new_value)
+        raise ArgumentError, "Invalid field: #{field}"
       end
+      item
+    end
 
-      @db.find_item(id)
+    # Validates if a given time string is in a valid format.
+    #
+    # @param time_str [String] The time string to validate.
+    #
+    # @return [Integer] The validated time as an integer.
+    #
+    # @raise [ArgumentError] If the time string is not in a valid format.
+    def validate_time(time_str)
+      Time.parse(time_str).to_i
+    rescue ArgumentError
+      raise ArgumentError, "Invalid time format: #{time_str}"
     end
 
     private
@@ -116,9 +126,9 @@ module Timet
       item_after_start = fetch_item_after_start(id)
 
       if field == 'start'
-        new_value_epoch >= item_before_end && new_value_epoch <= item_end
+        new_value_epoch.between?(item_before_end, item_end)
       else
-        new_value_epoch >= item_start && new_value_epoch <= item_after_start
+        new_value_epoch.between?(item_start, item_after_start)
       end
     end
 

@@ -12,3 +12,4 @@
 .byebug_history
 .vscode
 /spec/examples.txt
+.qodo

@@ -115,9 +115,7 @@ module Timet
     #
     # @note The method executes SQL to update the specified field of the item with the given ID.
     def update_item(id, field, value)
-      return if %w[start end].include?(field) && value.nil?
-
-      execute_sql("UPDATE items SET #{field}='#{value}', updated_at=#{Time.now.utc.to_i} WHERE id = #{id}")
+      execute_sql("UPDATE items SET #{field} = ?, updated_at = ? WHERE id = ?", [value, Time.now.utc.to_i, id])
     end
 
     # Deletes an item from the items table.
@@ -162,19 +160,21 @@ module Timet
       result.empty? ? nil : result[0]
     end
 
-    # Finds an item in the items table by its ID.
+    # Finds an item by its ID.
     #
-    # @param id [Integer] The ID of the item to be found.
+    # @param id [Integer] The ID of the item to find.
     #
-    # @return [Array, nil] The item as an array, or nil if the item does not exist.
+    # @return [Array, nil] The item as an array if found, nil otherwise.
     #
     # @example Find an item with ID 1
-    #   find_item(1)
+    #   find_item(1) # => [1, 1678886400, 1678890000, 'work', 'notes', nil, 1678890000, 1678886400, nil]
     #
-    # @note The method executes SQL to find the item with the given ID in the 'items' table.
+    # @note The method executes a SQL query to find the item by its ID.
+    # @note If the item is found, it returns the item as an array.
+    # @note If the item is not found, it returns nil.
     def find_item(id)
-      result = execute_sql('SELECT * FROM items WHERE id = ? AND (deleted IS NULL OR deleted = 0)', [id])
-      result.empty? ? nil : result[0]
+      result = execute_sql('SELECT * FROM items WHERE id = ?', [id])
+      result.first.dup if result.any? # Add .dup to create a copy
     end
 
     # Fetches all items from the items table that have a start time greater than or equal to today.
@@ -316,7 +316,7 @@ module Timet
       result.each do |item|
         id = item[0]
         end_time = item[2]
-        execute_sql("UPDATE items SET updated_at = #{end_time}, created_at = #{end_time} WHERE id = #{id}")
+        execute_sql('UPDATE items SET updated_at = ?, created_at = ? WHERE id = ?', [end_time, end_time, id])
       end
     end
   end
