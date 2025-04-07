@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    timet (1.5.5)
+    timet (1.5.6)
       aws-sdk-s3 (~> 1.178)
       descriptive_statistics (~> 2)
       dotenv (~> 3)
