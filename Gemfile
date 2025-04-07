@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'aws-sdk-s3', '~> 1.182'
+gem 'aws-sdk-s3', '~> 1.183'
 gem 'base64', '~> 0.2'
 gem 'csv', '~> 3.3'
 gem 'descriptive_statistics', '~> 2.5'

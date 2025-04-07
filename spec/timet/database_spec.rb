@@ -2,6 +2,7 @@
 
 require 'timet/database'
 require 'tmpdir'
+require 'set' # Add require for Set
 
 RSpec.describe Timet::Database do
   let(:db_path) { File.join(Dir.tmpdir, 'test_timet.db') }
@@ -187,7 +188,27 @@ RSpec.describe Timet::Database do
     let(:tag) { 'work' }
 
     before do
-      db.insert_item(start_time, tag, '', '', nil, nil)
+      db.insert_item(start_time, tag, '')
+    end
+
+    context 'when end_time is NULL' do
+      it 'updates updated_at and created_at to NULL' do
+        db.execute_sql('INSERT INTO items (start, end, tag) VALUES (?, ?, ?)', [100, nil, 'test'])
+        db.update_time_columns
+        result = db.execute_sql('SELECT updated_at, created_at FROM items WHERE id = ?', [2])
+        expect(result[0][0]).to be_nil
+        expect(result[0][1]).to be_nil
+      end
+    end
+
+    context 'when end_time is not NULL' do
+      it 'updates updated_at and created_at to end_time' do
+        db.execute_sql('INSERT INTO items (start, end, tag) VALUES (?, ?, ?)', [100, 200, 'test'])
+        db.update_time_columns
+        result = db.execute_sql('SELECT updated_at, created_at FROM items WHERE id = ?', [2])
+        expect(result[0][0]).to eq(200)
+        expect(result[0][1]).to eq(200)
+      end
     end
 
     it 'does not update updated_at column for items where it is not null' do
@@ -202,6 +223,32 @@ RSpec.describe Timet::Database do
       db.update_time_columns
       last_item = db.last_item
       expect(last_item[7]).to eq(start_time) # created_at
+    end
+  end
+
+  describe '#update_item' do
+    before do
+      db.execute_sql('INSERT INTO items (start, end, tag) VALUES (?, ?, ?)', [100, 200, 'test'])
+    end
+
+    context 'when value is NULL' do
+      it 'updates the field to NULL and updated_at to the current time' do
+        current_time = Time.now.utc.to_i
+        db.update_item(1, 'end', nil)
+        result = db.execute_sql('SELECT end, updated_at FROM items WHERE id = ?', [1])
+        expect(result[0][0]).to be_nil
+        expect(result[0][1]).to be_within(1).of(current_time)
+      end
+    end
+
+    context 'when value is not NULL' do
+      it 'updates the field to the new value and updated_at to the current time' do
+        current_time = Time.now.utc.to_i
+        db.update_item(1, 'tag', 'new_tag')
+        result = db.execute_sql('SELECT tag, updated_at FROM items WHERE id = ?', [1])
+        expect(result[0][0]).to eq('new_tag')
+        expect(result[0][1]).to be_within(1).of(current_time)
+      end
     end
   end
 end

@@ -51,11 +51,17 @@ module Timet
 
     def initialize(*args)
       super
+      options = args[2] || {} # Third argument is the options hash
 
-      if defined?(RSpec)
+      # Allow injecting a database instance, primarily for testing
+      if options[:database]
+        @db = options[:database]
+      elsif defined?(RSpec)
+        # Fallback for RSpec if not injected (though injection is preferred)
         @db = Database.new
       else
-        command_name = args.dig(2, :current_command, :name)
+        # Production database initialization
+        command_name = options.dig(:current_command, :name)
         if VALID_ARGUMENTS.include?(command_name)
           @db = Database.new
         else
@@ -219,13 +225,14 @@ module Timet
       return puts "No tracked time found for id: #{id}" unless item
 
       display_item(item)
-      unless FIELD_INDEX.keys.include?(field&.downcase) || new_value
+      if field.nil? || new_value.nil?
         field = select_field_to_edit
         new_value = prompt_for_new_value(item, field)
       end
 
       updated_item = validate_and_update(item, field, new_value)
-      display_item(updated_item || item)
+      @db.update_item(id, field, updated_item[FIELD_INDEX[field]])
+      display_item(updated_item)
     end
 
     desc 'delete (d) [id]', 'Delete task => tt d 23'
