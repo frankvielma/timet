@@ -6,7 +6,7 @@ require 'tty-prompt'
 
 RSpec.describe Timet::Application do
   let(:db) { Timet::Database.new(':memory:') }
-  let(:app) { Timet::Application.new([], {}, { database: db }) }
+  let(:app) { described_class.new([], {}, { database: db }) }
   let(:prompt) { instance_double(TTY::Prompt) }
 
   before do
@@ -22,8 +22,7 @@ RSpec.describe Timet::Application do
 
     context 'when field and new_value are not provided' do
       it 'prompts the user for field and new_value' do
-        allow(prompt).to receive(:select).and_return('tag')
-        allow(prompt).to receive(:ask).and_return('new_tag')
+        allow(prompt).to receive_messages(select: 'tag', ask: 'new_tag')
 
         app.edit(1)
 

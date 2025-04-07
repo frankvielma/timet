@@ -52,10 +52,29 @@ module Timet
     def initialize(*args)
       super
       options = args[2] || {} # Third argument is the options hash
+      initialize_database(options)
+    end
+
+    # Initializes the database connection based on the provided options.
+    #
+    # This method determines how to initialize the database connection based on the options provided.
+    # It supports injecting a database instance for testing, using a fallback for RSpec, and initializing
+    # a production database based on valid command arguments.
+    #
+    # @param options [Hash] A hash of options that may include a :database key for injecting a database instance.
+    # @option options [Database] :database An instance of the Database class to be used directly.
+    # @option options [Hash] :current_command The current command being executed, used to validate production
+    #   database initialization.
+    #
+    # @return [void] This method does not return a value; it initializes the `@db` instance variable.
+    #
+    # @raise [SystemExit] If invalid arguments are provided for production database initialization.
+    def initialize_database(options)
+      db_from_options = options[:database]
 
       # Allow injecting a database instance, primarily for testing
-      if options[:database]
-        @db = options[:database]
+      if db_from_options
+        @db = db_from_options
       elsif defined?(RSpec)
         # Fallback for RSpec if not injected (though injection is preferred)
         @db = Database.new

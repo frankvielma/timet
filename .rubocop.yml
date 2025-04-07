@@ -6,7 +6,7 @@ AllCops:
     - timet.gemspec
 
 Metrics/MethodLength:
-  Max: 12
+  Max: 15
 
 plugins: rubocop-rspec
 
