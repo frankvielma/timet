@@ -69,23 +69,25 @@ module Timet
     # @return [void] This method does not return a value; it initializes the `@db` instance variable.
     #
     # @raise [SystemExit] If invalid arguments are provided for production database initialization.
-    def initialize_database(options)
-      db_from_options = options[:database]
+    no_commands do
+      def initialize_database(options)
+        db_from_options = options[:database]
 
-      # Allow injecting a database instance, primarily for testing
-      if db_from_options
-        @db = db_from_options
-      elsif defined?(RSpec)
-        # Fallback for RSpec if not injected (though injection is preferred)
-        @db = Database.new
-      else
-        # Production database initialization
-        command_name = options.dig(:current_command, :name)
-        if VALID_ARGUMENTS.include?(command_name)
+        # Allow injecting a database instance, primarily for testing
+        if db_from_options
+          @db = db_from_options
+        elsif defined?(RSpec)
+          # Fallback for RSpec if not injected (though injection is preferred)
           @db = Database.new
         else
-          warn 'Invalid arguments provided. Please check your input.'
-          exit(1)
+          # Production database initialization
+          command_name = options.dig(:current_command, :name)
+          if VALID_ARGUMENTS.include?(command_name)
+            @db = Database.new
+          else
+            warn 'Invalid arguments provided. Please check your input.'
+            exit(1)
+          end
         end
       end
     end
