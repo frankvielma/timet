@@ -64,7 +64,7 @@ module Timet
 
       new_epoch = new_datetime.to_i
 
-      perform_validation(field, new_epoch, start_timestamp, end_timestamp, new_datetime)
+      perform_validation(item, field, new_epoch, start_timestamp, end_timestamp, new_datetime)
 
       new_epoch
     end
@@ -73,17 +73,54 @@ module Timet
 
     # Performs the appropriate validation based on the field.
     #
+    # @param item [Array] The item being modified.
     # @param field [String] The field being validated ('start' or 'end').
     # @param new_epoch [Integer] The new time in epoch format.
     # @param start_timestamp [Integer, nil] The start timestamp of the item.
     # @param end_timestamp [Integer, nil] The end timestamp of the item.
     # @param new_datetime [Time] The new datetime object.
-    def perform_validation(field, new_epoch, start_timestamp, end_timestamp, new_datetime)
+    def perform_validation(item, field, new_epoch, start_timestamp, end_timestamp, new_datetime)
+      validate_future_date(new_datetime)
+
       if field == 'end'
         validate_end_time(new_epoch, start_timestamp, new_datetime)
-      elsif field == 'start' && end_timestamp # If start is being updated and end already exists
-        validate_start_time(new_epoch, end_timestamp, new_datetime)
+      elsif field == 'start' # If start is being updated
+        validate_collision(item, new_epoch)
+        validate_start_time(new_epoch, end_timestamp, new_datetime) if end_timestamp
       end
+    end
+
+    # Validates that the new datetime is not in the future.
+    #
+    # @param new_datetime [Time] The new datetime object.
+    #
+    # @raise [ArgumentError] If the new datetime is in the future.
+    def validate_future_date(new_datetime)
+      return unless new_datetime > Time.now
+
+      raise ArgumentError, "Cannot set time to a future date: #{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}"
+    end
+
+    # Validates that the new start time does not collide with existing entries.
+    #
+    # @param item [Array] The item being modified.
+    # @param new_start_epoch [Integer] The new start time in epoch format.
+    #
+    # @raise [ArgumentError] If the new start time collides with a previous or next item.
+    def validate_collision(item, new_start_epoch)
+      item_id = item[0]
+      prev_item = @db.find_item(item_id - 1)
+      next_item = @db.find_item(item_id + 1)
+
+      if prev_item && new_start_epoch < prev_item[2]
+        raise ArgumentError,
+              "New start time collides with previous item (ends at #{Time.at(prev_item[2]).strftime('%Y-%m-%d %H:%M:%S')})."
+      end
+
+      return unless next_item && new_start_epoch > next_item[1]
+
+      raise ArgumentError,
+            "New start time collides with next item (starts at #{Time.at(next_item[1]).strftime('%Y-%m-%d %H:%M:%S')})."
     end
 
     # Parses the time string and raises an ArgumentError if the format is invalid.
@@ -138,21 +175,21 @@ module Timet
       end
     end
 
-    # Creates a new datetime object based on the base date and parsed time component.
+    # Creates a new datetime object based on the parsed time component.
     #
-    # @param base_date_time [Time] The base date and time.
+    # @param _base_date_time [Time] The base date and time (not used for date components).
     # @param parsed_time_component [Time] The parsed time component.
     #
     # @return [Time] The new datetime object.
-    def create_new_datetime(base_date_time, parsed_time_component)
+    def create_new_datetime(_base_date_time, parsed_time_component)
       Time.new(
-        base_date_time.year,
-        base_date_time.month,
-        base_date_time.day,
+        parsed_time_component.year,
+        parsed_time_component.month,
+        parsed_time_component.day,
         parsed_time_component.hour,
         parsed_time_component.min,
         parsed_time_component.sec,
-        base_date_time.utc_offset # Preserve timezone context
+        parsed_time_component.utc_offset # Preserve timezone context
       )
     end
 
