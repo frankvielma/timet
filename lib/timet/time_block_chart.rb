@@ -24,6 +24,15 @@ module Timet
     # Separator character for the chart
     SEPARATOR_CHAR = '░'
 
+    # Width of the date/week string content (e.g., "02 2023-10-01 Fri")
+    DATE_WEEK_CONTENT_WIDTH = 17
+
+    # Width of the '┆- ' part after the date/week string
+    DATE_WEEK_BORDER_WIDTH = 3
+
+    # Width of the total hours column including the border
+    TOTAL_HOURS_COLUMN_WIDTH = 4
+
     # Initializes a new TimeBlockChart instance.
     #
     # This method sets up the time block chart by processing the time entries from the provided table
@@ -124,7 +133,7 @@ module Timet
       return unless @time_block
 
       weeks = []
-      @time_block.each_key do |date_string|
+      @time_block.keys.sort.each do |date_string|  # ISO-date strings sort naturally
         date = Date.parse(date_string)
         day = date.strftime('%a')[0..2]
 
@@ -202,7 +211,7 @@ module Timet
     # @return [void]
     def print_inter_week_separator
       sep = SEPARATOR_CHAR
-      puts "┆#{sep * 17}┼#{sep * (@end_hour - @start_hour + 1) * 4}#{sep * 3}┼#{sep * 4}".gray
+      puts "┆#{sep * DATE_WEEK_CONTENT_WIDTH}┼#{sep * (@end_hour - @start_hour + 1) * 4}#{sep * DATE_WEEK_BORDER_WIDTH}┼#{sep * TOTAL_HOURS_COLUMN_WIDTH}".gray
     end
   end
 end
