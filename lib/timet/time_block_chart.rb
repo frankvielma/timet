@@ -80,6 +80,8 @@ module Timet
     # @see #print_header
     # @see #print_blocks
     def print_time_block_chart(colors)
+      return puts 'No time-block data to display.' if @no_data
+
       print_header
       print_blocks(colors)
     end
@@ -92,7 +94,15 @@ module Timet
     def print_header
       puts
       print_hours_row
-      puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (@end_hour - @start_hour + 1) * 4}╴╴╴┼".gray
+      # Dynamically build header using width constants
+      left = "┌#{'╴' * (DATE_WEEK_CONTENT_WIDTH - 11)}"
+      week = 'W'.center(DATE_WEEK_BORDER_WIDTH, '╴')
+      clock = '⏰'.center(DATE_WEEK_BORDER_WIDTH + 4, '╴')
+      hours_width = (@end_hour - @start_hour + 1) * 4
+      hours = '╴' * hours_width
+      right = "#{'╴' * (TOTAL_HOURS_COLUMN_WIDTH - 1)}┼"
+      header = left.gray + week.gray + clock.gray + '┼'.gray + hours.gray + right.gray
+      puts header
     end
 
     # Prints the hours row in the header.
@@ -101,7 +111,7 @@ module Timet
     def print_hours_row
       left_margin = DATE_WEEK_CONTENT_WIDTH + DATE_WEEK_BORDER_WIDTH - 1
       print ' ' * left_margin
-      (@start_hour..@end_hour + 1).each { |hour| print format('%02d', hour).rjust(4) }
+      (@start_hour..@end_hour).each { |hour| print format('%02d', hour).rjust(4) }
       puts
     end
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'timet/utils'
 
 RSpec.describe Timet::TimeReportHelper do
   include described_class
@@ -39,7 +40,7 @@ RSpec.describe Timet::TimeReportHelper do
         'week' => [today - 7, tomorrow],
         'month' => [today - 30, tomorrow]
       }
-      expect(date_ranges).to eq(expected_ranges)
+      expect(Timet::Utils.date_ranges).to eq(expected_ranges)
     end
   end
 
@@ -47,7 +48,7 @@ RSpec.describe Timet::TimeReportHelper do
     let(:item) do
       [1, Time.new(2024, 1, 1, 10, 0, 0).to_i, Time.new(2024, 1, 1, 12, 0, 0).to_i, 'meeting', 'Discuss project']
     end
-    let(:formatted_item) { format_item(item) }
+    let(:formatted_item) { Timet::Utils.format_item(item) }
 
     it 'formats an item for CSV export - id' do
       expect(formatted_item[0]).to eq(item[0])
@@ -72,22 +73,22 @@ RSpec.describe Timet::TimeReportHelper do
 
   describe '#valid_date_format?' do
     it 'returns true for valid single date format' do
-      expect(valid_date_format?('2024-01-01')).to be true
+      expect(Timet::Utils.valid_date_format?('2024-01-01')).to be true
     end
 
     it 'returns true for valid date range format' do
-      expect(valid_date_format?('2024-01-01..2024-01-31')).to be true
+      expect(Timet::Utils.valid_date_format?('2024-01-01..2024-01-31')).to be true
     end
 
     it 'returns false for invalid date format' do
-      expect(valid_date_format?('2024-01')).to be false
+      expect(Timet::Utils.valid_date_format?('2024-01')).to be false
     end
   end
 
   describe '#add_hashes' do
     let(:base_hash) { { 'key1' => [10, 'tag1'], 'key2' => [20, 'tag2'] } }
     let(:additional_hash) { { 'key1' => [5, 'tag1'], 'key3' => [15, 'tag3'] } }
-    let(:merged_hash) { add_hashes(base_hash, additional_hash) }
+    let(:merged_hash) { Timet::Utils.add_hashes(base_hash, additional_hash) }
 
     it 'merges the key1' do
       expect(merged_hash['key1']).to eq([15, 'tag1'])
@@ -129,7 +130,7 @@ RSpec.describe Timet::TimeReportHelper do
   end
 
   describe '#add_events' do
-    let(:cal) { send(:add_events) }
+    let(:cal) { Timet::Utils.add_events(items) }
 
     it 'creates an iCalendar object' do
       expect(cal).to be_an_instance_of(Icalendar::Calendar)
@@ -144,7 +145,7 @@ RSpec.describe Timet::TimeReportHelper do
     let(:item) do
       [1, Time.new(2024, 1, 1, 10, 0, 0).to_i, Time.new(2024, 1, 1, 12, 0, 0).to_i, 'meeting', 'Discuss project']
     end
-    let(:event) { send(:create_event, item) }
+    let(:event) { Timet::Utils.create_event(item) }
 
     it 'creates an iCalendar event' do
       expect(event).to be_an_instance_of(Icalendar::Event)
@@ -174,7 +175,7 @@ RSpec.describe Timet::TimeReportHelper do
   describe '#convert_to_datetime' do
     it 'converts a timestamp to a DateTime object' do
       timestamp = Time.new(2024, 1, 1, 10, 0, 0).to_i
-      datetime = send(:convert_to_datetime, timestamp)
+      datetime = Timet::Utils.convert_to_datetime(timestamp)
       expect(datetime).to eq(Time.at(timestamp).to_datetime)
     end
   end

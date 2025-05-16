@@ -51,8 +51,8 @@ module Timet
 
     def initialize(*args)
       super
-      options = args[2] || {} # Third argument is the options hash
-      initialize_database(options)
+      config = args[2] || {} # Third argument is the config hash
+      initialize_database(config)
     end
 
     # Initializes the database connection based on the provided options.

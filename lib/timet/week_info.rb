@@ -16,6 +16,8 @@ module Timet
     # @param date_string_for_display [String] The original date string for display (e.g., "2023-10-01").
     # @param weeks_array_ref [Array<Integer>] A reference to an array that accumulates the
     #   ISO 8601 week numbers of dates already processed. This array is mutated.
+
+    WEEKEND_DAYS = %w[Sat Sun].freeze
     def initialize(date_object, date_string_for_display, weeks_array_ref)
       @date_string = date_string_for_display # Use the passed string for display
       @current_cweek = date_object.cweek
@@ -50,7 +52,7 @@ module Timet
     # @return [void]
     def format_and_print_date_info(day)
       weekend_str = @date_string # Use the original date string for display
-      is_weekend_day = %w[Sat Sun].include?(day)
+      is_weekend_day = WEEKEND_DAYS.include?(day)
       day_str = is_weekend_day ? day.red : day
       weekend_str = weekend_str.red if is_weekend_day
 
