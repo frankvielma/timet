@@ -17,7 +17,7 @@ gem 'tty-prompt', '~> 0.23'
 
 group :development do
   gem 'rexml', '~> 3.4'
-  gem 'rubocop', '~> 1.76'
+  gem 'rubocop', '~> 1.75'
   gem 'rubocop-rspec', '~> 3.6', require: false
 end
 
