@@ -26,7 +26,6 @@ module Timet
     def self.get_block_char(value)
       return ' ' unless value
 
-      # For frequent lookups, a binary search approach or direct comparison might be faster
       mapping = CHAR_MAPPING.find { |range, _| range.include?(value) }
       mapping ? mapping.last : ' '
     end

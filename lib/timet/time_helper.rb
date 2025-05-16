@@ -247,5 +247,22 @@ module Timet
     def self.beginning_of_day(time = Time.now)
       Time.new(time.year, time.month, time.day)
     end
+
+    # Creates a new datetime object.
+    #
+    # @param base_date_time [Time] The base date and time.
+    # @param parsed_time_component [Time] The parsed time component.
+    #
+    # @return [Time] The new datetime object.
+    def self.create_new_datetime(base_date_time, parsed_time_component)
+      Time.new(
+        base_date_time.year,
+        base_date_time.month,
+        base_date_time.day,
+        parsed_time_component.hour,
+        parsed_time_component.min,
+        parsed_time_component.sec
+      )
+    end
   end
 end

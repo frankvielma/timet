@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'time_helper'
+
 module Timet
   # The Utils module provides a collection of general utility methods used across the Timet gem.
   module Utils

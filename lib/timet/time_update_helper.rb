@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require_relative 'time_helper'
-require_relative 'item_data_helper' # Assuming ItemDataHelper is needed here
+require_relative 'item_data_helper'
+require 'date'
 
 module Timet
   # Helper methods for processing and updating time fields.
