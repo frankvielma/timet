@@ -50,28 +50,100 @@ module Timet
       # If time_str is nil or empty, user pressed Enter, meaning no change to this field.
       return field == 'start' ? item[1] : item[2] if time_str.nil? || time_str.strip.empty?
 
-      begin
-        parsed_time_component = Time.parse(time_str)
-      rescue ArgumentError
-        raise ArgumentError, "Invalid time format: #{time_str}"
-      end
+      parsed_time_component = parse_time_string(time_str)
 
       start_timestamp = item[1]
       end_timestamp = item[2]
 
-      base_date_time = if field == 'start'
-                         start_timestamp ? Time.at(start_timestamp) : Time.now
-                       elsif field == 'end'
-                         # This ensures that start_timestamp is not nil when setting/editing an end time.
-                         unless start_timestamp
-                           raise ArgumentError,
-                                 "Cannot set 'end' time because 'start' time is not set."
-                         end
+      base_date_time = determine_base_date_time(item, field, start_timestamp)
+      new_datetime = create_new_datetime(base_date_time, parsed_time_component)
 
-                         Time.at(start_timestamp)
-                       end
+      new_datetime = adjust_end_datetime(field, start_timestamp, new_datetime)
 
-      new_datetime = Time.new(
+      new_epoch = new_datetime.to_i
+
+      perform_validation(field, new_epoch, start_timestamp, end_timestamp, new_datetime)
+
+      new_epoch
+    end
+
+    private
+
+    # Performs the appropriate validation based on the field.
+    #
+    # @param field [String] The field being validated ('start' or 'end').
+    # @param new_epoch [Integer] The new time in epoch format.
+    # @param start_timestamp [Integer, nil] The start timestamp of the item.
+    # @param end_timestamp [Integer, nil] The end timestamp of the item.
+    # @param new_datetime [Time] The new datetime object.
+    def perform_validation(field, new_epoch, start_timestamp, end_timestamp, new_datetime)
+      if field == 'end'
+        validate_end_time(new_epoch, start_timestamp, new_datetime)
+      elsif field == 'start' && end_timestamp # If start is being updated and end already exists
+        validate_start_time(new_epoch, end_timestamp, new_datetime)
+      end
+    end
+
+    # Parses the time string and raises an ArgumentError if the format is invalid.
+    #
+    # @param time_str [String] The time string to parse.
+    #
+    # @return [Time] The parsed time component.
+    #
+    # @raise [ArgumentError] If the time string is not in a valid format.
+    def parse_time_string(time_str)
+      Time.parse(time_str)
+    rescue ArgumentError
+      raise ArgumentError, "Invalid time format: #{time_str}"
+    end
+
+    # Adjusts the end datetime if it's earlier than or same as the start time, assuming it's for the next day.
+    #
+    # @param field [String] The field being validated ('start' or 'end').
+    # @param start_timestamp [Integer, nil] The start timestamp of the item.
+    # @param new_datetime [Time] The new datetime object.
+    #
+    # @return [Time] The adjusted datetime object.
+    def adjust_end_datetime(field, start_timestamp, new_datetime)
+      # If setting 'end' time and the parsed new_datetime (based on start_date)
+      # is earlier than or same as start_time, assume it's for the next calendar day.
+      if field == 'end' && start_timestamp && (new_datetime.to_i <= start_timestamp)
+        new_datetime += (24 * 60 * 60) # Add one day
+      end
+      new_datetime
+    end
+
+    # Determines the base date and time for creating a new datetime object.
+    #
+    # @param item [Array] The item being modified.
+    # @param field [String] The field being validated ('start' or 'end').
+    # @param start_timestamp [Integer, nil] The start timestamp of the item.
+    #
+    # @return [Time] The base date and time.
+    #
+    # @raise [ArgumentError] If the field is 'end' and the start timestamp is not set.
+    def determine_base_date_time(_item, field, start_timestamp)
+      if field == 'start'
+        start_timestamp ? Time.at(start_timestamp) : Time.now
+      elsif field == 'end'
+        # This ensures that start_timestamp is not nil when setting/editing an end time.
+        unless start_timestamp
+          raise ArgumentError,
+                "Cannot set 'end' time because 'start' time is not set."
+        end
+
+        Time.at(start_timestamp)
+      end
+    end
+
+    # Creates a new datetime object based on the base date and parsed time component.
+    #
+    # @param base_date_time [Time] The base date and time.
+    # @param parsed_time_component [Time] The parsed time component.
+    #
+    # @return [Time] The new datetime object.
+    def create_new_datetime(base_date_time, parsed_time_component)
+      Time.new(
         base_date_time.year,
         base_date_time.month,
         base_date_time.day,
@@ -80,38 +152,43 @@ module Timet
         parsed_time_component.sec,
         base_date_time.utc_offset # Preserve timezone context
       )
-
-      # If setting 'end' time and the parsed new_datetime (based on start_date)
-      # is earlier than or same as start_time, assume it's for the next calendar day.
-      if field == 'end' && start_timestamp && (new_datetime.to_i <= start_timestamp)
-        new_datetime += (24 * 60 * 60) # Add one day
-      end
-
-      new_epoch = new_datetime.to_i
-
-      if field == 'end'
-        if new_epoch <= start_timestamp
-          raise ArgumentError,
-                "End time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be after start time (#{Time.at(start_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
-        end
-        if (new_epoch - start_timestamp) >= 24 * 60 * 60
-          raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
-        end
-      elsif field == 'start' && end_timestamp # If start is being updated and end already exists
-        if new_epoch >= end_timestamp
-          raise ArgumentError,
-                "Start time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be before end time (#{Time.at(end_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
-        end
-        if (end_timestamp - new_epoch) >= 24 * 60 * 60
-          raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
-        end
-      end
-      new_epoch
-    rescue ArgumentError
-      raise # Re-raise specific argument errors from above, or new ones like "Invalid time format"
     end
 
-    private
+    # Validates the end time against the start time.
+    #
+    # @param new_epoch [Integer] The new end time in epoch format.
+    # @param start_timestamp [Integer] The start timestamp of the item.
+    # @param new_datetime [Time] The new datetime object.
+    #
+    # @raise [ArgumentError] If the end time is not after the start time or the difference is >= 24 hours.
+    def validate_end_time(new_epoch, start_timestamp, new_datetime)
+      if new_epoch <= start_timestamp
+        raise ArgumentError,
+              "End time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be after start time " \
+              "(#{Time.at(start_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
+      end
+      return unless (new_epoch - start_timestamp) >= 24 * 60 * 60
+
+      raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
+    end
+
+    # Validates the start time against the end time.
+    #
+    # @param new_epoch [Integer] The new start time in epoch format.
+    # @param end_timestamp [Integer] The end timestamp of the item.
+    # @param new_datetime [Time] The new datetime object.
+    #
+    # @raise [ArgumentError] If the start time is not before the end time or the difference is >= 24 hours.
+    def validate_start_time(new_epoch, end_timestamp, new_datetime)
+      if new_epoch >= end_timestamp
+        raise ArgumentError,
+              "Start time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be before end time " \
+              "(#{Time.at(end_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
+      end
+      return unless (end_timestamp - new_epoch) >= 24 * 60 * 60
+
+      raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
+    end
 
     # Processes and updates a time field (start or end) of a tracking item.
     #
