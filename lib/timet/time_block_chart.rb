@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative 'week_info'
+require_relative 'block_char_helper'
+
 module Timet
   #
   # The TimeBlockChart class is responsible for generating and printing a visual representation
@@ -18,21 +21,17 @@ module Timet
   # @attr_reader [Integer] start_hour The starting hour of the time block
   # @attr_reader [Integer] end_hour The ending hour of the time block
   class TimeBlockChart
-    # Character mapping for different time ranges
-    CHAR_MAPPING = {
-      0..120 => '_',
-      121..450 => '▁',
-      451..900 => '▂',
-      901..1350 => '▃',
-      1351..1800 => '▄',
-      1801..2250 => '▅',
-      2251..2700 => '▆',
-      2701..3150 => '▇',
-      3151..3600 => '█'
-    }.freeze
-
     # Separator character for the chart
     SEPARATOR_CHAR = '░'
+
+    # Width of the date/week string content (e.g., "02 2023-10-01 Fri")
+    DATE_WEEK_CONTENT_WIDTH = 17
+
+    # Width of the '┆- ' part after the date/week string
+    DATE_WEEK_BORDER_WIDTH = 3
+
+    # Width of the total hours column including the border
+    TOTAL_HOURS_COLUMN_WIDTH = 4
 
     # Initializes a new TimeBlockChart instance.
     #
@@ -50,8 +49,13 @@ module Timet
     # @see Table#process_time_entries
     def initialize(table)
       @time_block = table.process_time_entries(display: false)
-      @start_hour = @time_block.values.map(&:keys).flatten.uniq.min.to_i
-      @end_hour = @time_block.values.map(&:keys).flatten.uniq.max.to_i
+      hours = @time_block.values.map(&:keys).flatten.uniq
+      if hours.empty?
+        @start_hour = @end_hour = 0
+        return
+      end
+      @start_hour = hours.min.to_i
+      @end_hour   = hours.max.to_i
     end
 
     # Prints the time block chart.
@@ -59,13 +63,14 @@ module Timet
     # This method formats and prints the time block chart, including the header and the time blocks
     # for each entry. The chart is color-coded based on the provided color mapping for different tags.
     #
-    # @param table [Hash] The time block data to be displayed in the chart.
     # @param colors [Hash] A mapping of tags to colors, used to color-code the time blocks.
     # @return [void] This method does not return a value; it performs side effects such as printing the chart.
     #
     # @example Print a time block chart
+    #   # Assuming 'table' is an instance of Timet::Table
     #   chart = TimeBlockChart.new(table)
-    #   chart.print_time_block_chart(table, colors)
+    #   colors = { "work" => 0, "break" => 1 } # Example color mapping
+    #   chart.print_time_block_chart(colors)
     #
     # @note
     #   - The method first prints the header of the chart, which includes the time range.
@@ -74,9 +79,11 @@ module Timet
     #
     # @see #print_header
     # @see #print_blocks
-    def print_time_block_chart(table, colors)
+    def print_time_block_chart(colors)
+      return puts 'No time-block data to display.' if @no_data
+
       print_header
-      print_blocks(table, colors)
+      print_blocks(colors)
     end
 
     private
@@ -86,48 +93,64 @@ module Timet
     # @return [void]
     def print_header
       puts
-      print ' ' * 19
-      (@start_hour..@end_hour + 1).each { |hour| print format('%02d', hour).rjust(4) }
-      puts
-      puts '┌╴W ╴╴╴╴╴╴⏰╴╴╴╴╴╴┼'.gray + "#{'╴' * (@end_hour - @start_hour + 1) * 4}╴╴╴┼".gray
+      print_hours_row
+      # Dynamically build header using width constants
+      left = "┌#{'╴' * (DATE_WEEK_CONTENT_WIDTH - 11)}"
+      week = 'W'.center(DATE_WEEK_BORDER_WIDTH, '╴')
+      clock = '⏰'.center(DATE_WEEK_BORDER_WIDTH + 4, '╴')
+      hours_width = (@end_hour - @start_hour + 1) * 4
+      hours = '╴' * hours_width
+      right = "#{'╴' * (TOTAL_HOURS_COLUMN_WIDTH - 1)}┼"
+      header = left.gray + week.gray + clock.gray + '┼'.gray + hours.gray + right.gray
+      puts header
     end
 
-    # Prints the time blocks for each date in the time block data.
+    # Prints the hours row in the header.
     #
-    # This method iterates over the time block data, formats and prints the date information,
-    # prints the time blocks for each date using the provided color mapping, and calculates
-    # and prints the total hours for each day. It also prints a footer at the end.
+    # @return [void]
+    def print_hours_row
+      left_margin = DATE_WEEK_CONTENT_WIDTH + DATE_WEEK_BORDER_WIDTH - 1
+      print ' ' * left_margin
+      (@start_hour..@end_hour).each { |hour| print format('%02d', hour).rjust(4) }
+      puts
+    end
+
+    # Prints the main body of the time block chart, including date rows and corresponding time blocks.
     #
-    # @param table [Hash] The time block data containing the time entries for each date.
-    # @param colors [Hash] A mapping of tags to colors, used to color-code the time blocks.
-    # @return [void] This method does not return a value; it performs side effects such as printing
-    #   the time blocks and related information.
+    # This method iterates over each date present in the `@time_block` instance variable,
+    # which is expected to be a hash mapping date strings to hourly time block data.
+    # For each date, it:
+    #   1. Displays week and date information using `WeekInfo`.
+    #   2. Prints the visual time blocks for the hours of the day using `#print_time_blocks`.
+    #   3. Calculates and prints the total hours logged for that day using `#calculate_and_print_hours`.
+    # After processing all dates, it prints a chart footer using `#print_footer`.
     #
-    # @example Print time blocks
-    #   chart = TimeBlockChart.new(table)
-    #   chart.print_blocks(table, colors)
+    # @param colors [Hash] A mapping of tags to color indices. This is used by `#print_time_blocks`
+    #   to color-code the visual time blocks. Example: `{ "work" => 0, "break" => 1 }`
+    # @return [void] This method does not return a value; it prints directly to the console.
     #
     # @note
-    #   - The method skips processing if the `table` parameter is `nil`.
-    #   - For each date in the time block data, it formats and prints the date and day of the week.
-    #   - It prints the time blocks using the provided color mapping to visually distinguish
-    #     between different tags.
-    #   - It calculates and prints the total hours for each day.
-    #   - A footer is printed at the end to provide a visual separation.
+    #   - This is a private method, primarily called by `#print_time_block_chart`.
+    #   - It returns early if `@time_block` is `nil`. If `@time_block` is an empty hash,
+    #     no date-specific rows are printed, but the chart footer is still rendered.
+    #   - Relies on `@start_hour` and `@end_hour` instance variables being correctly set
+    #     during the `TimeBlockChart`'s initialization.
     #
-    # @see #format_and_print_date_info
+    # @see WeekInfo#format_and_print_date_info
     # @see #print_time_blocks
     # @see #calculate_and_print_hours
     # @see #print_footer
-    def print_blocks(table, colors)
-      return unless table
+    def print_blocks(colors)
+      return unless @time_block
 
       weeks = []
-      @time_block.each_key do |date_string|
-        date = Date.parse(date_string)
-        day = date.strftime('%a')[0..2]
+      @time_block.keys.sort.each do |date_string| # ISO-date strings sort naturally
+        date_object = Date.parse(date_string)
+        day = date_object.strftime('%a')[0..2]
 
-        format_and_print_date_info(date_string, day, weeks)
+        week_info = WeekInfo.new(date_object, date_string, weeks)
+        print_inter_week_separator if week_info.needs_inter_week_separator?
+        week_info.format_and_print_date_info(day)
 
         time_block_initial = @time_block[date_string]
         print_time_blocks(time_block_initial, colors)
@@ -146,62 +169,6 @@ module Timet
       hours_per_day = (total_seconds / 3600.0).round(1)
       print "-┆#{hours_per_day}h".gray
       puts
-    end
-
-    # Formats and prints the date information
-    #
-    # @param [String] date_string The date string
-    # @param [String] day The day of the week
-    # @param [Array] weeks The list of weeks
-    # @return [void]
-    def format_and_print_date_info(date_string, day, weeks)
-      weekend = date_string
-      day = day.red if %w[Sa Su].include?(day)
-      weekend = weekend.red if %w[Sa Su].include?(day)
-
-      week = format_and_print_week(date_string, weeks)
-
-      print '┆'.gray + "#{week} #{weekend} #{day}" + '┆- '.gray
-    end
-
-    # Formats and prints the week information
-    #
-    # @param [String] date_string The date string
-    # @param [Array] weeks The list of weeks
-    # @return [String] The formatted week string
-    def format_and_print_week(date_string, weeks)
-      week, current_index = determine_week(date_string, weeks)
-      print_separator(week, current_index)
-      week
-    end
-
-    # Determines the week for a given date
-    #
-    # @param [String] date_string The date string
-    # @param [Array] weeks The list of weeks
-    # @return [Array] The week string and current index
-    def determine_week(date_string, weeks)
-      weeks << Date.parse(date_string).cweek
-      current_index = weeks.size - 1
-      current_week = weeks[current_index]
-      week = if current_week == weeks[current_index - 1] && current_index.positive?
-               '  '
-             else
-               format('%02d', current_week).to_s.underline
-             end
-      [week, current_index]
-    end
-
-    # Prints the separator line
-    #
-    # @param [String] week The week string
-    # @param [Integer] current_index The current index
-    # @return [void]
-    def print_separator(week, current_index)
-      return unless week != '  ' && current_index.positive?
-
-      sep = SEPARATOR_CHAR
-      puts "┆#{sep * 17}┼#{sep * (@end_hour - @start_hour + 1) * 4}#{sep * 3}┼#{sep * 4}".gray
     end
 
     # Prints the footer of the chart
@@ -234,7 +201,7 @@ module Timet
       formatted_hour = format('%02d', hour)
       hour_data = time_block_initial[formatted_hour]
       tag = hour_data&.last
-      [tag, get_block_char(hour_data&.first)]
+      [tag, BlockCharHelper.get_block_char(hour_data&.first)]
     end
 
     # Prints the colored block character
@@ -250,14 +217,21 @@ module Timet
       print colored_block.rjust(4)
     end
 
-    # Gets the block character for a given value
+    # Prints the separator line between different weeks in the chart.
     #
-    # @param [Integer, nil] value The value
-    # @return [String] The block character
-    def get_block_char(value)
-      return ' ' unless value
-
-      CHAR_MAPPING.find { |range, _| range.include?(value) }&.last || ' '
+    # @return [void]
+    def print_inter_week_separator
+      sep = SEPARATOR_CHAR
+      line_parts = [
+        '┆',
+        sep * DATE_WEEK_CONTENT_WIDTH,                # Date/Week column fill
+        '┼',
+        sep * (@end_hour - @start_hour + 1) * 4,      # Hour blocks column fill
+        sep * DATE_WEEK_BORDER_WIDTH,                 # Additional fill for hour blocks column
+        '┼',
+        sep * TOTAL_HOURS_COLUMN_WIDTH                # Total hours column fill
+      ]
+      puts line_parts.join.gray
     end
   end
 end

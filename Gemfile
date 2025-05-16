@@ -4,12 +4,12 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'aws-sdk-s3', '~> 1.183'
+gem 'aws-sdk-s3', '~> 1.186'
 gem 'base64', '~> 0.2'
 gem 'csv', '~> 3.3'
 gem 'descriptive_statistics', '~> 2.5'
 gem 'dotenv', '~> 3.1'
-gem 'icalendar', '~> 2.10'
+gem 'icalendar', '~> 2.11'
 gem 'rake', '~> 13.2'
 gem 'sqlite3', '~> 2.6'
 gem 'thor', '~> 1.3'
@@ -17,8 +17,8 @@ gem 'tty-prompt', '~> 0.23'
 
 group :development do
   gem 'rexml', '~> 3.4'
-  gem 'rubocop', '~> 1.72'
-  gem 'rubocop-rspec', '~> 3.5', require: false
+  gem 'rubocop', '~> 1.75'
+  gem 'rubocop-rspec', '~> 3.6', require: false
 end
 
 group :test do

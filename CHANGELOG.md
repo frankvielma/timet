@@ -1,3 +1,30 @@
+## [1.5.7] - 2025-05-16
+
+**Improvements:**
+
+- Extracted collision checks in [`ValidationEditHelper`](lib/timet/validation_edit_helper.rb) into dedicated private methods (`check_collision_with_previous_item`, `check_collision_with_next_item`).
+- Enhanced time collision validation in [`ValidationEditHelper`](lib/timet/validation_edit_helper.rb): renamed `validate_collision` to `validate_time_collisions`, added a `field` argument for specific checks ('start'/'end'), implemented distinct collision logic, and updated `perform_validation` to use the new method for both fields.
+- Improved time validation logic structure by extracting `determine_start_base_date_time` and `determine_end_base_date_time` from `determine_base_date_time`, and introducing `validate_time_order` to centralize start/end time order validation.
+- Centralized datetime creation by introducing `create_datetime_from_components` in [`TimeHelper`](lib/timet/time_helper.rb).
+- Improved time validation and determination logic in [`TimeValidationHelper`](lib/timet/time_validation_helper.rb) and [`ValidationEditHelper`](lib/timet/validation_edit_helper.rb): refactored `determine_base_date_time` to use a `case` statement, extracted `validate_time_difference` for 24-hour difference validation, and removed the unused `time_str` parameter from `determine_and_create_datetime`.
+- Centralized time validation logic to the new [`TimeValidationHelper`](lib/timet/time_validation_helper.rb) module, moving relevant methods from [`ValidationEditHelper`](lib/timet/validation_edit_edit_helper.rb).
+- Refactored time validation and item data helpers by moving time validation logic to [`TimeUpdateHelper`](lib/timet/time_update_helper.rb) and item data fetching methods to [`ItemDataHelper`](lib/timet/item_data_helper.rb).
+- Extracted time parsing, base date determination, datetime creation, end time adjustment, and validation logic into dedicated private methods in [`lib/timet/validation_edit_helper.rb`](lib/timet/validation_edit_helper.rb).
+- Improved time validation and editing logic in [`ValidationEditHelper`](lib/timet/validation_edit_helper.rb): anchored end time date to start time date, handled end time on the next day, enforced < 24 hour duration, and preserved original time on empty input.
+- Centralized utility methods into a new [`Timet::Utils`](lib/timet/utils.rb) module.
+- Improved [`WeekInfo`](lib/timet/week_info.rb) initialization to accept a `Date` object and display string, and refactored its responsibilities for clarity and Reek compliance.
+- Improved [`TimeBlockChart`](lib/timet/time_block_chart.rb) readability by replacing magic numbers with constants and ensuring chronological date order in `print_blocks`.
+- Refactored [`TimeBlockChart`](lib/timet/time_block_chart.rb) for clarity and Reek compliance, moving separator printing responsibility and the `CHAR_MAPPING` constant to appropriate locations/helpers.
+- Refactored database initialization logic in [`Timet::Application`](lib/timet/application.rb) for clarity and testability, encapsulating `initialize_database` within a `no_commands` block.
+- Updated gem dependencies, including `aws-sdk-s3`, `icalendar`, `rubocop`, and `rubocop-rspec`.
+
+**Bug Fixes:**
+
+- Corrected `perform_validation` in [`ValidationEditHelper`](lib/timet/validation_edit_helper.rb) to accept and utilize the `item` object for correct context in collision checks.
+- Modified `create_new_datetime` to derive date components from the parsed time component, allowing users to specify a full date and time for 'start' or 'end' fields.
+- Fixed a bug in [`WeekInfo#format_and_print_date_info`](lib/timet/week_info.rb) where weekend days were incorrectly checked using "Sa" and "Su".
+- Handled empty `@time_block` in [`TimeBlockChart#initialize`](lib/timet/time_block_chart.rb) to prevent errors.
+
 ## [1.5.6] - 2025-04-07
 
 **Improvements:**

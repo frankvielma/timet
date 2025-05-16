@@ -2,6 +2,7 @@
 
 # require_relative 'color_codes'
 require 'timet/time_report_helper'
+require_relative 'utils'
 module Timet
   # This class is responsible for formatting the output of the `timet` application.
   # It provides methods for formatting the table header, separators, and rows.
@@ -123,7 +124,7 @@ module Timet
 
       block_hour = TimeHelper.count_seconds_per_hour_block(start_time, end_time, tag)
       date_line = TimeHelper.timestamp_to_date(start_time)
-      time_block[date_line] = add_hashes(time_block[date_line], block_hour)
+      time_block[date_line] = Timet::Utils.add_hashes(time_block[date_line], block_hour)
       time_block
     end
 

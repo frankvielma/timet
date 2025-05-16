@@ -81,16 +81,16 @@ module Timet
     #   - A time block chart is generated and printed using the `TimeBlockChart` class.
     #   - The tag distribution is calculated and displayed based on the unique colors assigned to tags.
     #
-    # @see #table
-    # @see #print_time_block_chart
-    # @see #tag_distribution
+    # @see Timet::Table#table For table generation.
+    # @see Timet::TimeBlockChart#print_time_block_chart For chart generation.
+    # @see #tag_distribution For tag statistics display.
     def display
       return puts 'No tracked time found for the specified filter.' if @items.empty?
 
       @table.table
       colors = @items.map { |x| x[3] }.uniq.each_with_index.to_h
       chart = TimeBlockChart.new(@table)
-      chart.print_time_block_chart(@table, colors)
+      chart.print_time_block_chart(colors)
       tag_distribution(colors)
     end
 
@@ -150,7 +150,7 @@ module Timet
     #   write_csv_rows(csv)
     def write_csv_rows(csv)
       items.each do |item|
-        csv << format_item(item)
+        csv << Timet::Utils.format_item(item)
       end
     end
 
@@ -166,10 +166,10 @@ module Timet
     #
     # @note The method filters the items based on the specified date range and tag.
     def filter_items(filter, tag)
-      if date_ranges.key?(filter)
-        start_date, end_date = date_ranges[filter]
+      if Timet::Utils.date_ranges.key?(filter)
+        start_date, end_date = Timet::Utils.date_ranges[filter]
         filter_by_date_range(start_date, end_date, tag)
-      elsif valid_date_format?(filter)
+      elsif Timet::Utils.valid_date_format?(filter)
         start_date, end_date = filter.split('..').map { |x| Date.parse(x) }
         filter_by_date_range(start_date, end_date, tag)
       else
@@ -226,7 +226,7 @@ module Timet
         return key if values.include?(filter)
       end
 
-      return filter if filter && valid_date_format?(filter)
+      return filter if filter && Timet::Utils.valid_date_format?(filter)
 
       'today'
     end
