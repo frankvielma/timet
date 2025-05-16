@@ -44,16 +44,16 @@ module Timet
     #
     # @raise [ArgumentError] If the field is 'end' and the start timestamp is not set.
     def determine_base_date_time(_item, field, start_timestamp)
-      if field == 'start'
+      case field
+      when 'start'
         start_timestamp ? Time.at(start_timestamp) : Time.now
-      elsif field == 'end'
+      when 'end'
         # This ensures that start_timestamp is not nil when setting/editing an end time.
-        unless start_timestamp
-          raise ArgumentError,
-                "Cannot set 'end' time because 'start' time is not set."
-        end
+        raise ArgumentError, "Cannot set 'end' time because 'start' time is not set." unless start_timestamp
 
         Time.at(start_timestamp)
+      else
+        raise ArgumentError, "Invalid field: #{field}"
       end
     end
 
@@ -86,6 +86,19 @@ module Timet
       raise ArgumentError, "Cannot set time to a future date: #{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}"
     end
 
+    # Validates that the difference between two timestamps is less than 24 hours.
+    #
+    # @param timestamp1 [Integer] The first timestamp.
+    # @param timestamp2 [Integer] The second timestamp.
+    #
+    # @raise [ArgumentError] If the difference is >= 24 hours.
+    def validate_time_difference(timestamp1, timestamp2)
+      return unless (timestamp2 - timestamp1).abs >= 24 * 60 * 60
+
+      raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
+    end
+    private :validate_time_difference
+
     # Validates the end time against the start time.
     #
     # @param new_epoch [Integer] The new end time in epoch format.
@@ -99,9 +112,7 @@ module Timet
               "End time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be after start time " \
               "(#{Time.at(start_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
       end
-      return unless (new_epoch - start_timestamp) >= 24 * 60 * 60
-
-      raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
+      validate_time_difference(start_timestamp, new_epoch)
     end
 
     # Validates the start time against the end time.
@@ -117,9 +128,7 @@ module Timet
               "Start time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be before end time " \
               "(#{Time.at(end_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
       end
-      return unless (end_timestamp - new_epoch) >= 24 * 60 * 60
-
-      raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
+      validate_time_difference(new_epoch, end_timestamp)
     end
   end
 end

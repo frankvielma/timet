@@ -61,7 +61,7 @@ module Timet
       start_timestamp = item[1]
       end_timestamp = item[2]
 
-      new_datetime = determine_and_create_datetime(item, field, time_str, start_timestamp, parsed_time_component)
+      new_datetime = determine_and_create_datetime(item, field, start_timestamp, parsed_time_component)
 
       new_epoch = new_datetime.to_i
 
@@ -108,12 +108,11 @@ module Timet
     #
     # @param item [Array] The item being modified.
     # @param field [String] The field being validated ('start' or 'end').
-    # @param time_str [String, nil] The new time string.
     # @param start_timestamp [Integer, nil] The start timestamp of the item.
     # @param parsed_time_component [Time] The parsed time component.
     #
     # @return [Time] The new datetime object.
-    def determine_and_create_datetime(item, field, _time_str, start_timestamp, parsed_time_component)
+    def determine_and_create_datetime(item, field, start_timestamp, parsed_time_component)
       base_date_time = determine_base_date_time(item, field, start_timestamp)
       new_datetime = create_new_datetime(base_date_time, parsed_time_component)
       adjust_end_datetime(field, start_timestamp, new_datetime)
