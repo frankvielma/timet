@@ -41,8 +41,12 @@ module Timet
     def initialize(table)
       @time_block = table.process_time_entries(display: false)
       hours = @time_block.values.map(&:keys).flatten.uniq
+      if hours.empty?
+        @start_hour = @end_hour = 0
+        return
+      end
       @start_hour = hours.min.to_i
-      @end_hour = hours.max.to_i
+      @end_hour   = hours.max.to_i
     end
 
     # Prints the time block chart.
