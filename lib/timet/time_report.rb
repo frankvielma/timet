@@ -81,16 +81,16 @@ module Timet
     #   - A time block chart is generated and printed using the `TimeBlockChart` class.
     #   - The tag distribution is calculated and displayed based on the unique colors assigned to tags.
     #
-    # @see #table
-    # @see #print_time_block_chart
-    # @see #tag_distribution
+    # @see Timet::Table#table For table generation.
+    # @see Timet::TimeBlockChart#print_time_block_chart For chart generation.
+    # @see #tag_distribution For tag statistics display.
     def display
       return puts 'No tracked time found for the specified filter.' if @items.empty?
 
       @table.table
       colors = @items.map { |x| x[3] }.uniq.each_with_index.to_h
       chart = TimeBlockChart.new(@table)
-      chart.print_time_block_chart(@table, colors)
+      chart.print_time_block_chart(colors)
       tag_distribution(colors)
     end
 
