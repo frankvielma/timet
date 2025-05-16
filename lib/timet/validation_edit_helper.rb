@@ -89,21 +89,31 @@ module Timet
       prev_item = @db.find_item(item_id - 1)
       next_item = @db.find_item(item_id + 1)
 
-      if field == 'start'
-        if prev_item && new_epoch < prev_item[2]
-          raise ArgumentError,
-                'New start time collides with previous item (ends at ' \
-                "#{Time.at(prev_item[2]).strftime('%Y-%m-%d %H:%M:%S')})."
-        end
-        if next_item && new_epoch > next_item[1]
-          raise ArgumentError,
-                "New start time collides with next item (starts at #{Time.at(next_item[1]).strftime('%Y-%m-%d %H:%M:%S')})."
-        end
-      elsif field == 'end'
-        if next_item && new_epoch > next_item[1]
-          raise ArgumentError,
-                "New end time collides with next item (starts at #{Time.at(next_item[1]).strftime('%Y-%m-%d %H:%M:%S')})."
-        end
+      check_collision_with_previous_item(field, new_epoch, prev_item)
+      check_collision_with_next_item(field, new_epoch, next_item)
+    end
+
+    # Checks for collision with the previous item.
+    def check_collision_with_previous_item(field, new_epoch, prev_item)
+      return unless prev_item && field == 'start' && new_epoch < prev_item[2]
+
+      raise ArgumentError,
+            'New start time collides with previous item (ends at ' \
+            "#{Time.at(prev_item[2]).strftime('%Y-%m-%d %H:%M:%S')})."
+    end
+
+    # Checks for collision with the next item.
+    def check_collision_with_next_item(field, new_epoch, next_item)
+      return unless next_item
+
+      if field == 'start' && new_epoch > next_item[1]
+        raise ArgumentError,
+              'New start time collides with next item (starts at ' \
+              "#{Time.at(next_item[1]).strftime('%Y-%m-%d %H:%M:%S')})."
+      elsif field == 'end' && new_epoch > next_item[1]
+        raise ArgumentError,
+              'New end time collides with next item (starts at ' \
+              "#{Time.at(next_item[1]).strftime('%Y-%m-%d %H:%M:%S')})."
       end
     end
 
