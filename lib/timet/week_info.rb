@@ -31,7 +31,7 @@ module Timet
       # It's underlined if it's the first time this cweek appears, otherwise blank.
       is_first_display_of_this_cweek = weeks_array_ref.empty? || @current_cweek != weeks_array_ref.last
       @week_display_string = if is_first_display_of_this_cweek
-                               format('%02d', @current_cweek).to_s.underline
+                               format('%02d', @current_cweek).underline
                              else
                                '  '
                              end

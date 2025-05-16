@@ -25,9 +25,9 @@ module Timet
       when 'tag'
         item[3] = new_value
       when 'start'
-        item[1] = validate_time(new_value)
+        item[1] = validate_time(item, 'start', new_value)
       when 'end'
-        item[2] = validate_time(new_value)
+        item[2] = validate_time(item, 'end', new_value)
       else
         raise ArgumentError, "Invalid field: #{field}"
       end
@@ -36,15 +36,79 @@ module Timet
 
     # Validates if a given time string is in a valid format.
     #
-    # @param time_str [String] The time string to validate.
+    # @param item [Array] The item being modified.
+    # @param field [String] The field being validated ('start' or 'end').
+    # @param time_str [String, nil] The new time string (e.g., "HH:MM" or "HH:MM:SS").
+    #                               If nil or empty, it signifies that the original time should be kept.
     #
-    # @return [Integer] The validated time as an integer.
+    # @return [Integer, nil] The validated time as an integer epoch.
+    #                        Returns the original timestamp for the field if time_str is nil/empty.
+    #                        Returns nil if the original field was nil and time_str is nil/empty.
     #
     # @raise [ArgumentError] If the time string is not in a valid format.
-    def validate_time(time_str)
-      Time.parse(time_str).to_i
+    def validate_time(item, field, time_str)
+      # If time_str is nil or empty, user pressed Enter, meaning no change to this field.
+      return field == 'start' ? item[1] : item[2] if time_str.nil? || time_str.strip.empty?
+
+      begin
+        parsed_time_component = Time.parse(time_str)
+      rescue ArgumentError
+        raise ArgumentError, "Invalid time format: #{time_str}"
+      end
+
+      start_timestamp = item[1]
+      end_timestamp = item[2]
+
+      base_date_time = if field == 'start'
+                         start_timestamp ? Time.at(start_timestamp) : Time.now
+                       elsif field == 'end'
+                         # This ensures that start_timestamp is not nil when setting/editing an end time.
+                         unless start_timestamp
+                           raise ArgumentError,
+                                 "Cannot set 'end' time because 'start' time is not set."
+                         end
+
+                         Time.at(start_timestamp)
+                       end
+
+      new_datetime = Time.new(
+        base_date_time.year,
+        base_date_time.month,
+        base_date_time.day,
+        parsed_time_component.hour,
+        parsed_time_component.min,
+        parsed_time_component.sec,
+        base_date_time.utc_offset # Preserve timezone context
+      )
+
+      # If setting 'end' time and the parsed new_datetime (based on start_date)
+      # is earlier than or same as start_time, assume it's for the next calendar day.
+      if field == 'end' && start_timestamp && (new_datetime.to_i <= start_timestamp)
+        new_datetime += (24 * 60 * 60) # Add one day
+      end
+
+      new_epoch = new_datetime.to_i
+
+      if field == 'end'
+        if new_epoch <= start_timestamp
+          raise ArgumentError,
+                "End time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be after start time (#{Time.at(start_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
+        end
+        if (new_epoch - start_timestamp) >= 24 * 60 * 60
+          raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
+        end
+      elsif field == 'start' && end_timestamp # If start is being updated and end already exists
+        if new_epoch >= end_timestamp
+          raise ArgumentError,
+                "Start time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be before end time (#{Time.at(end_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
+        end
+        if (end_timestamp - new_epoch) >= 24 * 60 * 60
+          raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
+        end
+      end
+      new_epoch
     rescue ArgumentError
-      raise ArgumentError, "Invalid time format: #{time_str}"
+      raise # Re-raise specific argument errors from above, or new ones like "Invalid time format"
     end
 
     private

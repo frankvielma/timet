@@ -51,7 +51,23 @@ RSpec.describe Timet::ValidationEditHelper do
 
       it 'updates the item for valid date value' do
         valid_time_str = '10:30:00'
-        expected_timestamp = Time.parse(valid_time_str).to_i
+
+        # Determine the expected timestamp based on the item's original start date
+        # and the new time string. This mirrors the logic in `validate_time`.
+        original_start_time_obj = Time.at(item[1]) # Time object from original start timestamp
+        new_time_components = Time.parse(valid_time_str) # Parses "HH:MM:SS"
+
+        expected_datetime = Time.new(
+          original_start_time_obj.year,
+          original_start_time_obj.month,
+          original_start_time_obj.day,
+          new_time_components.hour,
+          new_time_components.min,
+          new_time_components.sec,
+          original_start_time_obj.utc_offset # Preserve the timezone context
+        )
+        expected_timestamp = expected_datetime.to_i
+
         updated_item = validation_helper.validate_and_update(item, 'start', valid_time_str)
         expect(updated_item[1]).to eq(expected_timestamp)
       end
