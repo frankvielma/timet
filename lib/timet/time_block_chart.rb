@@ -99,7 +99,8 @@ module Timet
     #
     # @return [void]
     def print_hours_row
-      print ' ' * 19
+      left_margin = DATE_WEEK_CONTENT_WIDTH + DATE_WEEK_BORDER_WIDTH - 1
+      print ' ' * left_margin
       (@start_hour..@end_hour + 1).each { |hour| print format('%02d', hour).rjust(4) }
       puts
     end
@@ -133,11 +134,11 @@ module Timet
       return unless @time_block
 
       weeks = []
-      @time_block.keys.sort.each do |date_string|  # ISO-date strings sort naturally
-        date = Date.parse(date_string)
-        day = date.strftime('%a')[0..2]
+      @time_block.keys.sort.each do |date_string| # ISO-date strings sort naturally
+        date_object = Date.parse(date_string)
+        day = date_object.strftime('%a')[0..2]
 
-        week_info = WeekInfo.new(date_string, weeks) # Removed start_hour, end_hour
+        week_info = WeekInfo.new(date_object, date_string, weeks)
         print_inter_week_separator if week_info.needs_inter_week_separator?
         week_info.format_and_print_date_info(day)
 
@@ -211,7 +212,16 @@ module Timet
     # @return [void]
     def print_inter_week_separator
       sep = SEPARATOR_CHAR
-      puts "┆#{sep * DATE_WEEK_CONTENT_WIDTH}┼#{sep * (@end_hour - @start_hour + 1) * 4}#{sep * DATE_WEEK_BORDER_WIDTH}┼#{sep * TOTAL_HOURS_COLUMN_WIDTH}".gray
+      line_parts = [
+        '┆',
+        sep * DATE_WEEK_CONTENT_WIDTH,                # Date/Week column fill
+        '┼',
+        sep * (@end_hour - @start_hour + 1) * 4,      # Hour blocks column fill
+        sep * DATE_WEEK_BORDER_WIDTH,                 # Additional fill for hour blocks column
+        '┼',
+        sep * TOTAL_HOURS_COLUMN_WIDTH                # Total hours column fill
+      ]
+      puts line_parts.join.gray
     end
   end
 end

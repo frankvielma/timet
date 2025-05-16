@@ -12,12 +12,12 @@ module Timet
   class WeekInfo
     # Initializes a new WeekInfo instance.
     #
-    # @param date_string [String] The date string for the current entry (e.g., "2023-10-01").
+    # @param date_object [Date] The Date object for the current entry.
+    # @param date_string_for_display [String] The original date string for display (e.g., "2023-10-01").
     # @param weeks_array_ref [Array<Integer>] A reference to an array that accumulates the
     #   ISO 8601 week numbers of dates already processed. This array is mutated.
-    def initialize(date_string, weeks_array_ref)
-      @date_string = date_string
-      date_object = Date.parse(date_string)
+    def initialize(date_object, date_string_for_display, weeks_array_ref)
+      @date_string = date_string_for_display # Use the passed string for display
       @current_cweek = date_object.cweek
 
       # Determine if a separator line should be printed *before* this entry.
@@ -50,7 +50,7 @@ module Timet
     # @return [void]
     def format_and_print_date_info(day)
       weekend_str = @date_string # Use the original date string for display
-      is_weekend_day = %w[Sa Su].include?(day)
+      is_weekend_day = %w[Sat Sun].include?(day)
       day_str = is_weekend_day ? day.red : day
       weekend_str = weekend_str.red if is_weekend_day
 
