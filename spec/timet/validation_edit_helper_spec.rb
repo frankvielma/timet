@@ -147,6 +147,25 @@ RSpec.describe Timet::ValidationEditHelper do
           end.to raise_error(ArgumentError, /New start time collides with next item/)
         end
 
+        it 'raises ArgumentError when new start time is exactly equal to next item start time' do
+          next_item_start_time = Time.parse("#{current_date} 11:30:00")
+          # Ensure next_item has an end time, though not strictly necessary for this specific collision logic
+          next_item = [item_id + 1, next_item_start_time.to_i, (next_item_start_time + 3600).to_i] 
+
+          # This is the crucial part: the new start time is identical to next_item_start_time
+          colliding_datetime_str = next_item_start_time.strftime('%Y-%m-%d %H:%M:%S')
+
+          allow(db).to receive(:find_item).with(item_id - 1).and_return(nil) # Avoid previous item collision
+          allow(db).to receive(:find_item).with(item_id + 1).and_return(next_item)
+          # Ensure Time.now is after the time being set, to prevent 'future date' errors.
+          # Make it significantly later to avoid any subtle timezone or second-boundary issues during test execution.
+          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 14:00:00")) 
+
+          expect do
+            validation_helper.validate_and_update(item_with_id, 'start', colliding_datetime_str)
+          end.to raise_error(ArgumentError, /New start time collides with next item/)
+        end
+
         it 'does not raise error when new start time does not collide' do
           prev_item_end_time = Time.parse("#{current_date} 09:30:00")
           prev_item = [item_id - 1, (prev_item_end_time - 3600).to_i, prev_item_end_time.to_i] # Previous item ending before current item starts

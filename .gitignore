@@ -13,3 +13,4 @@
 .vscode
 /spec/examples.txt
 .qodo
+/vendor/bundle
