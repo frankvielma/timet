@@ -22,15 +22,14 @@ module Timet
       @date_string = date_string_for_display # Use the passed string for display
       @current_cweek = date_object.cweek
 
-      # Determine if a separator line should be printed *before* this entry.
-      # A separator is needed if this entry starts a new week group,
-      # and it's not the very first week group in the chart.
-      @print_separator_before_this = !weeks_array_ref.empty? && @current_cweek != weeks_array_ref.last
+      is_first_entry = weeks_array_ref.empty?
+      is_new_week = is_first_entry || @current_cweek != weeks_array_ref.last
 
-      # Determine how the week number string should be displayed for this entry.
-      # It's underlined if it's the first time this cweek appears, otherwise blank.
-      is_first_display_of_this_cweek = weeks_array_ref.empty? || @current_cweek != weeks_array_ref.last
-      @week_display_string = if is_first_display_of_this_cweek
+      # A separator is needed if this entry starts a new week group, but it's not the very first one.
+      @print_separator_before_this = is_new_week && !is_first_entry
+
+      # The week number is underlined if it's the first time this week appears.
+      @week_display_string = if is_new_week
                                format('%02d', @current_cweek).underline
                              else
                                '  '
