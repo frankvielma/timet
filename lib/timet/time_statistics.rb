@@ -72,7 +72,7 @@ module Timet
     #
     # @return [Hash<String, Float>] A hash mapping tags to their average durations.
     def average_by_tag
-      @duration_by_tag.transform_values { |durations| durations.sum.to_f / durations.size }
+      @duration_by_tag.transform_values(&:mean)
     end
 
     # Returns a hash where keys are tags and values are the standard deviation of durations for each tag.

@@ -13,3 +13,5 @@
 .vscode
 /spec/examples.txt
 .qodo
+/vendor/bundle
+test_calendar.ics
