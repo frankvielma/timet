@@ -115,7 +115,7 @@ module Timet
     #   TimeHelper.format_time_string('127122') # => nil
     #   TimeHelper.format_time_string('abc') # => nil
     def self.format_time_string(input)
-      return nil if input.nil? || input.empty?
+      return nil if input.to_s.empty?
 
       digits = input.gsub(/\D/, '')[0..5]
       return nil if digits.empty?
