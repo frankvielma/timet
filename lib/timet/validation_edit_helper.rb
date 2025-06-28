@@ -106,7 +106,7 @@ module Timet
     def check_collision_with_next_item(field, new_epoch, next_item)
       return unless next_item
 
-      if field == 'start' && new_epoch > next_item[1]
+      if field == 'start' && new_epoch >= next_item[1]
         raise ArgumentError,
               'New start time collides with next item (starts at ' \
               "#{Time.at(next_item[1]).strftime('%Y-%m-%d %H:%M:%S')})."
