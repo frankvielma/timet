@@ -150,7 +150,7 @@ RSpec.describe Timet::ValidationEditHelper do
         it 'raises ArgumentError when new start time is exactly equal to next item start time' do
           next_item_start_time = Time.parse("#{current_date} 11:30:00")
           # Ensure next_item has an end time, though not strictly necessary for this specific collision logic
-          next_item = [item_id + 1, next_item_start_time.to_i, (next_item_start_time + 3600).to_i] 
+          next_item = [item_id + 1, next_item_start_time.to_i, (next_item_start_time + 3600).to_i]
 
           # This is the crucial part: the new start time is identical to next_item_start_time
           colliding_datetime_str = next_item_start_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -159,7 +159,7 @@ RSpec.describe Timet::ValidationEditHelper do
           allow(db).to receive(:find_item).with(item_id + 1).and_return(next_item)
           # Ensure Time.now is after the time being set, to prevent 'future date' errors.
           # Make it significantly later to avoid any subtle timezone or second-boundary issues during test execution.
-          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 14:00:00")) 
+          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 14:00:00"))
 
           expect do
             validation_helper.validate_and_update(item_with_id, 'start', colliding_datetime_str)
@@ -205,16 +205,6 @@ RSpec.describe Timet::TimeUpdateHelper do
   let(:item) { [1, 1_728_414_793, 1_728_416_293] }
   let(:time_field_data) { { time_field: 'start', date_value: '2024-10-01 12:00:00' } }
   let(:time_value) { '11:10:00' }
-
-  describe '#update_time_field' do
-    it 'updates the time field with the formatted date value' do
-      # Mock Timet::Application::FIELD_INDEX if necessary for this test
-      stub_const('Timet::Application::FIELD_INDEX', { 'start' => 1, 'end' => 2 })
-      expect(
-        time_update_helper.update_time_field(item, time_field_data[:time_field], time_value)
-      ).to be_a(Time)
-    end
-  end
 
   describe '#process_and_update_time_field' do
     context 'when date_value is valid' do

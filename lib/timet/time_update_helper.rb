@@ -25,7 +25,7 @@ module Timet
 
       return print_error(date_value) unless formatted_date
 
-      new_date = update_time_field(item, field, formatted_date)
+      new_date = TimeHelper.update_time_field(item, field, formatted_date)
       new_value_epoch = new_date.to_i
 
       if valid_time_value?(item, field, new_value_epoch, id)
@@ -45,24 +45,6 @@ module Timet
     #   print_error('Invalid date: 2023-13-32')
     def print_error(message)
       puts "Invalid date: #{message}".red
-    end
-
-    # Updates a time field (start or end) of a tracking item with a formatted date value.
-    #
-    # @param item [Array] The tracking item to be updated.
-    # @param field [String] The time field to be updated.
-    # @param new_time [String] The new time value.
-    #
-    # @return [Time] The updated time value.
-    #
-    # @example Update the 'start' field of a tracking item with a formatted date value
-    #   update_time_field(item, 'start', '11:10:00')
-    def update_time_field(item, field, new_time)
-      field_index = Timet::Application::FIELD_INDEX[field]
-      timestamp = item[field_index]
-      edit_time = Time.at(timestamp || item[1]).to_s.split
-      edit_time[1] = new_time
-      DateTime.strptime(edit_time.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
     end
 
     # Validates if a new time value is valid for a specific time field (start or end).
