@@ -40,12 +40,13 @@ module Timet
     #   comparing it with the local database, and handling any differences found
     def self.process_remote_database(local_db, remote_storage, bucket, local_db_path)
       with_temp_file do |temp_file|
-        remote_storage.download_file(bucket, 'timet.db', temp_file.path)
+        file_path = temp_file.path
+        remote_storage.download_file(bucket, 'timet.db', file_path)
 
-        if databases_are_in_sync?(temp_file.path, local_db_path)
+        if databases_are_in_sync?(file_path, local_db_path)
           puts 'Local database is up to date'
         else
-          handle_database_differences(local_db, remote_storage, bucket, local_db_path, temp_file.path)
+          handle_database_differences(local_db, remote_storage, bucket, local_db_path, file_path)
         end
       end
     end
