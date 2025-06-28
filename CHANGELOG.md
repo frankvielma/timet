@@ -1,3 +1,18 @@
+## [1.5.8] - 2025-06-28
+
+**Improvements:**
+
+- Updated gem dependencies, including `aws-sdk-s3`, `rake`, `sqlite3`, and `rubocop`.
+- Refactored `update_time_field` method into `TimeHelper` for better code organization.
+- Simplified `TimeStatistics#average_by_tag` to use the more concise `(&:mean)` method in `TimeStatistics`.
+- Improved robustness of `format_time_string` in `TimeHelper`.
+- Enhanced code clarity in `DatabaseSyncHelper` and `WeekInfo`.
+- Added `vendor/bundle` and a test calendar file to `.gitignore`.
+
+**Bug Fixes:**
+
+- Corrected time collision validation in `ValidationEditHelper` to properly handle exact time matches (`>=`).
+
 ## [1.5.7] - 2025-05-16
 
 **Improvements:**
