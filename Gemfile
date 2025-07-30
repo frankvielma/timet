@@ -12,13 +12,13 @@ gem 'dotenv', '~> 3.1'
 gem 'icalendar', '~> 2.11'
 gem 'rake', '~> 13.3'
 gem 'sqlite3', '~> 2.7'
-gem 'thor', '~> 1.3'
+gem 'thor', '~> 1.4'
 gem 'tty-prompt', '~> 0.23'
 
+gem 'rubocop-rspec', '~> 3.6', require: false
 group :development do
   gem 'rexml', '~> 3.4'
   gem 'rubocop', '~> 1.77'
-  gem 'rubocop-rspec', '~> 3.6', require: false
 end
 
 group :test do
