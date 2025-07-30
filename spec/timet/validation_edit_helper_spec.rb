@@ -20,8 +20,8 @@ RSpec.describe Timet::ValidationEditHelper do
 
   let(:db) { instance_spy(Timet::Database) }
   let(:current_date) { Time.now.strftime('%Y-%m-%d') }
-  let(:item_start_time) { Time.parse("#{current_date} 10:00:00") }
-  let(:item_end_time) { Time.parse("#{current_date} 11:00:00") }
+  let(:item_start_time) { Time.parse("#{current_date} 10:00:00").getlocal }
+  let(:item_end_time) { Time.parse("#{current_date} 11:00:00").getlocal }
   let(:item) { [1, item_start_time.to_i, item_end_time.to_i] }
   let(:field_data) { { field: 'notes', new_value: 'Updated notes' } }
   let(:time_field_data) { { time_field: 'start', date_value: '2024-10-01 12:00:00' } }
@@ -46,12 +46,12 @@ RSpec.describe Timet::ValidationEditHelper do
       it 'updates the item for valid date value' do
         valid_time_str = '10:30:00'
         current_date = Time.now.strftime('%Y-%m-%d')
-        item_start_time = Time.parse("#{current_date} 10:00:00")
-        item_end_time = Time.parse("#{current_date} 11:00:00")
+        item_start_time = Time.parse("#{current_date} 10:00:00").getlocal
+        item_end_time = Time.parse("#{current_date} 11:00:00").getlocal
         item_with_valid_times = [1, item_start_time.to_i, item_end_time.to_i]
 
         original_start_time_obj = Time.at(item_with_valid_times[1])
-        new_time_components = Time.parse(valid_time_str)
+        new_time_components = Time.parse(valid_time_str).getlocal
 
         expected_datetime = Time.new(
           original_start_time_obj.year,
@@ -86,15 +86,15 @@ RSpec.describe Timet::ValidationEditHelper do
     end
 
     context 'when validating time fields' do
-      let(:current_time) { Time.now }
+      let(:current_time) { Time.now.getlocal }
       let(:current_date) { current_time.strftime('%Y-%m-%d') }
-      let(:item_start_time) { Time.parse("#{current_date} 10:00:00") }
-      let(:item_end_time) { Time.parse("#{current_date} 11:00:00") }
+      let(:item_start_time) { Time.parse("#{current_date} 10:00:00").getlocal }
+      let(:item_end_time) { Time.parse("#{current_date} 11:00:00").getlocal }
       let(:item_with_times) { [1, item_start_time.to_i, item_end_time.to_i] } # Item with start and end
 
       it 'raises ArgumentError when setting a future date' do
         # Set item end time after item_start_time but in the past relative to current_time_after_item_end
-        item_end_time_past = Time.parse("#{current_date} 10:30:00")
+        item_end_time_past = Time.parse("#{current_date} 10:30:00").getlocal
         item_with_times_past_end = [1, item_start_time.to_i, item_end_time_past.to_i]
 
         # Set current_time to be after item_end_time_past
@@ -114,12 +114,12 @@ RSpec.describe Timet::ValidationEditHelper do
 
       context 'when validating start time collisions' do
         let(:item_id) { 5 }
-        let(:item_start_time) { Time.parse("#{current_date} 10:00:00") }
-        let(:item_end_time) { Time.parse("#{current_date} 11:00:00") }
+        let(:item_start_time) { Time.parse("#{current_date} 10:00:00").getlocal }
+        let(:item_end_time) { Time.parse("#{current_date} 11:00:00").getlocal }
         let(:item_with_id) { [item_id, item_start_time.to_i, item_end_time.to_i] } # Item with start and end
 
         it 'raises ArgumentError when new start time collides with previous item' do
-          prev_item_end_time = Time.parse("#{current_date} 09:30:00")
+          prev_item_end_time = Time.parse("#{current_date} 09:30:00").getlocal
           prev_item = [item_id - 1, (prev_item_end_time - 3600).to_i, prev_item_end_time.to_i] # Previous item ending before current item starts
 
           colliding_start_time = (prev_item_end_time - 60).strftime('%H:%M:%S') # 1 minute before previous item ends
@@ -127,7 +127,7 @@ RSpec.describe Timet::ValidationEditHelper do
 
           allow(db).to receive(:find_item).with(item_id - 1).and_return(prev_item)
           allow(db).to receive(:find_item).with(item_id + 1).and_return(nil) # Avoid next item collision
-          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00")) # Set Time.now after colliding time
+          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00").getlocal) # Set Time.now after colliding time
 
           expect do
             validation_helper.validate_and_update(item_with_id, 'start', colliding_datetime_str)
@@ -135,7 +135,7 @@ RSpec.describe Timet::ValidationEditHelper do
         end
 
         it 'raises ArgumentError when new start time collides with next item' do
-          next_item_start_time = Time.parse("#{current_date} 11:30:00")
+          next_item_start_time = Time.parse("#{current_date} 11:30:00").getlocal
           next_item = [item_id + 1, next_item_start_time.to_i, (next_item_start_time + 3600).to_i] # Next item starting after current item ends
 
           colliding_start_time = (next_item_start_time + 60).strftime('%H:%M:%S') # 1 minute after next item starts
@@ -143,7 +143,7 @@ RSpec.describe Timet::ValidationEditHelper do
 
           allow(db).to receive(:find_item).with(item_id - 1).and_return(nil) # Avoid previous item collision
           allow(db).to receive(:find_item).with(item_id + 1).and_return(next_item)
-          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00")) # Set Time.now after colliding time
+          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00").getlocal) # Set Time.now after colliding time
 
           expect do
             validation_helper.validate_and_update(item_with_id, 'start', colliding_datetime_str)
@@ -151,7 +151,7 @@ RSpec.describe Timet::ValidationEditHelper do
         end
 
         it 'raises ArgumentError when new start time is exactly equal to next item start time' do
-          next_item_start_time = Time.parse("#{current_date} 11:30:00")
+          next_item_start_time = Time.parse("#{current_date} 11:30:00").getlocal
           # Ensure next_item has an end time, though not strictly necessary for this specific collision logic
           next_item = [item_id + 1, next_item_start_time.to_i, (next_item_start_time + 3600).to_i]
 
@@ -162,7 +162,7 @@ RSpec.describe Timet::ValidationEditHelper do
           allow(db).to receive(:find_item).with(item_id + 1).and_return(next_item)
           # Ensure Time.now is after the time being set, to prevent 'future date' errors.
           # Make it significantly later to avoid any subtle timezone or second-boundary issues during test execution.
-          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 14:00:00"))
+          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 14:00:00").getlocal)
 
           expect do
             validation_helper.validate_and_update(item_with_id, 'start', colliding_datetime_str)
@@ -170,10 +170,10 @@ RSpec.describe Timet::ValidationEditHelper do
         end
 
         it 'does not raise error when new start time does not collide' do
-          prev_item_end_time = Time.parse("#{current_date} 09:30:00")
+          prev_item_end_time = Time.parse("#{current_date} 09:30:00").getlocal
           prev_item = [item_id - 1, (prev_item_end_time - 3600).to_i, prev_item_end_time.to_i] # Previous item ending before current item starts
 
-          next_item_start_time = Time.parse("#{current_date} 11:30:00")
+          next_item_start_time = Time.parse("#{current_date} 11:30:00").getlocal
           next_item = [item_id + 1, next_item_start_time.to_i, (next_item_start_time + 3600).to_i] # Next item starting after current item ends
 
           non_colliding_start_time = (prev_item_end_time + 60).strftime('%H:%M:%S') # 1 minute after previous item ends
@@ -181,7 +181,7 @@ RSpec.describe Timet::ValidationEditHelper do
 
           allow(db).to receive(:find_item).with(item_id - 1).and_return(prev_item)
           allow(db).to receive(:find_item).with(item_id + 1).and_return(next_item)
-          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00")) # Set Time.now after non-colliding time
+          allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00").getlocal) # Set Time.now after non-colliding time
 
           expect do
             validation_helper.validate_and_update(item_with_id, 'start', non_colliding_datetime_str)
@@ -212,7 +212,7 @@ RSpec.describe Timet::TimeUpdateHelper do
 
   describe '#process_and_update_time_field' do
     context 'when date_value is valid' do
-      let(:current_time) { Time.now }
+      let(:current_time) { Time.now.getlocal }
       let(:test_data) do
         {
           item: [1, current_time.to_i],
