@@ -39,31 +39,35 @@ jobs:
           echo "S3_ACCESS_KEY=test" >> /tmp/.timet/.env
           echo "S3_SECRET_KEY=tst123" >> /tmp/.timet/.env
 
+      - name: Code Climate Setup
+        run: |
+          curl -fL https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
+      - name: Code Climate Before Build
+        run: ./cc-test-reporter before-build
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
       - name: Run tests with coverage
         run: |
           bundle exec rspec
         env:
           COVERAGE: true
 
-      - name: Code Climate Run before-test
+      - name: Format & Upload Coverage
         run: |
-          set -ex
-          curl -fL https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-          chmod +x ./cc-test-reporter
-          ls -l ./cc-test-reporter
-          ./cc-test-reporter before-build
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-
-      - name: Publish code coverage
-        run: |
+          ls -lah coverage
+          cat coverage/lcov.info || true
           ./cc-test-reporter format-coverage coverage/lcov.info -t lcov -o coverage/codeclimate.json
           ./cc-test-reporter upload-coverage -i coverage/codeclimate.json
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
-      - name: Code Climate After-test
-        run: ./cc-test-reporter after-build -t lcov --exit-code $?
+      - name: Code Climate After Build
         if: always()
+        run: ./cc-test-reporter after-build -t lcov --exit-code $?
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
