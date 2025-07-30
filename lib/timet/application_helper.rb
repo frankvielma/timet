@@ -124,8 +124,8 @@ module Timet
     # @param _tag [String] A tag or label for the session, not used in the notification message on macOS.
     # @return [void]
     def run_mac_session(time, tag)
-      # Escape double quotes for AppleScript, then shell-escape the entire AppleScript command
-      escaped_message_for_applescript = show_message(tag).gsub('"', '\"')
+      # Escape double quotes and backslashes for AppleScript, then shell-escape the entire AppleScript command
+      escaped_message_for_applescript = show_message(tag).gsub('\\', '\\\\').gsub('"', '\"')
       escaped_applescript_command = Shellwords.shellescape("display notification \"#{escaped_message_for_applescript}\"")
       notification_command = "osascript -e #{escaped_applescript_command}"
       command = "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && #{notification_command} &"
