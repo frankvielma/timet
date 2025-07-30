@@ -47,8 +47,10 @@ jobs:
 
       - name: Code Climate Run before-test
         run: |
-          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          set -ex
+          curl -fL https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
+          ls -l ./cc-test-reporter
           ./cc-test-reporter before-build
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
