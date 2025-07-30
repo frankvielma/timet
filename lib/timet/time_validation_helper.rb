@@ -103,7 +103,8 @@ module Timet
     #
     # @raise [ArgumentError] If the new datetime is in the future.
     def validate_future_date(new_datetime)
-      return unless new_datetime > Time.now
+      # Allow setting times on the current day, but not on future calendar days.
+      return unless new_datetime.to_date > Time.now.to_date
 
       raise ArgumentError, "Cannot set time to a future date: #{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}"
     end
