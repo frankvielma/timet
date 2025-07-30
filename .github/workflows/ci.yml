@@ -39,6 +39,12 @@ jobs:
           echo "S3_ACCESS_KEY=test" >> /tmp/.timet/.env
           echo "S3_SECRET_KEY=tst123" >> /tmp/.timet/.env
 
+      - name: Run tests with coverage
+        run: |
+          bundle exec rspec
+        env:
+          COVERAGE: true
+
       - name: Upload coverage to DeepSource
         run: |
           curl https://deepsource.io/cli | sh
@@ -46,9 +52,4 @@ jobs:
         env:
           DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
 
-      - name: Run tests with coverage
-        run: |
-          bundle exec rspec
-        env:
-          COVERAGE: true
 
