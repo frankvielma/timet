@@ -46,7 +46,7 @@ RSpec.describe Timet::ApplicationHelper do
     let(:tag) { 'work' }
     let(:expected_command) do
       "sleep #{time} && tput bel && tt stop 0 && notify-send --icon=clock " \
-        "'Pomodoro session complete (#{tag}). Time for a break.' &"
+        'Pomodoro\\ session\\ complete\\ \\(work\\).\\ Time\\ for\\ a\\ break. &'
     end
     let(:mock_pid) { 1234 }
 
@@ -71,7 +71,7 @@ RSpec.describe Timet::ApplicationHelper do
     let(:tag) { 'work' }
     let(:expected_command) do
       "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && " \
-        "osascript -e 'display notification \"Pomodoro session complete (#{tag}). Time for a break.\"' &"
+        'osascript -e display\\ notification\\ \"Pomodoro\\ session\\ complete\\ \\(work\\).\\ Time\\ for\\ a\\ break.\" &'
     end
     let(:mock_pid) { 1235 }
 
