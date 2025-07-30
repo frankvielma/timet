@@ -1,18 +1,10 @@
 # frozen_string_literal: true
 
 require 'simplecov'
-require 'simplecov-lcov'
 
 SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
-                                                                  SimpleCov::Formatter::LcovFormatter,
                                                                   SimpleCov::Formatter::SimpleFormatter
                                                                 ])
-
-SimpleCov::Formatter::LcovFormatter.config do |config|
-  config.report_with_single_file = true
-  config.output_directory = 'coverage'
-  config.lcov_file_name = 'lcov.info'
-end
 
 SimpleCov.start
 
