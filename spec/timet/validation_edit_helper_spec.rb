@@ -65,7 +65,7 @@ RSpec.describe Timet::ValidationEditHelper do
         expected_timestamp = expected_datetime.to_i
 
         # Stub Time.now to be after the valid_time_str for this test to pass
-        allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00"))
+        allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00").getlocal)
         # Stub find_item to return nil to avoid collision errors
         allow(db).to receive(:find_item).with(item_with_valid_times[0] - 1).and_return(nil)
         allow(db).to receive(:find_item).with(item_with_valid_times[0] + 1).and_return(nil)
