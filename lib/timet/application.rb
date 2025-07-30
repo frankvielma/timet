@@ -85,8 +85,7 @@ module Timet
           if VALID_ARGUMENTS.include?(command_name)
             @db = Database.new
           else
-            warn 'Invalid arguments provided. Please check your input.'
-            exit(1)
+            abort 'Invalid arguments provided. Please check your input.'
           end
         end
       end

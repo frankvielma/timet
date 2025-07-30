@@ -9,6 +9,7 @@ RSpec.describe Timet::ValidationEditHelper do
   subject(:validation_helper) do
     Class.new do
       include Timet::ValidationEditHelper
+
       attr_reader :db
 
       def initialize(db)
@@ -63,6 +64,8 @@ RSpec.describe Timet::ValidationEditHelper do
         )
         expected_timestamp = expected_datetime.to_i
 
+        # Stub Time.now to be after the valid_time_str for this test to pass
+        allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00").getlocal)
         # Stub find_item to return nil to avoid collision errors
         allow(db).to receive(:find_item).with(item_with_valid_times[0] - 1).and_return(nil)
         allow(db).to receive(:find_item).with(item_with_valid_times[0] + 1).and_return(nil)
@@ -106,7 +109,7 @@ RSpec.describe Timet::ValidationEditHelper do
 
         expect do
           validation_helper.validate_and_update(item_with_times_past_end, 'start', future_datetime_str)
-        end.to raise_error(ArgumentError, /Cannot set time to a future date:/)
+        end.to raise_error(ArgumentError, /Cannot set time to a future date or time:/)
       end
 
       context 'when validating start time collisions' do
@@ -193,6 +196,7 @@ RSpec.describe Timet::TimeUpdateHelper do
   subject(:time_update_helper) do
     Class.new do
       include Timet::TimeUpdateHelper
+
       attr_reader :db
 
       def initialize(db)

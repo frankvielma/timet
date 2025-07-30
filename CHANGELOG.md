@@ -1,3 +1,18 @@
+## [1.5.9] - 2025-07-30
+
+**Improvements:**
+
+- Replaced Code Climate with DeepSource for static analysis and test coverage reporting.
+- Updated the CI workflow by removing Code Climate steps and adding a .deepsource.toml configuration file.
+- Updated gem dependencies, including rubocop, thor, and various aws-sdk gems.
+- Refactored application.rb to use abort for more idiomatic error handling on invalid arguments.
+- Updated the README to replace the old Code Climate badges with a new DeepSource badge.
+
+**Bug fixes:**
+
+- Fixed a shell injection vulnerability in application_helper.rb by properly escaping notification messages using Shellwords.shellescape.
+- Corrected a timezone-related issue in time_validation_helper.rb by using Time.now.getlocal for future date validation.
+
 ## [1.5.8] - 2025-06-28
 
 **Improvements:**

@@ -19,7 +19,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -45,23 +47,15 @@ jobs:
         env:
           COVERAGE: true
 
-      - name: Code Climate Run before-test
+      - name: Report results to DeepSource
         run: |
-          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-          chmod +x ./cc-test-reporter
-          ./cc-test-reporter before-build
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+          # Tests have finished and a test coverage report is available
 
-      - name: Publish code coverage
-        run: |
-          ./cc-test-reporter format-coverage coverage/lcov.info -t lcov -o coverage/codeclimate.json
-          ./cc-test-reporter upload-coverage -i coverage/codeclimate.json
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+          # Install deepsource CLI
+          curl https://deepsource.io/cli | sh
 
-      - name: Code Climate After-test
-        run: ./cc-test-reporter after-build -t lcov --exit-code $?
-        if: always()
+          # From the root directory, run the report coverage command
+          ./bin/deepsource report --analyzer test-coverage --key ruby --value-file coverage/.resultset.json
+
         env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}

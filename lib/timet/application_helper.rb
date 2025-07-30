@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'shellwords'
+
 module Timet
   # Provides helper methods for the Timet application.
   module ApplicationHelper
@@ -109,7 +111,8 @@ module Timet
     # @param tag [String] A tag or label for the session, used in the notification message.
     # @return [void]
     def run_linux_session(time, tag)
-      notification_command = "notify-send --icon=clock '#{show_message(tag)}'"
+      escaped_message = Shellwords.shellescape(show_message(tag))
+      notification_command = "notify-send --icon=clock #{escaped_message}"
       command = "sleep #{time} && tput bel && tt stop 0 && #{notification_command} &"
       pid = Kernel.spawn(command)
       Process.detach(pid)
@@ -121,7 +124,10 @@ module Timet
     # @param _tag [String] A tag or label for the session, not used in the notification message on macOS.
     # @return [void]
     def run_mac_session(time, tag)
-      notification_command = "osascript -e 'display notification \"#{show_message(tag)}\"'"
+      # Escape double quotes and backslashes for AppleScript, then shell-escape the entire AppleScript command
+      escaped_message_for_applescript = show_message(tag).gsub('\\', '\\\\').gsub('"', '\"')
+      escaped_applescript_command = Shellwords.shellescape("display notification \"#{escaped_message_for_applescript}\"")
+      notification_command = "osascript -e #{escaped_applescript_command}"
       command = "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && #{notification_command} &"
       pid = Kernel.spawn(command)
       Process.detach(pid)
