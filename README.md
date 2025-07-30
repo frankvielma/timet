@@ -1,6 +1,6 @@
 [![Gem Version](https://badge.fury.io/rb/timet.svg)](https://badge.fury.io/rb/timet)
 ![timet workflow](https://github.com/frankvielma/timet/actions/workflows/ci.yml/badge.svg)
-[![DeepSource](https://app.deepsource.com/gh/frankvielma/timet.svg/?label=code+coverage&show_trend=true&token=RV8_VCNrXIfEU7NL9mk9MSuP)](https://app.deepsource.com/gh/frankvielma/timet/)
+[![DeepSource](https://app.deepsource.com/gh/frankvielma/timet.svg/?label=active+issues&show_trend=true&token=RV8_VCNrXIfEU7NL9mk9MSuP)](https://app.deepsource.com/gh/frankvielma/timet/)
 # Timet
 
 ![Timet](timet.webp)
