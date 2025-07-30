@@ -44,12 +44,3 @@ jobs:
           bundle exec rspec
         env:
           COVERAGE: true
-
-      - name: Upload coverage to DeepSource
-        run: |
-          curl https://deepsource.io/cli | sh
-          ./bin/deepsource report --analyzer ruby --key test-coverage --value-file coverage/.resultset.json
-        env:
-          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
-
-
