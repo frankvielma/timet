@@ -44,50 +44,63 @@ RSpec.describe Timet::ApplicationHelper do
   describe '#run_linux_session' do
     let(:time) { 1500 }
     let(:tag) { 'work' }
-    let(:expected_command) do
-      "sleep #{time} && tput bel && tt stop 0 && notify-send --icon=clock " \
-        'Pomodoro\\ session\\ complete\\ \\(work\\).\\ Time\\ for\\ a\\ break. &'
-    end
     let(:mock_pid) { 1234 }
 
     before do
-      allow(Kernel).to receive(:spawn).and_return(mock_pid)
+      # To avoid the warning with the SQLite3 database connection
+      @db = instance_double(Timet::Database)
+      allow(@db).to receive(:close)
+
+      allow(self).to receive(:fork).and_yield.and_return(mock_pid)
+      allow(self).to receive(:sleep)
+      allow(self).to receive(:system)
       allow(Process).to receive(:detach)
     end
 
-    it 'spawns the correct command' do
+    it 'spawns the correct commands' do
       run_linux_session(time, tag)
-      expect(Kernel).to have_received(:spawn).with(expected_command).once
+      expect(self).to have_received(:sleep).with(time)
+      expect(self).to have_received(:system).with('tput', 'bel')
+      expect(self).to have_received(:system).with('tt', 'stop', '0')
+      expect(self).to have_received(:system).with('notify-send', '--icon=clock', show_message(tag))
     end
 
     it 'detaches the process' do
       run_linux_session(time, tag)
-      expect(Process).to have_received(:detach).with(mock_pid).once
+      expect(Process).to have_received(:detach).with(mock_pid)
     end
   end
 
   describe '#run_mac_session' do
     let(:time) { 1500 }
     let(:tag) { 'work' }
-    let(:expected_command) do
-      "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && " \
-        'osascript -e display\\ notification\\ \"Pomodoro\\ session\\ complete\\ \\(work\\).\\ Time\\ for\\ a\\ break.\" &'
-    end
     let(:mock_pid) { 1235 }
 
     before do
-      allow(Kernel).to receive(:spawn).and_return(mock_pid)
+      # To avoid the warning with the SQLite3 database connection
+      @db = instance_double(Timet::Database)
+      allow(@db).to receive(:close)
+
+      allow(self).to receive(:fork).and_yield.and_return(mock_pid)
+      allow(self).to receive(:sleep)
+      allow(self).to receive(:system)
       allow(Process).to receive(:detach)
     end
 
-    it 'spawns the correct command' do
+    it 'spawns the correct commands' do
       run_mac_session(time, tag)
-      expect(Kernel).to have_received(:spawn).with(expected_command).once
+      expect(self).to have_received(:sleep).with(time)
+      expect(self).to have_received(:system).with('afplay', '/System/Library/Sounds/Basso.aiff')
+      expect(self).to have_received(:system).with('tt', 'stop', '0')
+      message = show_message(tag)
+      escaped_message = message.gsub('\\', '\\\\').gsub('"', '\"')
+      applescript_command = "display notification \"#{escaped_message}\""
+      expect(self).to have_received(:system).with('osascript', '-e', applescript_command)
     end
 
     it 'detaches the process' do
       run_mac_session(time, tag)
-      expect(Process).to have_received(:detach).with(mock_pid).once
+      expect(Process).to have_received(:detach).with(mock_pid)
     end
   end
 end
