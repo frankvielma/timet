@@ -11,3 +11,5 @@ enabled = true
 [coverage]
 reporter = "simplecov"
 paths = ["coverage/.resultset.json"]
+
+ignore_issues = ["RB-RL1039", "RB-RL1058", "RB-E1003", "RB-RL1054"]
