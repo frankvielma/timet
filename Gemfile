@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'aws-sdk-s3', '~> 1.191'
+gem 'aws-sdk-s3', '~> 1.196'
 gem 'base64', '~> 0.2'
 gem 'csv', '~> 3.3'
 gem 'descriptive_statistics', '~> 2.5'
@@ -18,7 +18,7 @@ gem 'tty-prompt', '~> 0.23'
 gem 'rubocop-rspec', '~> 3.6', require: false
 group :development do
   gem 'rexml', '~> 3.4'
-  gem 'rubocop', '~> 1.77'
+  gem 'rubocop', '~> 1.79'
 end
 
 group :test do
