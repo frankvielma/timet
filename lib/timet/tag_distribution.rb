@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'time_statistics'
+require_relative 'color_codes' # Ensure color methods are available
 module Timet
   # The TagDistribution module provides functionality to format and display the distribution of tags based on their
   # durations. This is particularly useful for visualizing how time is distributed across different tags in a project
@@ -42,6 +43,7 @@ module Timet
       print_summary(time_stats, total)
       print_tags_info(time_stats, total, colors)
       print_footer
+      print_explanation(time_stats, total)
     end
 
     # Prints the footer information.
@@ -52,6 +54,71 @@ module Timet
       puts 'T:'.rjust(4).red + 'The total duration'.gray
       puts 'AVG:'.rjust(4).red + 'The average duration'.gray
       puts 'SD:'.rjust(4).red + 'The standard deviation of the durations'.gray
+    end
+
+    # Generates and prints an explanation of the time report based on tag distribution.
+    #
+    # @param time_stats [Object] An object containing the time statistics.
+    # @param total [Numeric] The total duration of all tags combined in seconds.
+    # @return [void] This method outputs the explanation to the standard output.
+    def print_explanation(time_stats, total)
+      explanations = []
+      high_sd_threshold = 0.5
+      moderate_sd_threshold = 0.2
+
+      # --- Introduction ---
+      total_duration_hours = (total / 3600.0).round(1)
+      explanations << "\n---"
+      explanations << 'Time Report Summary'.bold
+      explanations << "This report provides a detailed breakdown of time spent across various categories, totaling #{"#{total_duration_hours}h".bold} of tracked work.".white
+      explanations << "\n"
+
+      # --- Individual Category Explanations ---
+      explanations << 'Category Breakdown'.bold
+      time_stats.sorted_duration_by_tag.each do |tag, duration|
+        explanation = "#{"#{tag.capitalize}".bold}:"
+
+        # Percentage
+        percentage = (duration.to_f / total * 100).round(1)
+        explanation += " This category consumed #{"#{percentage}%".bold} of the total tracked time."
+
+        # Total Duration
+        total_hours = (duration / 3600.0).round(1)
+        explanation += " The cumulative time spent was #{"#{total_hours}h".bold}, indicating the overall effort dedicated to this area."
+
+        # Average Duration
+        avg_minutes = (time_stats.average_by_tag[tag] / 60.0).round(1)
+        explanation += " On average, each task took #{"#{avg_minutes}min".bold}, which helps in understanding the typical time commitment per task."
+
+        # Standard Deviation
+        sd_minutes = (time_stats.standard_deviation_by_tag[tag] / 60.0).round(1)
+        avg_duration_seconds = time_stats.average_by_tag[tag]
+
+        if sd_minutes > avg_duration_seconds / 60.0 * high_sd_threshold
+          explanation += " A high standard deviation of #{"#{sd_minutes}min".bold} relative to the average suggests significant variability in task durations. This could imply inconsistent task definitions, varying complexity, or frequent interruptions.".red
+        elsif sd_minutes > avg_duration_seconds / 60.0 * moderate_sd_threshold
+          explanation += " A moderate standard deviation of #{"#{sd_minutes}min".bold} indicates some variation in task durations.".blue
+        else
+          explanation += " A low standard deviation of #{"#{sd_minutes}min".bold} suggests that task durations were quite consistent and predictable.".green
+        end
+
+        explanations << explanation.white
+      end
+
+      # --- Overall Summary ---
+      if time_stats.sorted_duration_by_tag.any?
+        sorted_categories = time_stats.sorted_duration_by_tag.map do |tag, duration|
+          [tag, (duration.to_f / total * 100).round(1)]
+        end.sort_by { |_, percentage| -percentage }
+
+        major_categories = sorted_categories.select { |_, percentage| percentage > 10 }
+        if major_categories.size > 1
+          total_percentage = major_categories.sum { |_, percentage| percentage }
+          category_names = major_categories.map { |c, _| "'#{c.capitalize}'" }.join(' and ')
+          explanations << "\nTogether, #{category_names} dominate the time spent, accounting for nearly #{"#{total_percentage.round}%".bold} of the total.".white
+        end
+      end
+      puts explanations.join("\n")
     end
 
     # Prints the summary information including total duration, average duration, and standard deviation.
