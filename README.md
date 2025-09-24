@@ -98,7 +98,7 @@ gem install timet
 
   ### Pomodoro Integration
 
-  The `pomodoro` option in the `start` command enhances time tracking by integrating the Pomodoro Technique. Users can specify a Pomodoro session length in minutes, like `pomodoro=25`, to start a 25-minute work interval. The app automatically tracks time and notifies users when the interval ends, helping maintain focus.
+  The `pomodoro` option in the `start` command enhances time tracking by integrating the Pomodoro Technique. Users can specify a Pomodoro session length in minutes, like `pomodoro=25`, to start a 25-minute work interval. The app automatically tracks time and notifies users when the interval ends, helping maintain focus. This notification is now automatically triggered upon the completion of the Pomodoro timer, ensuring timely alerts.
 
   **Benefits:**
 

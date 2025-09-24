@@ -161,8 +161,7 @@ module Timet
       return unless @db.item_status == :in_progress
 
       last_id = @db.fetch_last_id
-      item = @db.find_item(last_id) # Fetch the item to get pomodoro duration
-      pomodoro_duration = item[5].to_i # Assuming pomodoro is at index 5
+      @db.find_item(last_id) # Fetch the item to get pomodoro duration
       @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
       summary
     end
