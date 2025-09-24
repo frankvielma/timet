@@ -6,6 +6,7 @@ module Timet
     RESET = "\u001b[0m"
     UNDERLINE = "\e[4m"
     BLINK = "\e[5m"
+    BOLD = "\e[1m"
 
     def self.reset
       RESET
@@ -17,6 +18,10 @@ module Timet
 
     def self.blink
       BLINK
+    end
+
+    def self.bold
+      BOLD
     end
 
     def self.color(num)
@@ -49,6 +54,10 @@ class String
 
   def blink
     "#{Timet::ColorCodes.blink}#{self}#{Timet::ColorCodes.reset}"
+  end
+
+  def bold
+    "#{Timet::ColorCodes.bold}#{self}#{Timet::ColorCodes.reset}"
   end
 
   def green

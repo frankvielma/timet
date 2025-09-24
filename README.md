@@ -35,6 +35,7 @@
 - **Block Time Plot:** Visualizes the distribution of tracked time across a specified range of dates. Each column represents the amount of time tracked during a specific hour, with a header showing the hours and a row for each date displaying the time blocks for each hour.
 - **Tag Distribution Plot:** Illustrates the proportion of total tracked time allocated to each tag, showing the relative contribution of each tag to the overall time tracked.
 - **Detailed Statistics:** Displays detailed statistics for each tag, including total duration, average duration, and standard deviation.
+- **Enhanced Summary Report:** Provides a detailed, color-coded explanation of tag distribution, including percentages, total duration, average duration, and standard deviation, via the `--report` option in the `summary` command.
 - **iCalendar Export:** Easily export your time tracking data to iCalendar format for integration with calendar applications.
 - **S3 Cloud Backup:** Seamlessly backup and sync your time tracking data with S3-compatible storage services, providing an additional layer of data protection and accessibility.
 
@@ -97,7 +98,7 @@ gem install timet
 
   ### Pomodoro Integration
 
-  The `pomodoro` option in the `start` command enhances time tracking by integrating the Pomodoro Technique. Users can specify a Pomodoro session length in minutes, like `pomodoro=25`, to start a 25-minute work interval. The app automatically tracks time and notifies users when the interval ends, helping maintain focus.
+  The `pomodoro` option in the `start` command enhances time tracking by integrating the Pomodoro Technique. Users can specify a Pomodoro session length in minutes, like `pomodoro=25`, to start a 25-minute work interval. The app automatically tracks time and notifies users when the interval ends, helping maintain focus. This notification is now automatically triggered upon the completion of the Pomodoro timer, ensuring timely alerts.
 
   **Benefits:**
 
@@ -105,6 +106,24 @@ gem install timet
   - **Focus:** Encourages disciplined work practices.
   - **Productivity:** Helps achieve higher productivity and better time management.
 
+### Discord Integration
+
+Timet now supports sending notifications to Discord channels upon Pomodoro timer completion. To enable this feature, you need to configure a webhook in your Discord channel and export the webhook URL as an environment variable.
+
+#### Setup:
+
+1.  **Create a Discord Webhook:** In your Discord server, go to `Server Settings` -> `Integrations` -> `Webhooks` -> `New Webhook`. Copy the generated webhook URL.
+2.  **Export Environment Variable:** Before running `timet`, export the webhook URL as `DISCORD_WEBHOOK_URL`:
+
+    ```bash
+    export DISCORD_WEBHOOK_URL="YOUR_DISCORD_WEBHOOK_URL_HERE"
+    ```
+
+    Replace `"YOUR_DISCORD_WEBHOOK_URL_HERE"` with the actual webhook URL you copied from Discord.
+
+Once configured, Timet will automatically send a notification to your Discord channel when a Pomodoro session ends.
+
+---
 ---
 
 - **`timet stop`:** Stops tracking the current task, records the elapsed time, and displays the total time spent on all tasks.
@@ -149,6 +168,12 @@ gem install timet
 - **`timet edit`:** Allows users to update a task's notes, tag, start, or end fields. Users can either interactively select the field and provide a new value or specify them directly in the command.
 
   **Interactive Mode:**
+
+  ```bash
+  timet edit
+  ```
+
+  This will edit the last tracked item.
 
   ```bash
   timet edit 1
@@ -202,6 +227,7 @@ gem install timet
 | `timet summary month (m)`                    | Display a report of tracked time for the month.                             | `timet su m`                      |
 | `timet su t --csv=[filename]`                | Display a report of tracked time for today and export to CSV file | `timet su t --csv=file.csv`                 |
 | `timet su w --ics=[filename]`                | Display a report of tracked time for week and export to iCalendar file | `timet su w --ics=file.csv`            |
+| `timet su t --report`                        | Display a detailed report of tag distribution for today.            | `timet su t --report`                   |
 | `timet delete [id]`                          | Delete a task by its ID.                                                    | `timet d [id]`                    |
 | `timet cancel`                               | Cancel active time tracking.                                                | `timet c`                         |
 | `timet edit [id]`                            | Update a task's notes, tag, start, or end fields.                           | `timet e [id]`                    |

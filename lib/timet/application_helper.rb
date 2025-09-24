@@ -111,10 +111,13 @@ module Timet
     # @param tag [String] A tag or label for the session, used in the notification message.
     # @return [void]
     def run_linux_session(time, tag)
-      escaped_message = Shellwords.shellescape(show_message(tag))
-      notification_command = "notify-send --icon=clock #{escaped_message}"
-      command = "sleep #{time} && tput bel && tt stop 0 && #{notification_command} &"
-      pid = Kernel.spawn(command)
+      pid = fork do
+        sleep Integer(time)
+        system('tput', 'bel')
+        DiscordNotifier.pomodoro_ended(time / 60) # Notify that a Pomodoro session has ended
+        system('tt', 'stop')
+        system('notify-send', '--icon=clock', show_message(tag))
+      end
       Process.detach(pid)
     end
 
@@ -124,12 +127,17 @@ module Timet
     # @param _tag [String] A tag or label for the session, not used in the notification message on macOS.
     # @return [void]
     def run_mac_session(time, tag)
-      # Escape double quotes and backslashes for AppleScript, then shell-escape the entire AppleScript command
-      escaped_message_for_applescript = show_message(tag).gsub('\\', '\\\\').gsub('"', '\"')
-      escaped_applescript_command = Shellwords.shellescape("display notification \"#{escaped_message_for_applescript}\"")
-      notification_command = "osascript -e #{escaped_applescript_command}"
-      command = "sleep #{time} && afplay /System/Library/Sounds/Basso.aiff && tt stop 0 && #{notification_command} &"
-      pid = Kernel.spawn(command)
+      pid = fork do
+        sleep Integer(time)
+        system('afplay', '/System/Library/Sounds/Basso.aiff')
+        DiscordNotifier.pomodoro_ended(time / 60) # Notify that a Pomodoro session has ended
+        system('tt', 'stop')
+        message = show_message(tag)
+        # Escape for AppleScript
+        escaped_message = message.gsub('\\', '\\\\').gsub('"', '\"')
+        applescript_command = "display notification \"#{escaped_message}\""
+        system('osascript', '-e', applescript_command)
+      end
       Process.detach(pid)
     end
 
@@ -208,7 +216,8 @@ module Timet
         filter: time_scope,
         tag: tag,
         csv: csv_filename,
-        ics: ics_filename
+        ics: ics_filename,
+        report: options[:report]
       }
     end
 

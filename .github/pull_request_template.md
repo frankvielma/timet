@@ -10,4 +10,3 @@
 #### Tasks:
 - [ ] 
 
-### Additional Considerations:

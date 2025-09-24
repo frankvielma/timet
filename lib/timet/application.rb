@@ -9,6 +9,7 @@ require_relative 'application_helper'
 require_relative 'time_helper'
 require_relative 'version'
 require_relative 'database_sync_helper'
+require_relative 'discord_notifier'
 require 'tempfile'
 require 'digest'
 module Timet
@@ -89,6 +90,14 @@ module Timet
           end
         end
       end
+
+      def resume_complete_task(id)
+        item = id ? @db.find_item(id) : @db.last_item
+        tag = item[3]
+        notes = item[4]
+        pomodoro = options[:pomodoro]
+        start(tag, notes, pomodoro)
+      end
     end
 
     desc "start [tag] --notes='' --pomodoro=[min]",
@@ -129,6 +138,7 @@ module Timet
       return puts 'A task is currently being tracked.' unless VALID_STATUSES_FOR_INSERTION.include?(@db.item_status)
 
       @db.insert_item(start_time, tag, notes, pomodoro, start_time, start_time)
+      DiscordNotifier.pomodoro_started(pomodoro) if pomodoro.positive? # Notify that a Pomodoro session has started
       play_sound_and_notify(pomodoro * 60, tag) if pomodoro.positive?
       summary
     end
@@ -151,12 +161,13 @@ module Timet
       return unless @db.item_status == :in_progress
 
       last_id = @db.fetch_last_id
+      @db.find_item(last_id) # Fetch the item to get pomodoro duration
       @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
-
       summary
     end
 
-    desc 'resume (r) [id]', 'Resume last task (id is an optional parameter) => tt resume'
+    desc 'resume (r) [id] --pomodoro=[min]', 'Resume last task (id is an optional parameter) => tt resume'
+    option :pomodoro, type: :numeric, desc: 'Pomodoro time in minutes'
     # Resumes the last tracking session if it was completed.
     #
     # @return [void] This method does not return a value; it performs side effects such as resuming a tracking session
@@ -188,15 +199,17 @@ module Timet
       end
     end
 
-    desc 'summary (su) [time_scope] [tag] --csv=csv_filename --ics=ics_filename',
+    desc 'summary (su) [time_scope] [tag] --csv=csv_filename --ics=ics_filename --report',
          'Display a summary of tracked time and export to CSV.
-          [time_scope] => [today (t), yesterday (y), week (w), month (m). => tt su yesterday
-          [start_date]..[end_date]] => tt su 2024-10-03..2024-10-20
-          [tag] => tt su Task1
-          --csv=csv_filename => tt su month --csv=myfile
-          --ics=ics_filename => tt su week --csv=mycalendar'
+
+Examples:
+> tt su yesterday [today (t), yesterday (y), week (w), month (m)]
+> tt su 2024-10-03..2024-10-20
+> tt su month --csv=myfile
+> tt su week --csv=mycalendar'
     option :csv, type: :string, desc: 'Export to CSV'
     option :ics, type: :string, desc: 'Export to iCalendar'
+    option :report, type: :string, desc: 'Display report'
     # Generates a summary of tracking items based on the provided time_scope and tag, and optionally exports the summary
     # to a CSV file and/or an iCalendar file.
     #
@@ -210,12 +223,17 @@ module Timet
       options = build_options(time_scope, tag)
       report = TimeReport.new(@db, options)
       display_and_export_report(report, options)
+      return unless options[:report]
+
+      report.print_tag_explanation_report
     end
 
     desc 'edit (e) [id] [field] [value]',
-         'Edit task, [field] (notes, tag, start or end) and [value] are optional parameters.
-          Update notes => tt edit 12 notes "Update note"
-          Update start time => tt edit 12 start 12:33'
+         'Edit task, [id] [field] (notes, tag, start or end) and [value] are optional parameters. Examples:
+
+Update last item => tt edit
+Update notes => tt edit 12 notes "Update note"
+Update start time => tt edit 12 start 12:33'
     # Edits a specific tracking item by its ID, allowing the user to modify fields such as notes, tag, start time, or
     # end time.
     #
@@ -240,7 +258,8 @@ module Timet
     # a new value.
     # @note The method then validates and updates the item using `validate_and_update(item, field, new_value)`.
     # @note Finally, it displays the updated item details using `display_item(updated_item)`.
-    def edit(id, field = nil, new_value = nil)
+    def edit(id = nil, field = nil, new_value = nil)
+      id = @db.fetch_last_id if id.nil?
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
 
