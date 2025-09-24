@@ -9,6 +9,7 @@ require_relative 'application_helper'
 require_relative 'time_helper'
 require_relative 'version'
 require_relative 'database_sync_helper'
+require_relative 'discord_notifier'
 require 'tempfile'
 require 'digest'
 module Timet
@@ -95,6 +96,7 @@ module Timet
         tag = item[3]
         notes = item[4]
         pomodoro = options[:pomodoro]
+        DiscordNotifier.break_ended # Notify that the break has ended and work is resuming
         start(tag, notes, pomodoro)
       end
     end
@@ -137,6 +139,7 @@ module Timet
       return puts 'A task is currently being tracked.' unless VALID_STATUSES_FOR_INSERTION.include?(@db.item_status)
 
       @db.insert_item(start_time, tag, notes, pomodoro, start_time, start_time)
+      DiscordNotifier.pomodoro_started(pomodoro) if pomodoro.positive? # Notify that a Pomodoro session has started
       play_sound_and_notify(pomodoro * 60, tag) if pomodoro.positive?
       summary
     end
@@ -159,8 +162,10 @@ module Timet
       return unless @db.item_status == :in_progress
 
       last_id = @db.fetch_last_id
+      item = @db.find_item(last_id) # Fetch the item to get pomodoro duration
+      pomodoro_duration = item[5].to_i # Assuming pomodoro is at index 5
       @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
-
+      DiscordNotifier.pomodoro_ended(pomodoro_duration) # Notify that a Pomodoro session has ended with duration
       summary
     end
 

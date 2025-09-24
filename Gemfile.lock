@@ -40,6 +40,10 @@ GEM
     diff-lcs (1.6.2)
     docile (1.4.1)
     dotenv (3.1.8)
+    httparty (0.22.0)
+      csv
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
     icalendar (2.11.2)
       base64
       ice_cube (~> 0.16)
@@ -51,6 +55,9 @@ GEM
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     logger (1.7.0)
+    mini_mime (1.1.5)
+    multi_xml (0.7.1)
+      bigdecimal (~> 3.1)
     ostruct (0.6.3)
     parallel (1.27.0)
     parser (3.3.9.0)
@@ -144,6 +151,7 @@ DEPENDENCIES
   csv (~> 3.3)
   descriptive_statistics (~> 2.5)
   dotenv (~> 3.1)
+  httparty (~> 0.21)
   icalendar (~> 2.11)
   rake (~> 13.3)
   rexml (~> 3.4)
