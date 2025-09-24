@@ -151,6 +151,12 @@ gem install timet
   **Interactive Mode:**
 
   ```bash
+  timet edit
+  ```
+
+  This will edit the last tracked item.
+
+  ```bash
   timet edit 1
   ```
 

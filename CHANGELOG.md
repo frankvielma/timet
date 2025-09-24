@@ -1,3 +1,20 @@
+## [1.6.0] - 2025-09-24
+
+**New Features:**
+
+- **Enhanced Summary Report:** Added a new `--report` option to the `summary` command, providing a detailed, color-coded explanation of tag distribution, including percentages, total duration, average duration, and standard deviation.
+- **Improved Edit Command:** The `edit` command now supports editing the last tracked item by simply running `timet edit` without an ID.
+- **Resume Pomodoro Option:** The `resume` command now accepts a `--pomodoro=[min]` option to specify a pomodoro duration when resuming a task.
+- **Bold Text Formatting:** Introduced bold text formatting for improved readability in terminal output.
+
+**Improvements:**
+
+- **Robust Session Management:** Refactored `run_linux_session` and `run_mac_session` to use `fork` and `system` calls, enhancing security and robustness by avoiding complex shell escaping.
+- **Dependency Updates:** Updated `aws-sdk-s3`, `rubocop`, and numerous other gems to their latest versions for better performance and security.
+- **README Updates:** Added new interactive mode examples for the `edit` command and updated the project homepage URL.
+- **Timezone Consistency:** Improved time handling in `ValidationEditHelper` specs by consistently using `Time.parse().getlocal()` for better timezone accuracy.
+
+
 ## [1.5.9] - 2025-07-30
 
 **Improvements:**
