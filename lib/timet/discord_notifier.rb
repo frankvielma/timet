@@ -96,20 +96,5 @@ module Timet
       }
       send_notification('Break time!', embed)
     end
-
-    # Sends a notification indicating that a break has ended and it's time to return to work.
-    #
-    # The notification includes a title, description, and color.
-    #
-    # @return [void]
-    def self.break_ended
-      embed = {
-        title: 'Break Ended! Back to Work! 🚀',
-        description: 'Your short break is over. Time to start a new Pomodoro!',
-        color: 0xFF0000, # Red
-        timestamp: Time.now.utc.iso8601
-      }
-      send_notification('Break over!', embed)
-    end
   end
 end

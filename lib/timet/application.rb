@@ -96,7 +96,6 @@ module Timet
         tag = item[3]
         notes = item[4]
         pomodoro = options[:pomodoro]
-        DiscordNotifier.break_ended # Notify that the break has ended and work is resuming
         start(tag, notes, pomodoro)
       end
     end
@@ -165,7 +164,6 @@ module Timet
       item = @db.find_item(last_id) # Fetch the item to get pomodoro duration
       pomodoro_duration = item[5].to_i # Assuming pomodoro is at index 5
       @db.update_item(last_id, 'end', TimeHelper.current_timestamp)
-      DiscordNotifier.pomodoro_ended(pomodoro_duration) # Notify that a Pomodoro session has ended with duration
       summary
     end
 

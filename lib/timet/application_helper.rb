@@ -114,6 +114,7 @@ module Timet
       pid = fork do
         sleep Integer(time)
         system('tput', 'bel')
+        DiscordNotifier.pomodoro_ended(time / 60) # Notify that a Pomodoro session has ended
         system('tt', 'stop')
         system('notify-send', '--icon=clock', show_message(tag))
       end
@@ -129,6 +130,7 @@ module Timet
       pid = fork do
         sleep Integer(time)
         system('afplay', '/System/Library/Sounds/Basso.aiff')
+        DiscordNotifier.pomodoro_ended(time / 60) # Notify that a Pomodoro session has ended
         system('tt', 'stop')
         message = show_message(tag)
         # Escape for AppleScript
