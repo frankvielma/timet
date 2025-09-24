@@ -227,9 +227,11 @@ Examples:
     end
 
     desc 'edit (e) [id] [field] [value]',
-         'Edit task, [field] (notes, tag, start or end) and [value] are optional parameters.
-          Update notes => tt edit 12 notes "Update note"
-          Update start time => tt edit 12 start 12:33'
+         'Edit task, [id] [field] (notes, tag, start or end) and [value] are optional parameters. Examples:
+
+Update last item => tt edit
+Update notes => tt edit 12 notes "Update note"
+Update start time => tt edit 12 start 12:33'
     # Edits a specific tracking item by its ID, allowing the user to modify fields such as notes, tag, start time, or
     # end time.
     #
@@ -254,7 +256,8 @@ Examples:
     # a new value.
     # @note The method then validates and updates the item using `validate_and_update(item, field, new_value)`.
     # @note Finally, it displays the updated item details using `display_item(updated_item)`.
-    def edit(id, field = nil, new_value = nil)
+    def edit(id = nil, field = nil, new_value = nil)
+      id = @db.fetch_last_id if id.nil?
       item = @db.find_item(id)
       return puts "No tracked time found for id: #{id}" unless item
 
