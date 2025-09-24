@@ -114,7 +114,7 @@ module Timet
       pid = fork do
         sleep Integer(time)
         system('tput', 'bel')
-        system('tt', 'stop', '0')
+        system('tt', 'stop')
         system('notify-send', '--icon=clock', show_message(tag))
       end
       Process.detach(pid)
@@ -129,7 +129,7 @@ module Timet
       pid = fork do
         sleep Integer(time)
         system('afplay', '/System/Library/Sounds/Basso.aiff')
-        system('tt', 'stop', '0')
+        system('tt', 'stop')
         message = show_message(tag)
         # Escape for AppleScript
         escaped_message = message.gsub('\\', '\\\\').gsub('"', '\"')
