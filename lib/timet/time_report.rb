@@ -94,6 +94,17 @@ module Timet
       tag_distribution(colors)
     end
 
+    # Prints the tag distribution explanation.
+    # This method is a public wrapper for the private `print_explanation` method
+    # from the `TagDistribution` module.
+    #
+    # @return [void] This method outputs the explanation to the standard output.
+    def print_tag_explanation_report
+      time_stats = TimeStatistics.new(@items)
+      total = time_stats.total_duration
+      print_explanation(time_stats, total) if total.positive?
+    end
+
     # Displays a single row of the report.
     #
     # This method formats and prints a single row of the report, including the table header, the specified row,

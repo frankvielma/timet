@@ -43,7 +43,6 @@ module Timet
       print_summary(time_stats, total)
       print_tags_info(time_stats, total, colors)
       print_footer
-      print_explanation(time_stats, total)
     end
 
     # Prints the footer information.

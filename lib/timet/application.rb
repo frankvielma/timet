@@ -188,15 +188,17 @@ module Timet
       end
     end
 
-    desc 'summary (su) [time_scope] [tag] --csv=csv_filename --ics=ics_filename',
+    desc 'summary (su) [time_scope] [tag] --csv=csv_filename --ics=ics_filename --report',
          'Display a summary of tracked time and export to CSV.
-          [time_scope] => [today (t), yesterday (y), week (w), month (m). => tt su yesterday
-          [start_date]..[end_date]] => tt su 2024-10-03..2024-10-20
-          [tag] => tt su Task1
-          --csv=csv_filename => tt su month --csv=myfile
-          --ics=ics_filename => tt su week --csv=mycalendar'
+
+Examples:
+> tt su yesterday [today (t), yesterday (y), week (w), month (m)]
+> tt su 2024-10-03..2024-10-20
+> tt su month --csv=myfile
+> tt su week --csv=mycalendar'
     option :csv, type: :string, desc: 'Export to CSV'
     option :ics, type: :string, desc: 'Export to iCalendar'
+    option :report, type: :string, desc: 'Display report'
     # Generates a summary of tracking items based on the provided time_scope and tag, and optionally exports the summary
     # to a CSV file and/or an iCalendar file.
     #
@@ -210,6 +212,9 @@ module Timet
       options = build_options(time_scope, tag)
       report = TimeReport.new(@db, options)
       display_and_export_report(report, options)
+      return unless options[:report]
+
+      report.print_tag_explanation_report
     end
 
     desc 'edit (e) [id] [field] [value]',

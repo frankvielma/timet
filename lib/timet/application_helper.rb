@@ -214,7 +214,8 @@ module Timet
         filter: time_scope,
         tag: tag,
         csv: csv_filename,
-        ics: ics_filename
+        ics: ics_filename,
+        report: options[:report]
       }
     end
 
