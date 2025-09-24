@@ -180,4 +180,25 @@ RSpec.describe Timet::TimeReport, type: :integration do
       expect { report.display }.to output(/No tracked time found for the specified filter/).to_stdout
     end
   end
+
+  describe '#print_tag_explanation_report' do
+    let(:time_stats_mock) { instance_double(Timet::TimeStatistics) }
+
+    it 'outputs tag explanation report if total duration is positive' do
+      today = Date.today
+      db.execute_sql(
+        "INSERT INTO items (start, end, tag, notes) VALUES
+        (?, ?, 'work', 'Testing task 1')",
+        [Time.new(today.year, today.month, today.day, 9, 0, 0).to_i,
+         Time.new(today.year, today.month, today.day, 10, 0, 0).to_i]
+      )
+      report = described_class.new(db, filter: 'today')
+      expect { report.print_tag_explanation_report }.to output(/Time Report Summary/).to_stdout
+    end
+
+    it 'does not output tag explanation report if total duration is zero' do
+      report = described_class.new(db, filter: 'today') # No items, so total duration will be 0
+      expect { report.print_tag_explanation_report }.not_to output.to_stdout
+    end
+  end
 end
