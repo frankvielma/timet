@@ -61,7 +61,7 @@ RSpec.describe Timet::ApplicationHelper do
       run_linux_session(time, tag)
       expect(self).to have_received(:sleep).with(time)
       expect(self).to have_received(:system).with('tput', 'bel')
-      expect(self).to have_received(:system).with('tt', 'stop', '0')
+      expect(self).to have_received(:system).with('tt', 'stop')
       expect(self).to have_received(:system).with('notify-send', '--icon=clock', show_message(tag))
     end
 
@@ -91,7 +91,7 @@ RSpec.describe Timet::ApplicationHelper do
       run_mac_session(time, tag)
       expect(self).to have_received(:sleep).with(time)
       expect(self).to have_received(:system).with('afplay', '/System/Library/Sounds/Basso.aiff')
-      expect(self).to have_received(:system).with('tt', 'stop', '0')
+      expect(self).to have_received(:system).with('tt', 'stop')
       message = show_message(tag)
       escaped_message = message.gsub('\\', '\\\\').gsub('"', '\"')
       applescript_command = "display notification \"#{escaped_message}\""

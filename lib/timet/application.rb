@@ -89,6 +89,14 @@ module Timet
           end
         end
       end
+
+      def resume_complete_task(id)
+        item = id ? @db.find_item(id) : @db.last_item
+        tag = item[3]
+        notes = item[4]
+        pomodoro = options[:pomodoro]
+        start(tag, notes, pomodoro)
+      end
     end
 
     desc "start [tag] --notes='' --pomodoro=[min]",
@@ -156,7 +164,8 @@ module Timet
       summary
     end
 
-    desc 'resume (r) [id]', 'Resume last task (id is an optional parameter) => tt resume'
+    desc 'resume (r) [id] --pomodoro=[min]', 'Resume last task (id is an optional parameter) => tt resume'
+    option :pomodoro, type: :numeric, desc: 'Pomodoro time in minutes'
     # Resumes the last tracking session if it was completed.
     #
     # @return [void] This method does not return a value; it performs side effects such as resuming a tracking session
