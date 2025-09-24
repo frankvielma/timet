@@ -106,6 +106,24 @@ gem install timet
   - **Focus:** Encourages disciplined work practices.
   - **Productivity:** Helps achieve higher productivity and better time management.
 
+### Discord Integration
+
+Timet now supports sending notifications to Discord channels upon Pomodoro timer completion. To enable this feature, you need to configure a webhook in your Discord channel and export the webhook URL as an environment variable.
+
+#### Setup:
+
+1.  **Create a Discord Webhook:** In your Discord server, go to `Server Settings` -> `Integrations` -> `Webhooks` -> `New Webhook`. Copy the generated webhook URL.
+2.  **Export Environment Variable:** Before running `timet`, export the webhook URL as `DISCORD_WEBHOOK_URL`:
+
+    ```bash
+    export DISCORD_WEBHOOK_URL="YOUR_DISCORD_WEBHOOK_URL_HERE"
+    ```
+
+    Replace `"YOUR_DISCORD_WEBHOOK_URL_HERE"` with the actual webhook URL you copied from Discord.
+
+Once configured, Timet will automatically send a notification to your Discord channel when a Pomodoro session ends.
+
+---
 ---
 
 - **`timet stop`:** Stops tracking the current task, records the elapsed time, and displays the total time spent on all tasks.
