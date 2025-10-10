@@ -206,10 +206,12 @@ Examples:
 > tt su yesterday [today (t), yesterday (y), week (w), month (m)]
 > tt su 2024-10-03..2024-10-20
 > tt su month --csv=myfile
-> tt su week --csv=mycalendar'
+> tt su week --csv=mycalendar
+> tt su week --search "bug"'
     option :csv, type: :string, desc: 'Export to CSV'
     option :ics, type: :string, desc: 'Export to iCalendar'
     option :report, type: :string, desc: 'Display report'
+    option :search, type: :string, desc: 'Filter by tag or notes'
     # Generates a summary of tracking items based on the provided time_scope and tag, and optionally exports the summary
     # to a CSV file and/or an iCalendar file.
     #

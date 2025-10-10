@@ -38,6 +38,7 @@
 - **Enhanced Summary Report:** Provides a detailed, color-coded explanation of tag distribution, including percentages, total duration, average duration, and standard deviation, via the `--report` option in the `summary` command.
 - **iCalendar Export:** Easily export your time tracking data to iCalendar format for integration with calendar applications.
 - **S3 Cloud Backup:** Seamlessly backup and sync your time tracking data with S3-compatible storage services, providing an additional layer of data protection and accessibility.
+- **Discord Integration:** Receive notifications in your Discord channels upon Pomodoro timer completion, enhancing real-time productivity tracking.
 
 ## Examples:
 
@@ -106,9 +107,9 @@ gem install timet
   - **Focus:** Encourages disciplined work practices.
   - **Productivity:** Helps achieve higher productivity and better time management.
 
-### Discord Integration
+  ### Discord Integration
 
-Timet now supports sending notifications to Discord channels upon Pomodoro timer completion. To enable this feature, you need to configure a webhook in your Discord channel and export the webhook URL as an environment variable.
+  Timet now supports sending notifications to Discord channels upon Pomodoro timer completion. To enable this feature, you need to configure a webhook in your Discord channel and export the webhook URL as an environment variable.
 
 #### Setup:
 
@@ -228,6 +229,7 @@ Once configured, Timet will automatically send a notification to your Discord ch
 | `timet su t --csv=[filename]`                | Display a report of tracked time for today and export to CSV file | `timet su t --csv=file.csv`                 |
 | `timet su w --ics=[filename]`                | Display a report of tracked time for week and export to iCalendar file | `timet su w --ics=file.csv`            |
 | `timet su t --report`                        | Display a detailed report of tag distribution for today.            | `timet su t --report`                   |
+| `timet summary [time_scope] --search=[query]`| Display a report of tracked time filtered by tag or notes.          | `timet su week --search="bug"`    |
 | `timet delete [id]`                          | Delete a task by its ID.                                                    | `timet d [id]`                    |
 | `timet cancel`                               | Cancel active time tracking.                                                | `timet c`                         |
 | `timet edit [id]`                            | Update a task's notes, tag, start, or end fields.                           | `timet e [id]`                    |

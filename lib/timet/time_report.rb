@@ -60,7 +60,8 @@ module Timet
       @csv_filename = options[:csv]
       @ics_filename = options[:ics]
       @filter = formatted_filter(options[:filter])
-      @items = options[:filter] ? filter_items(@filter, options[:tag]) : @db.all_items
+      @search_query = options[:search]
+      @items = options[:filter] ? filter_items(@filter, options[:tag], @search_query) : @db.all_items
       @table = Table.new(@filter, @items, @db)
     end
 
@@ -176,13 +177,13 @@ module Timet
     #   filter_items('2021-10-01..2021-10-31', 'work')
     #
     # @note The method filters the items based on the specified date range and tag.
-    def filter_items(filter, tag)
+    def filter_items(filter, tag, search_query)
       if Timet::Utils.date_ranges.key?(filter)
         start_date, end_date = Timet::Utils.date_ranges[filter]
-        filter_by_date_range(start_date, end_date, tag)
+        filter_by_date_range(start_date, end_date, tag, search_query)
       elsif Timet::Utils.valid_date_format?(filter)
         start_date, end_date = filter.split('..').map { |x| Date.parse(x) }
-        filter_by_date_range(start_date, end_date, tag)
+        filter_by_date_range(start_date, end_date, tag, search_query)
       else
         puts 'Invalid filter. Supported filters: today, yesterday, week, month'
         []
@@ -201,15 +202,17 @@ module Timet
     #   filter_by_date_range(Date.new(2021, 10, 1), Date.new(2021, 10, 31), 'work')
     #
     # @note The method filters the items based on the specified date range and tag.
-    def filter_by_date_range(start_date, end_date = nil, tag = nil)
+    def filter_by_date_range(start_date, end_date = nil, tag = nil, search_query = nil)
       start_time = TimeHelper.date_to_timestamp(start_date)
       end_time = TimeHelper.calculate_end_time(start_date, end_date)
-      query = [
+      query_parts = [
         "start >= #{start_time}",
         "start < #{end_time}",
-        "tag like '%#{tag}%'",
         '(deleted IS NULL OR deleted = 0)'
-      ].join(' and ')
+      ]
+      query_parts << "tag like '%#{tag}%'" if tag
+      query_parts << "(tag LIKE '%#{search_query}%' OR notes LIKE '%#{search_query}%')" if search_query
+      query = query_parts.join(' and ')
       @db.execute_sql(
         "select * from items where #{query} ORDER BY id DESC"
       )
