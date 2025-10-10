@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Command line time tracker with reports"
   spec.description = "Timet is a command-line time tracker that keeps track of your activities." 
-  spec.homepage = "https://frankv.top/posts/timet-a-powerful-command-line-tool-for-tracking-your-time/"
+  spec.homepage = "https://timet.frankv.top"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
   spec.add_dependency "thor", "~> 1.2"

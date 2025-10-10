@@ -38,6 +38,7 @@
 - **Enhanced Summary Report:** Provides a detailed, color-coded explanation of tag distribution, including percentages, total duration, average duration, and standard deviation, via the `--report` option in the `summary` command.
 - **iCalendar Export:** Easily export your time tracking data to iCalendar format for integration with calendar applications.
 - **S3 Cloud Backup:** Seamlessly backup and sync your time tracking data with S3-compatible storage services, providing an additional layer of data protection and accessibility.
+- **Discord Integration:** Receive notifications in your Discord channels upon Pomodoro timer completion, enhancing real-time productivity tracking.
 
 ## Examples:
 
@@ -106,9 +107,9 @@ gem install timet
   - **Focus:** Encourages disciplined work practices.
   - **Productivity:** Helps achieve higher productivity and better time management.
 
-### Discord Integration
+  ### Discord Integration
 
-Timet now supports sending notifications to Discord channels upon Pomodoro timer completion. To enable this feature, you need to configure a webhook in your Discord channel and export the webhook URL as an environment variable.
+  Timet now supports sending notifications to Discord channels upon Pomodoro timer completion. To enable this feature, you need to configure a webhook in your Discord channel and export the webhook URL as an environment variable.
 
 #### Setup:
 
