@@ -210,6 +210,7 @@ Examples:
     option :csv, type: :string, desc: 'Export to CSV'
     option :ics, type: :string, desc: 'Export to iCalendar'
     option :report, type: :string, desc: 'Display report'
+    option :search, type: :string, desc: 'Filter by tag or notes'
     # Generates a summary of tracking items based on the provided time_scope and tag, and optionally exports the summary
     # to a CSV file and/or an iCalendar file.
     #

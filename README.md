@@ -229,6 +229,7 @@ Once configured, Timet will automatically send a notification to your Discord ch
 | `timet su t --csv=[filename]`                | Display a report of tracked time for today and export to CSV file | `timet su t --csv=file.csv`                 |
 | `timet su w --ics=[filename]`                | Display a report of tracked time for week and export to iCalendar file | `timet su w --ics=file.csv`            |
 | `timet su t --report`                        | Display a detailed report of tag distribution for today.            | `timet su t --report`                   |
+| `timet summary [time_scope] --search=[query]`| Display a report of tracked time filtered by tag or notes.          | `timet su week --search="bug"`    |
 | `timet delete [id]`                          | Delete a task by its ID.                                                    | `timet d [id]`                    |
 | `timet cancel`                               | Cancel active time tracking.                                                | `timet c`                         |
 | `timet edit [id]`                            | Update a task's notes, tag, start, or end fields.                           | `timet e [id]`                    |

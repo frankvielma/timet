@@ -217,7 +217,8 @@ module Timet
         tag: tag,
         csv: csv_filename,
         ics: ics_filename,
-        report: options[:report]
+        report: options[:report],
+        search: options[:search]
       }
     end
 
