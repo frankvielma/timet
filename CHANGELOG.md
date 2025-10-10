@@ -1,3 +1,17 @@
+## [1.6.1] - 2025-10-10
+
+**New Features:**
+
+- **Search Option for Summary Command:** Introduced a new `--search` option for the `summary` command, allowing users to filter time tracking reports by tags or notes.
+- **Discord Integration:** Added support for sending notifications to Discord channels upon Pomodoro timer completion.
+
+**Improvements:**
+
+- **Dependency Updates:** Updated `aws-partitions`, `aws-sdk-kms`, `aws-sdk-s3`, `bigdecimal`, `httparty`, `icalendar`, `json`, `multi_xml`, `prism`, and `rubocop` to their latest versions for better performance and security.
+- **README Updates:** Added new examples for the `--search` option and updated the project homepage URL.
+- **Time Report Filtering:** Enhanced `TimeReport` to incorporate the `--search` option for filtering items by tag or notes.
+
+
 ## [1.6.0] - 2025-09-24
 
 **New Features:**
