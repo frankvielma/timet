@@ -23,12 +23,12 @@ module Timet
       end
     end
 
-    # Converts a timestamp to a DateTime object.
+    # Converts a timestamp to a Time object.
     #
     # @param timestamp [Integer] the timestamp to convert
-    # @return [DateTime] the converted DateTime object
-    def self.convert_to_datetime(timestamp)
-      Time.at(timestamp).to_datetime
+    # @return [Time] the converted Time object
+    def self.convert_to_time(timestamp)
+      Time.at(timestamp)
     end
 
     # Provides predefined date ranges for filtering.
@@ -93,8 +93,8 @@ module Timet
     # @param event [Icalendar::Event] the event object
     # @param item [Array] the item containing event details
     def self.assign_event_attributes(event, item)
-      dtstart = convert_to_datetime(item[1])
-      dtend = convert_to_datetime(item[2] || TimeHelper.current_timestamp)
+      dtstart = convert_to_time(item[1])
+      dtend = convert_to_time(item[2] || TimeHelper.current_timestamp)
 
       event.dtstart     = dtstart
       event.dtend       = dtend

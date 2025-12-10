@@ -152,11 +152,11 @@ RSpec.describe Timet::TimeReportHelper do
     end
 
     it 'sets the correct start time' do
-      expect(event.dtstart).to eq(Time.at(item[1]).to_datetime)
+      expect(event.dtstart.to_time).to eq(Time.at(item[1]))
     end
 
     it 'sets the correct end time' do
-      expect(event.dtend).to eq(Time.at(item[2]).to_datetime)
+      expect(event.dtend.to_time).to eq(Time.at(item[2]))
     end
 
     it 'sets the correct summary' do
@@ -172,11 +172,11 @@ RSpec.describe Timet::TimeReportHelper do
     end
   end
 
-  describe '#convert_to_datetime' do
-    it 'converts a timestamp to a DateTime object' do
+  describe '#convert_to_time' do
+    it 'converts a timestamp to a Time object' do
       timestamp = Time.new(2024, 1, 1, 10, 0, 0).to_i
-      datetime = Timet::Utils.convert_to_datetime(timestamp)
-      expect(datetime).to eq(Time.at(timestamp).to_datetime)
+      time_obj = Timet::Utils.convert_to_time(timestamp)
+      expect(time_obj).to eq(Time.at(timestamp))
     end
   end
 end
