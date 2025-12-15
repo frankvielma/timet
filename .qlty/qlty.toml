@@ -1,0 +1,6 @@
+[sources]
+default = "github.com/qlty-sh/plugins"
+
+[[plugin]]
+name = "rubocop"
+mode = "monitor"

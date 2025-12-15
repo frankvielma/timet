@@ -6,56 +6,45 @@ on:
   pull_request:
     branches: ["main"]
 
-permissions:
-  contents: read
-
 jobs:
   tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        ruby-version: ["3.3"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ${{ matrix.ruby-version }}
+          ruby-version: "3.3"
           bundler-cache: true
 
       - name: Install dependencies
-        run: |
-          gem install bundler
-          bundle install --jobs 4 --retry 3
+        run: bundle install
 
+      # Create .env if needed for your tests
       - name: Create .env file
         run: |
-          mkdir -p /tmp/.timet
-          echo "S3_ENDPOINT=http://localhost:9000" >> /tmp/.timet/.env
-          echo "S3_ACCESS_KEY=test" >> /tmp/.timet/.env
-          echo "S3_SECRET_KEY=tst123" >> /tmp/.timet/.env
+          echo "S3_ENDPOINT=http://localhost:9000" >> .env
+          echo "S3_ACCESS_KEY=test" >> .env
+          echo "S3_SECRET_KEY=tst123" >> .env
 
       - name: Run tests with coverage
-        run: |
-          bundle exec rspec
+        run: bundle exec rspec
         env:
           COVERAGE: true
 
-      - name: Report results to DeepSource
-        run: |
-          # Tests have finished and a test coverage report is available
+      # Install and run Qlty (includes RuboCop via your config)
+      - name: Install qlty.sh
+        run: curl -sSf https://qlty.sh/install.sh | sh
 
-          # Install deepsource CLI
-          curl https://deepsource.io/cli | sh
-
-          # From the root directory, run the report coverage command
-          ./bin/deepsource report --analyzer test-coverage --key ruby --value-file coverage/.resultset.json
-
+      - name: Run Qlty analysis (includes RuboCop)
+        run: qlty check .
         env:
-          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+          QLTY_TOKEN: ${{ secrets.QLTY_TOKEN }}
+
+      # Upload coverage to Qlty
+      - uses: qltysh/qlty-action/coverage@v2
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: coverage/.resultset.json
