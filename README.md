@@ -1,10 +1,10 @@
 [![Gem Version](https://badge.fury.io/rb/timet.svg)](https://badge.fury.io/rb/timet)
 ![timet workflow](https://github.com/frankvielma/timet/actions/workflows/ci.yml/badge.svg)
 [![DeepSource](https://app.deepsource.com/gh/frankvielma/timet.svg/?label=active+issues&show_trend=true&token=RV8_VCNrXIfEU7NL9mk9MSuP)](https://app.deepsource.com/gh/frankvielma/timet/)
+
 # Timet
 
 ![Timet](timet.webp)
-
 
 ## Table of Contents
 
@@ -18,7 +18,6 @@
 - [🔒 S3 Cloud Backup Configuration](#-s3-cloud-backup-configuration)
 - [Contributing](#contributing)
 - [License](#license)
-
 
 [Timet](https://rubygems.org/gems/timet) is a command-line tool designed to track your activities by recording the time spent on each task. This tool allows you to monitor your work hours and productivity directly from your terminal, eliminating the need for a graphical interface. Essentially, it's a way to log your time spent on different projects or tasks using simple text commands.
 
@@ -45,6 +44,7 @@
 ![Timet demo](timet1.gif)
 
 <a name="requirements"></a>
+
 <h2 id="requirements">✔️ Requirements</h2>
 
 - Ruby version: >= 3.0.0
@@ -56,6 +56,7 @@ For older versions of Ruby and Sqlite:
 - [Ruby >= 2.4](https://github.com/frankvielma/timet/tree/ruby-2.4.0)
 
 <a name="installation"></a>
+
 ## 💾 Installation
 
 Install the gem by executing:
@@ -65,6 +66,7 @@ gem install timet
 ```
 
 <a name="usage"></a>
+
 ## ⏳ Usage
 
 ### Command Aliases
@@ -125,6 +127,7 @@ gem install timet
 Once configured, Timet will automatically send a notification to your Discord channel when a Pomodoro session ends.
 
 ---
+
 ---
 
 - **`timet stop`:** Stops tracking the current task, records the elapsed time, and displays the total time spent on all tasks.
@@ -150,6 +153,12 @@ Once configured, Timet will automatically send a notification to your Discord ch
 
   ```bash
   timet resume 1
+  ```
+
+  To resume with a Pomodoro timer:
+
+  ```bash
+  timet resume 1 --pomodoro=25
   ```
 
   ```
@@ -216,27 +225,31 @@ Once configured, Timet will automatically send a notification to your Discord ch
   ```
 
 <a name="command-reference"></a>
+
 ## 📋 Command Reference
 
-| Command                                      | Description                                                                 | Example Usage                     |
-| -------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------- |
-| `timet start [tag] --notes='' --pomodoro=[time]` | Start tracking time for a task labeled [tag] and notes (optional).      | `timet start Task "My notes" 25`  |
-| `timet stop`                                 | Stop tracking time.                                                         | `timet stop`                      |
-| `timet summary today (t)`                    | Display a report of tracked time for today.                                 | `timet su t` or `timet su`        |
-| `timet summary yesterday (y)`                | Display a report of tracked time for yesterday.                             | `timet su y`                      |
-| `timet summary week (w)`                     | Display a report of tracked time for the week.                              | `timet su w`                      |
-| `timet summary month (m)`                    | Display a report of tracked time for the month.                             | `timet su m`                      |
-| `timet su t --csv=[filename]`                | Display a report of tracked time for today and export to CSV file | `timet su t --csv=file.csv`                 |
-| `timet su w --ics=[filename]`                | Display a report of tracked time for week and export to iCalendar file | `timet su w --ics=file.csv`            |
-| `timet su t --report`                        | Display a detailed report of tag distribution for today.            | `timet su t --report`                   |
-| `timet summary [time_scope] --search=[query]`| Display a report of tracked time filtered by tag or notes.          | `timet su week --search="bug"`    |
-| `timet delete [id]`                          | Delete a task by its ID.                                                    | `timet d [id]`                    |
-| `timet cancel`                               | Cancel active time tracking.                                                | `timet c`                         |
-| `timet edit [id]`                            | Update a task's notes, tag, start, or end fields.                           | `timet e [id]`                    |
-| `timet su [date]`                            | Display a report of tracked time for a specific date.                       | `timet su 2024-01-03`             |
-| `timet su [start_date]..[end_date]`          | Display a report of tracked time for a date range.                          | `timet su 2024-01-02..2024-01-03` |
-| `timet resume (r) [id]`                      | Resume tracking a task by ID or the last completed task.                    | `timet resume [id]`               |
-| `timet sync`                                 | Sync local db with remote (S3) external db                                | `timet sync`                      |
+| Command                                          | Description                                                            | Example Usage                     |
+| ------------------------------------------------ | ---------------------------------------------------------------------- | --------------------------------- |
+| `timet start [tag] --notes='' --pomodoro=[time]` | Start tracking time for a task labeled [tag] and notes (optional).     | `timet start Task "My notes" 25`  |
+| `timet stop`                                     | Stop tracking time.                                                    | `timet stop`                      |
+| `timet summary today (t)`                        | Display a report of tracked time for today.                            | `timet su t` or `timet su`        |
+| `timet summary yesterday (y)`                    | Display a report of tracked time for yesterday.                        | `timet su y`                      |
+| `timet summary week (w)`                         | Display a report of tracked time for the week.                         | `timet su w`                      |
+| `timet summary month (m)`                        | Display a report of tracked time for the month.                        | `timet su m`                      |
+| `timet su t --csv=[filename]`                    | Display a report of tracked time for today and export to CSV file      | `timet su t --csv=file.csv`       |
+| `timet su w --ics=[filename]`                    | Display a report of tracked time for week and export to iCalendar file | `timet su w --ics=file.csv`       |
+| `timet su --report`                              | Display a detailed report of tag distribution for today.               | `timet su --report`               |
+| `timet su t --report`                            | Display a detailed report of tag distribution for today.               | `timet su t --report`             |
+| `timet su w --report`                            | Display a detailed report of tag distribution for the week.            | `timet su w --report`             |
+| `timet summary [time_scope] --search=[query]`    | Display a report of tracked time filtered by tag or notes.             | `timet su week --search="bug"`    |
+| `timet delete [id]`                              | Delete a task by its ID.                                               | `timet d [id]`                    |
+| `timet cancel`                                   | Cancel active time tracking.                                           | `timet c`                         |
+| `timet edit [id]`                                | Update a task's notes, tag, start, or end fields.                      | `timet e [id]`                    |
+| `timet su [date]`                                | Display a report of tracked time for a specific date.                  | `timet su 2024-01-03`             |
+| `timet su [start_date]..[end_date]`              | Display a report of tracked time for a date range.                     | `timet su 2024-01-02..2024-01-03` |
+| `timet resume (r) [id]`                          | Resume tracking a task by ID or the last completed task.               | `timet resume [id]`               |
+| `timet resume (r) [id] --pomodoro=[minutes]`     | Resume tracking with a Pomodoro timer.                                 | `timet resume 1 --pomodoro=25`    |
+| `timet sync`                                     | Sync local db with remote (S3) external db                             | `timet sync`                      |
 
 ### Date Range in Summary
 
@@ -257,11 +270,13 @@ The `timet summary` command now supports specifying a date range for generating 
   ```
 
 <a name="data"></a>
+
 ## 🗃️ Data
 
 Timet's data is stored in `~/.timet`.
 
 <a name="s3-cloud-backup-configuration"></a>
+
 ## 🔒 S3 Cloud Backup Configuration
 
 Timet supports backing up and syncing your time tracking data with S3-compatible storage services (such as Supabase S3). To configure S3 backup, follow these steps:
@@ -283,8 +298,6 @@ S3_REGION=your_s3_region
 - Use strong, unique access keys
 - Regularly rotate your S3 access credentials
 - Implement appropriate IAM policies to restrict bucket access
-
-
 
 ## Development
 

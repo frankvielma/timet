@@ -4,11 +4,11 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'aws-sdk-s3', '~> 1.196'
+gem 'aws-sdk-s3', '~> 1.207.0'
 gem 'base64', '~> 0.2'
 gem 'csv', '~> 3.3'
 gem 'descriptive_statistics', '~> 2.5'
-gem 'dotenv', '~> 3.1'
+gem 'dotenv', '~> 3.2'
 gem 'httparty', '~> 0.21'
 gem 'icalendar', '~> 2.11'
 gem 'rake', '~> 13.3'
