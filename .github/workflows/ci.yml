@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -22,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: bundle install
 
+      - name: Run RuboCop
+        run: bundle exec rubocop
+
       - name: Create .env file
         run: |
           mkdir -p /tmp/.timet
@@ -34,13 +40,13 @@ jobs:
         env:
           COVERAGE: true
 
-      # Install and run Qlty (includes RuboCop via your config)
+      # Install and run Qlty
       - name: Install qlty.sh
         run: |
           curl -sSf https://qlty.sh | bash
           echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
-      - name: Run Qlty analysis (includes RuboCop)
+      - name: Run Qlty analysis
         run: qlty check .
         env:
           QLTY_TOKEN: ${{ secrets.QLTY_TOKEN }}
