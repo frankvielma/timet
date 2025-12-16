@@ -4,6 +4,7 @@ AllCops:
   SuggestExtensions: false
   Exclude:
     - timet.gemspec
+    - "vendor/**/*" # Exclude vendor/bundle gems
 
 Metrics/MethodLength:
   Max: 15
@@ -11,7 +12,7 @@ Metrics/MethodLength:
 plugins: rubocop-rspec
 
 RSpec/ExampleLength:
-  Max: 15 
+  Max: 15
 
 Metrics/CyclomaticComplexity:
   Max: 8

@@ -20,6 +20,7 @@ gem 'rubocop-rspec', '~> 3.6', require: false
 group :development do
   gem 'rexml', '~> 3.4'
   gem 'rubocop', '~> 1.79'
+  gem 'rubocop-rake', '~> 0.7'
 end
 
 group :test do
