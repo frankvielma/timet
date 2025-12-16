@@ -36,7 +36,9 @@ jobs:
 
       # Install and run Qlty (includes RuboCop via your config)
       - name: Install qlty.sh
-        run: curl -sSf https://qlty.sh/install.sh | sh
+        run: |
+          curl -sSf https://qlty.sh | bash
+          echo "$HOME/.qlty/bin" >> $GITHUB_PATH
 
       - name: Run Qlty analysis (includes RuboCop)
         run: qlty check .
