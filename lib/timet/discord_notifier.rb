@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'net/http'
 require 'uri'
 require 'json'
@@ -83,7 +85,7 @@ module Timet
     # @return [void]
     def self.pomodoro_ended(duration)
       break_duration = (duration / 5).to_i # Assuming a 1/5th break duration
-      break_duration = 5 if break_duration == 0 # Minimum 5 minute break
+      break_duration = 5 if break_duration.zero? # Minimum 5 minute break
       embed = {
         title: 'Pomodoro Session Ended! 🎉',
         description: "Time for a #{break_duration} minute break!",
