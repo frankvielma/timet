@@ -82,8 +82,8 @@ module Timet
     #
     # @note The method validates the date format for single dates and date ranges.
     def self.valid_date_format?(date_string)
-      date_format_single = /^\d{4}-\d{2}-\d{2}$/
-      date_format_range = /^\d{4}-\d{2}-\d{2}\.\.\d{4}-\d{2}-\d{2}$/
+      date_format_single = /\A\d{4}-\d{2}-\d{2}\z/
+      date_format_range = /\A\d{4}-\d{2}-\d{2}\.\.\d{4}-\d{2}-\d{2}\z/
 
       date_string.match?(date_format_single) || date_string.match?(date_format_range)
     end

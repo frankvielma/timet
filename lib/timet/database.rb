@@ -74,7 +74,7 @@ module Timet
     # @note The method prints a message indicating that the column has been added.
     def add_column(table_name, new_column_name, date_type)
       raise 'Invalid table name' unless table_name == 'items'
-      raise 'Invalid column name' unless /^[a-zA-Z0-9_]+$/.match?(new_column_name)
+      raise 'Invalid column name' unless /\A[a-zA-Z0-9_]+\z/.match?(new_column_name)
       raise 'Invalid date type' unless %w[INTEGER TEXT BOOLEAN].include?(date_type)
 
       result = execute_sql("SELECT count(*) FROM pragma_table_info('items') where name=?", [new_column_name])

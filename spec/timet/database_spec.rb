@@ -16,6 +16,18 @@ RSpec.describe Timet::Database do
     FileUtils.rm_f(db_path)
   end
 
+  # Test Add Column
+  describe '#add_column' do
+    it 'raises an error for invalid column names' do
+      expect { db.add_column('items', 'invalid name', 'TEXT') }.to raise_error('Invalid column name')
+      expect { db.add_column('items', "invalid\nname", 'TEXT') }.to raise_error('Invalid column name')
+    end
+
+    it 'allows valid column names' do
+      expect { db.add_column('items', 'valid_name', 'TEXT') }.not_to raise_error
+    end
+  end
+
   # Test Table Creation
   describe '#create_table' do
     it "creates the items table if it doesn't exist" do
