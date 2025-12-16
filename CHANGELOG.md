@@ -3,14 +3,18 @@
 **Improvements:**
 
 - **Database Hardening:** Added strict validations for table/column names in `add_column` and allowed fields in `update_item`. `execute_sql` now raises `SQLite3::SQLException` instead of suppressing it, improving error visibility.
-- **Time Parsing Robustness:** Enhanced `TimeHelper#update_time_field` to robustly parse "HH:MM:SS" and "HH:MM" time strings.
-- **Documentation:** Updated README with explicit examples for `resume --pomodoro` and `summary --report`.
+- **Time Parsing Robustness:** Enhanced `TimeHelper#update_time_field` to robustly parse "HH:MM:SS" and "HH:MM" time strings using proper time construction.
+- **Documentation Updates:** Updated README with explicit examples for `resume --pomodoro` and `summary --report` usage, and improved command reference formatting.
 - **Refactoring:** Renamed `Timet::Utils.convert_to_datetime` to `convert_to_time` to better reflect that it returns a `Time` object, and updated related specs.
-- **Dependency Updates:** Updated `aws-sdk-s3` to `~> 1.207.0`, `dotenv` to `~> 3.2`, and other dependencies in `Gemfile` and `Gemfile.lock`.
+- **Dependency Updates:** Updated `aws-sdk-s3` to `~> 1.207.0`, `dotenv` to `~> 3.2`, `rubocop-rake` to `~> 0.7`, and other dependencies in `Gemfile` and `Gemfile.lock`.
+- **CI/CD Enhancements:** Replaced DeepSource integration with Qlty for code analysis and test coverage reporting. Simplified CI workflow and added RuboCop with `continue-on-error` configuration.
+- **Code Quality:** Applied RuboCop fixes including frozen string literals, numeric predicate corrections, and redundant interpolation fixes.
 
 **Bug Fixes:**
 
 - **Data Consistency:** Updated `update_time_columns` to ensure `updated_at` and `created_at` are populated with a fallback time (start time or current time) if the end time is nil.
+- **Error Propagation:** Fixed `execute_sql` to raise exceptions instead of silently returning empty arrays, improving debugging capabilities.
+- **Configuration:** Updated `.rubocop.yml` to exclude vendor directory and prevent interference from gem configurations.
 
 ## [1.6.1] - 2025-10-10
 
