@@ -6,7 +6,6 @@
 
 ![Timet](timet.webp)
 
-
 ## Table of Contents
 
 - [🔑 Key Features](#key-features)
@@ -19,7 +18,6 @@
 - [🔒 S3 Cloud Backup Configuration](#-s3-cloud-backup-configuration)
 - [Contributing](#contributing)
 - [License](#license)
-
 
 [Timet](https://rubygems.org/gems/timet) is a command-line tool designed to track your activities by recording the time spent on each task. This tool allows you to monitor your work hours and productivity directly from your terminal, eliminating the need for a graphical interface. Essentially, it's a way to log your time spent on different projects or tasks using simple text commands.
 
@@ -46,6 +44,7 @@
 ![Timet demo](timet1.gif)
 
 <a name="requirements"></a>
+
 <h2 id="requirements">✔️ Requirements</h2>
 
 - Ruby version: >= 3.0.0
@@ -57,6 +56,7 @@ For older versions of Ruby and Sqlite:
 - [Ruby >= 2.4](https://github.com/frankvielma/timet/tree/ruby-2.4.0)
 
 <a name="installation"></a>
+
 ## 💾 Installation
 
 Install the gem by executing:
@@ -66,6 +66,7 @@ gem install timet
 ```
 
 <a name="usage"></a>
+
 ## ⏳ Usage
 
 ### Command Aliases
@@ -126,6 +127,7 @@ gem install timet
 Once configured, Timet will automatically send a notification to your Discord channel when a Pomodoro session ends.
 
 ---
+
 ---
 
 - **`timet stop`:** Stops tracking the current task, records the elapsed time, and displays the total time spent on all tasks.
@@ -223,6 +225,7 @@ Once configured, Timet will automatically send a notification to your Discord ch
   ```
 
 <a name="command-reference"></a>
+
 ## 📋 Command Reference
 
 | Command                                          | Description                                                            | Example Usage                     |
@@ -238,6 +241,7 @@ Once configured, Timet will automatically send a notification to your Discord ch
 | `timet su --report`                              | Display a detailed report of tag distribution for today.               | `timet su --report`               |
 | `timet su t --report`                            | Display a detailed report of tag distribution for today.               | `timet su t --report`             |
 | `timet su w --report`                            | Display a detailed report of tag distribution for the week.            | `timet su w --report`             |
+| `timet summary [time_scope] [tag]`               | Display a report of tracked time filtered by tag.                      | `timet su week mytag`             |
 | `timet summary [time_scope] --search=[query]`    | Display a report of tracked time filtered by tag or notes.             | `timet su week --search="bug"`    |
 | `timet delete [id]`                              | Delete a task by its ID.                                               | `timet d [id]`                    |
 | `timet cancel`                                   | Cancel active time tracking.                                           | `timet c`                         |
@@ -247,6 +251,7 @@ Once configured, Timet will automatically send a notification to your Discord ch
 | `timet resume (r) [id]`                          | Resume tracking a task by ID or the last completed task.               | `timet resume [id]`               |
 | `timet resume (r) [id] --pomodoro=[minutes]`     | Resume tracking with a Pomodoro timer.                                 | `timet resume 1 --pomodoro=25`    |
 | `timet sync`                                     | Sync local db with remote (S3) external db                             | `timet sync`                      |
+| `timet version`                                  | Display the current version.                                           | `timet version`                   |
 
 ### Date Range in Summary
 
@@ -267,11 +272,13 @@ The `timet summary` command now supports specifying a date range for generating 
   ```
 
 <a name="data"></a>
+
 ## 🗃️ Data
 
 Timet's data is stored in `~/.timet`.
 
 <a name="s3-cloud-backup-configuration"></a>
+
 ## 🔒 S3 Cloud Backup Configuration
 
 Timet supports backing up and syncing your time tracking data with S3-compatible storage services (such as Supabase S3). To configure S3 backup, follow these steps:
@@ -293,8 +300,6 @@ S3_REGION=your_s3_region
 - Use strong, unique access keys
 - Regularly rotate your S3 access credentials
 - Implement appropriate IAM policies to restrict bucket access
-
-
 
 ## Development
 
