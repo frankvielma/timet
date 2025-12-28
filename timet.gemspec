@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "icalendar", "~> 2"
   spec.add_dependency "descriptive_statistics", "~> 2"
   spec.add_dependency "dotenv", "~> 3"
-  spec.add_dependency "aws-sdk-s3", "~> 1.178"
+  spec.add_dependency "aws-sdk-s3", "~> 1.209"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/frankvielma/timet"

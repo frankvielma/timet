@@ -6,7 +6,7 @@
 - **Time Parsing Robustness:** Enhanced `TimeHelper#update_time_field` to robustly parse "HH:MM:SS" and "HH:MM" time strings using proper time construction.
 - **Documentation Updates:** Updated README with explicit examples for `resume --pomodoro` and `summary --report` usage, and improved command reference formatting.
 - **Refactoring:** Renamed `Timet::Utils.convert_to_datetime` to `convert_to_time` to better reflect that it returns a `Time` object, and updated related specs.
-- **Dependency Updates:** Updated `aws-sdk-s3` to `~> 1.207.0`, `dotenv` to `~> 3.2`, `rubocop-rake` to `~> 0.7`, and other dependencies in `Gemfile` and `Gemfile.lock`.
+- **Dependency Updates:** Updated `aws-sdk-s3` to `~> 1.209.0`, `dotenv` to `~> 3.2`, `rubocop-rake` to `~> 0.7`, and other dependencies in `Gemfile` and `Gemfile.lock`.
 - **CI/CD Enhancements:** Replaced DeepSource integration with Qlty for code analysis and test coverage reporting. Simplified CI workflow and added RuboCop with `continue-on-error` configuration.
 - **Code Quality:** Applied RuboCop fixes including frozen string literals, numeric predicate corrections, and redundant interpolation fixes.
 
