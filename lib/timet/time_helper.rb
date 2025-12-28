@@ -278,9 +278,24 @@ module Timet
     def self.update_time_field(item, field, new_time)
       field_index = Timet::Application::FIELD_INDEX[field]
       timestamp = item[field_index]
-      edit_time = Time.at(timestamp || item[1]).to_s.split
-      edit_time[1] = new_time
-      DateTime.strptime(edit_time.join(' '), '%Y-%m-%d %H:%M:%S %z').to_time
+      base_time = Time.at(timestamp || item[1])
+
+      # Extract hours, minutes, and seconds from the new_time string
+      # Supports format "HH:MM:SS" or "HH:MM"
+      parts = new_time.split(':').map(&:to_i)
+      hours = parts[0]
+      minutes = parts[1]
+      seconds = parts[2] || 0
+
+      Time.new(
+        base_time.year,
+        base_time.month,
+        base_time.day,
+        hours,
+        minutes,
+        seconds,
+        base_time.utc_offset
+      )
     end
   end
 end

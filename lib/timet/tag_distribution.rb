@@ -75,7 +75,7 @@ module Timet
       # --- Individual Category Explanations ---
       explanations << 'Category Breakdown'.bold
       time_stats.sorted_duration_by_tag.each do |tag, duration|
-        explanation = "#{"#{tag.capitalize}".bold}:"
+        explanation = "#{tag.capitalize.to_s.bold}:"
 
         # Percentage
         percentage = (duration.to_f / total * 100).round(1)

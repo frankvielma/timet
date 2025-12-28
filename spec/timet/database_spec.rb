@@ -16,6 +16,18 @@ RSpec.describe Timet::Database do
     FileUtils.rm_f(db_path)
   end
 
+  # Test Add Column
+  describe '#add_column' do
+    it 'raises an error for invalid column names' do
+      expect { db.add_column('items', 'invalid name', 'TEXT') }.to raise_error('Invalid column name')
+      expect { db.add_column('items', "invalid\nname", 'TEXT') }.to raise_error('Invalid column name')
+    end
+
+    it 'allows valid column names' do
+      expect { db.add_column('items', 'valid_name', 'TEXT') }.not_to raise_error
+    end
+  end
+
   # Test Table Creation
   describe '#create_table' do
     it "creates the items table if it doesn't exist" do
@@ -167,10 +179,7 @@ RSpec.describe Timet::Database do
 
     it 'handles errors during query execution' do
       # Execute an invalid query
-      result = db.execute_sql('INVALID SQL')
-
-      # Check if it returns an empty array and prints an error message
-      expect(result).to be_empty
+      expect { db.execute_sql('INVALID SQL') }.to raise_error(SQLite3::SQLException)
     end
   end
 
@@ -192,12 +201,12 @@ RSpec.describe Timet::Database do
     end
 
     context 'when end_time is NULL' do
-      it 'updates updated_at and created_at to NULL' do
+      it 'updates updated_at and created_at to start time' do
         db.execute_sql('INSERT INTO items (start, end, tag) VALUES (?, ?, ?)', [100, nil, 'test'])
         db.update_time_columns
         result = db.execute_sql('SELECT updated_at, created_at FROM items WHERE id = ?', [2])
-        expect(result[0][0]).to be_nil
-        expect(result[0][1]).to be_nil
+        expect(result[0][0]).to eq(100)
+        expect(result[0][1]).to eq(100)
       end
     end
 

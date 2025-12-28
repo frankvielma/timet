@@ -73,7 +73,11 @@ module Timet
     # @note If the column does not exist, the method executes an SQL `ALTER TABLE` statement to add the column.
     # @note The method prints a message indicating that the column has been added.
     def add_column(table_name, new_column_name, date_type)
-      result = execute_sql("SELECT count(*) FROM pragma_table_info('items') where name='#{new_column_name}'")
+      raise 'Invalid table name' unless table_name == 'items'
+      raise 'Invalid column name' unless /\A[a-zA-Z0-9_]+\z/.match?(new_column_name)
+      raise 'Invalid date type' unless %w[INTEGER TEXT BOOLEAN].include?(date_type)
+
+      result = execute_sql("SELECT count(*) FROM pragma_table_info('items') where name=?", [new_column_name])
       column_exists = result[0][0].positive?
       return if column_exists
 
@@ -115,6 +119,9 @@ module Timet
     #
     # @note The method executes SQL to update the specified field of the item with the given ID.
     def update_item(id, field, value)
+      allowed_fields = %w[tag notes start end deleted updated_at created_at]
+      raise "Invalid field: #{field}" unless allowed_fields.include?(field)
+
       execute_sql("UPDATE items SET #{field} = ?, updated_at = ? WHERE id = ?", [value, Time.now.utc.to_i, id])
     end
 
@@ -203,6 +210,7 @@ module Timet
     #
     # @param id [Integer, nil] The ID of the item to check. If nil, the last item in the table is used.
     #
+    # @see StatusHelper#determine_status
     def item_status(id = nil)
       id = fetch_last_id if id.nil?
       determine_status(find_item(id))
@@ -221,9 +229,6 @@ module Timet
     # @note The method executes the given SQL query with the provided parameters and returns the result.
     def execute_sql(sql, params = [])
       @db.execute(sql, params)
-    rescue SQLite3::SQLException => e
-      puts "Error: #{e.message}"
-      []
     end
 
     # Closes the database connection.
@@ -315,8 +320,10 @@ module Timet
       result = execute_sql('SELECT * FROM items WHERE updated_at IS NULL OR created_at IS NULL')
       result.each do |item|
         id = item[0]
+        start_time = item[1]
         end_time = item[2]
-        execute_sql('UPDATE items SET updated_at = ?, created_at = ? WHERE id = ?', [end_time, end_time, id])
+        fallback_time = end_time || start_time || Time.now.to_i
+        execute_sql('UPDATE items SET updated_at = ?, created_at = ? WHERE id = ?', [fallback_time, fallback_time, id])
       end
     end
   end
