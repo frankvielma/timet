@@ -1,6 +1,7 @@
 [![Gem Version](https://badge.fury.io/rb/timet.svg)](https://badge.fury.io/rb/timet)
 ![timet workflow](https://github.com/frankvielma/timet/actions/workflows/ci.yml/badge.svg)
 [![Maintainability](https://qlty.sh/gh/frankvielma/projects/timet/maintainability.svg)](https://qlty.sh/gh/frankvielma/projects/timet)
+[![Code Coverage](https://qlty.sh/gh/frankvielma/projects/timet/coverage.svg)](https://qlty.sh/gh/frankvielma/projects/timet)
 
 # Timet
 
