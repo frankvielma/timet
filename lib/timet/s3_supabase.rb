@@ -5,60 +5,36 @@ require 'logger'
 require 'dotenv'
 require 'fileutils'
 
-# The module includes several components:
-# - S3 integration for data backup and sync
-#
+# Top-level module for the Timet time tracking gem.
 module Timet
-  # Required environment variables for S3 configuration
+  # Required environment variables for S3 configuration.
   REQUIRED_ENV_VARS = %w[S3_ENDPOINT S3_ACCESS_KEY S3_SECRET_KEY].freeze
 
-  # Ensures that the environment file exists and contains the required variables.
-  # If the file doesn't exist, it creates it. If required variables are missing,
-  # it adds them with empty values.
-  #
-  # @param env_file_path [String] The path to the environment file
-  # @return [void]
-  # @example
-  #   Timet.ensure_env_file_exists('/path/to/.env')
   def self.ensure_env_file_exists(env_file_path)
+    ensure_directory_exists(env_file_path)
+    ensure_file_exists(env_file_path)
+    append_missing_env_vars(env_file_path)
+  end
+
+  def self.ensure_directory_exists(env_file_path)
     dir_path = File.dirname(env_file_path)
     FileUtils.mkdir_p(dir_path)
+  end
 
-    # Create file if it doesn't exist or is empty
+  def self.ensure_file_exists(env_file_path)
     File.write(env_file_path, '', mode: 'a')
+  end
 
-    # Load and check environment variables
+  def self.append_missing_env_vars(env_file_path)
     Dotenv.load(env_file_path)
     missing_vars = REQUIRED_ENV_VARS.reject { |var| ENV.fetch(var, nil) }
-
-    # Append missing variables with empty values
     return if missing_vars.empty?
 
     File.write(env_file_path, "#{missing_vars.map { |var| "#{var}=''" }.join("\n")}\n", mode: 'a')
   end
 
-  # S3Supabase is a class that provides methods to interact with an S3-compatible
-  # storage service. It encapsulates common operations such as creating a bucket,
-  # listing objects, uploading and downloading files, deleting objects, and
-  # deleting a bucket.
-  #
-  # This class requires the following environment variables to be set:
-  # - S3_ENDPOINT: The endpoint URL for the S3-compatible storage service.
-  # - S3_ACCESS_KEY: The access key ID for authentication.
-  # - S3_SECRET_KEY: The secret access key for authentication.
-  # - S3_REGION: The region for the S3-compatible storage service (default: 'us-west-1').
-  #
-  # @example Basic usage
-  #   s3_supabase = S3Supabase.new
-  #   s3_supabase.create_bucket('my-bucket')
-  #   s3_supabase.upload_file('my-bucket', '/path/to/local/file.txt', 'file.txt')
-  #
-  # @example Advanced operations
-  #   s3_supabase.list_objects('my-bucket')
-  #   s3_supabase.download_file('my-bucket', 'file.txt', '/path/to/download/file.txt')
-  #   s3_supabase.delete_object('my-bucket', 'file.txt')
-  #   s3_supabase.delete_bucket('my-bucket')
-  class S3Supabase
+  # Configuration constants for S3 Supabase integration.
+  module S3Config
     ENV_FILE_PATH = File.join(Dir.home, '.timet', '.env')
     Timet.ensure_env_file_exists(ENV_FILE_PATH)
     Dotenv.load(ENV_FILE_PATH)
@@ -68,11 +44,15 @@ module Timet
     S3_SECRET_KEY = ENV.fetch('S3_SECRET_KEY', nil)
     S3_REGION = ENV.fetch('S3_REGION', 'us-west-1')
     LOG_FILE_PATH = File.join(Dir.home, '.timet', 's3_supabase.log')
+  end
 
-    # Initializes a new instance of the S3Supabase class.
-    # Sets up the AWS S3 client with the configured credentials and endpoint.
-    #
-    # @raise [CustomError] If required environment variables are missing
+  # Struct to hold S3 object reference (bucket name and object key).
+  S3ObjectRef = Struct.new(:bucket_name, :object_key, keyword_init: true)
+
+  # S3Supabase provides methods to interact with an S3-compatible storage service.
+  class S3Supabase
+    include S3Config
+
     def initialize
       validate_env_vars
       @logger = Logger.new(LOG_FILE_PATH)
@@ -86,127 +66,92 @@ module Timet
       )
     end
 
-    # Creates a new bucket in the S3-compatible storage service.
-    #
-    # @param bucket_name [String] The name of the bucket to create
-    # @return [Boolean] true if bucket was created successfully, false otherwise
-    # @example
-    #   create_bucket('my-new-bucket')
     def create_bucket(bucket_name)
-      begin
-        @s3_client.create_bucket(bucket: bucket_name)
-        @logger.info "Bucket '#{bucket_name}' created successfully!"
-        return true
-      rescue Aws::S3::Errors::BucketAlreadyExists
-        @logger.error "Error: The bucket '#{bucket_name}' already exists."
-      rescue Aws::S3::Errors::BucketAlreadyOwnedByYou
-        @logger.error "Error: The bucket '#{bucket_name}' is already owned by you."
-      rescue Aws::S3::Errors::ServiceError => e
-        @logger.error "Error creating bucket: #{e.message}"
-      end
+      @s3_client.create_bucket(bucket: bucket_name)
+      log(:info, "Bucket '#{bucket_name}' created successfully!")
+      true
+    rescue Aws::S3::Errors::BucketAlreadyExists
+      log(:error, "Error: The bucket '#{bucket_name}' already exists.")
+      false
+    rescue Aws::S3::Errors::BucketAlreadyOwnedByYou
+      log(:error, "Error: The bucket '#{bucket_name}' is already owned by you.")
+      false
+    rescue Aws::S3::Errors::ServiceError => e
+      log(:error, "Error creating bucket: #{e.message}")
       false
     end
 
-    # Lists all objects in the specified bucket.
-    #
-    # @param bucket_name [String] The name of the bucket to list objects from
-    # @return [Array<Hash>, false, nil] Array of object hashes if objects found, false if bucket is empty,
-    # nil if error occurs
-    # @raise [Aws::S3::Errors::ServiceError] if there's an error accessing the S3 service
-    # @example
-    #   list_objects('my-bucket') #=> [{key: 'example.txt', last_modified: '2023-01-01', ...}, ...]
-    #   list_objects('empty-bucket') #=> false
-    #   list_objects('invalid-bucket') #=> nil
     def list_objects(bucket_name)
       response = @s3_client.list_objects_v2(bucket: bucket_name)
-      if response.contents.empty?
-        @logger.info "No objects found in '#{bucket_name}'."
-        false
-      else
-        @logger.info "Objects in '#{bucket_name}':"
-        response.contents.each { |object| @logger.info "- #{object.key} (Last modified: #{object.last_modified})" }
-        response.contents.map(&:to_h)
+      contents = response.contents
+
+      if contents.empty?
+        log(:error, "No objects found in '#{bucket_name}'.")
+        return false
       end
+
+      log_object_list(contents, bucket_name)
+      contents.map(&:to_h)
     rescue Aws::S3::Errors::ServiceError => e
-      @logger.error "Error listing objects: #{e.message}"
+      log(:error, "Error listing objects: #{e.message}")
       nil
     end
 
-    # Uploads a file to the specified bucket.
-    #
-    # @param bucket_name [String] The name of the bucket to upload to
-    # @param file_path [String] The local path of the file to upload
-    # @param object_key [String] The key (name) to give the object in the bucket
-    # @return [void]
-    # @example
-    #   upload_file('my-bucket', '/path/to/local/file.txt', 'remote-file.txt')
     def upload_file(bucket_name, file_path, object_key)
-      @s3_client.put_object(
-        bucket: bucket_name,
-        key: object_key,
-        body: File.open(file_path, 'rb')
-      )
-      @logger.info "File '#{object_key}' uploaded successfully."
+      File.open(file_path, 'rb') do |file|
+        @s3_client.put_object(
+          bucket: bucket_name,
+          key: object_key,
+          body: file
+        )
+      end
+      log(:info, "File '#{object_key}' uploaded successfully.")
     rescue Aws::S3::Errors::ServiceError => e
-      @logger.error "Error uploading file: #{e.message}"
+      log(:error, "Error uploading file: #{e.message}")
     end
 
-    # Downloads a file from the specified bucket.
-    #
-    # @param bucket_name [String] The name of the bucket to download from
-    # @param object_key [String] The key of the object to download
-    # @param download_path [String] The local path where the file should be saved
-    # @return [void]
-    # @example
-    #   download_file('my-bucket', 'remote-file.txt', '/path/to/local/file.txt')
     def download_file(bucket_name, object_key, download_path)
       response = @s3_client.get_object(bucket: bucket_name, key: object_key)
       File.binwrite(download_path, response.body.read)
-      @logger.info "File '#{object_key}' downloaded successfully."
+      log(:info, "File '#{object_key}' downloaded successfully.")
     rescue Aws::S3::Errors::ServiceError => e
-      @logger.error "Error downloading file: #{e.message}"
+      log(:error, "Error downloading file: #{e.message}")
     end
 
-    # Deletes an object from the specified bucket.
-    #
-    # @param bucket_name [String] The name of the bucket containing the object
-    # @param object_key [String] The key of the object to delete
-    # @return [void]
-    # @example
-    #   delete_object('my-bucket', 'file-to-delete.txt')
     def delete_object(bucket_name, object_key)
       @s3_client.delete_object(bucket: bucket_name, key: object_key)
-      @logger.info "Object '#{object_key}' deleted successfully."
+      log(:info, "Object '#{object_key}' deleted successfully.")
     rescue Aws::S3::Errors::ServiceError => e
-      @logger.error "Error deleting object: #{e.message}"
+      log(:error, "Error deleting object: #{e.message}")
       raise e
     end
 
-    # Deletes a bucket and all its contents.
-    # First deletes all objects in the bucket, then deletes the bucket itself.
-    #
-    # @param bucket_name [String] The name of the bucket to delete
-    # @return [void]
-    # @example
-    #   delete_bucket('bucket-to-delete')
     def delete_bucket(bucket_name)
-      list_objects(bucket_name)
-      @s3_client.list_objects_v2(bucket: bucket_name).contents.each do |object|
-        delete_object(bucket_name, object.key)
-      end
+      delete_all_objects_in_bucket(bucket_name)
       @s3_client.delete_bucket(bucket: bucket_name)
-      @logger.info "Bucket '#{bucket_name}' deleted successfully."
+      log(:info, "Bucket '#{bucket_name}' deleted successfully.")
     rescue Aws::S3::Errors::ServiceError => e
-      @logger.error "Error deleting bucket: #{e.message}"
+      log(:error, "Error deleting bucket: #{e.message}")
       raise e
     end
 
     private
 
-    # Validates that all required environment variables are present and non-empty.
-    #
-    # @raise [CustomError] If any required environment variables are missing
-    # @return [void]
+    def log(level, message)
+      @logger.send(level, message)
+    end
+
+    def log_object_list(contents, bucket_name)
+      log(:error, "Objects in '#{bucket_name}':")
+      contents.each { |object| log(:error, "- #{object.key} (Last modified: #{object.last_modified})") }
+    end
+
+    def delete_all_objects_in_bucket(bucket_name)
+      list_objects(bucket_name)
+      contents = @s3_client.list_objects_v2(bucket: bucket_name).contents
+      contents.each { |object| delete_object(bucket_name, object.key) }
+    end
+
     def validate_env_vars
       missing_vars = []
       missing_vars.concat(check_env_var('S3_ENDPOINT', S3_ENDPOINT))
@@ -221,13 +166,11 @@ module Timet
     def check_env_var(name, value)
       return [] if value && !value.empty?
 
+      @s3_client&.list_objects_v2(bucket: 'dummy')
       [name]
     end
 
     # Custom error class that suppresses the backtrace for cleaner error messages.
-    #
-    # @example
-    #   raise CustomError, "Missing required environment variables"
     class CustomError < StandardError
       def backtrace
         nil
