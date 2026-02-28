@@ -1,3 +1,22 @@
+## [1.6.3] - 2026-02-28
+
+**Improvements:**
+
+- **Validation Architecture:** Refactored validation logic from `ValidationEditHelper` module to `ValidationEditor` class for better encapsulation and testability.
+- **Synchronization & Storage:** Simplified `DatabaseSyncer` and `S3Supabase` by extracting modular helper methods, introducing `S3Config` module, and `S3ObjectRef` struct.
+- **Reporting Features:** Added `export_csv` and `export_icalendar` methods to `TimeReport` for enhanced data portability.
+- **Database Refactoring:** Converted `Timet::Database` methods to class methods where appropriate, extracted column checks, and simplified item fetching logic.
+- **Tag Distribution:** Split `TagDistribution` into dedicated formatting and logic modules using a Context struct for clearer rendering.
+- **Dependencies:** Updated `aws-sdk-s3` to `~> 1.213`, removed unused `httparty` gem, and bumped RuboCop, parser, and thor dependencies.
+- **Code Quality:** Updated `.reek.yml` and RuboCop configs to accommodate new method structures, exclusions, and added code coverage badge to README.
+- **Cleanup:** Removed obsolete helper modules (`item_data_helper`, `time_report_helper`, `time_update_helper`, `time_validation_helper`).
+
+**Bug Fixes:**
+
+- **Status Determination:** Added nil guards to `determine_status` to prevent runtime errors during item status checks.
+- **Data Integrity:** Resolved duplicated `get_item_values` logic in syncer to ensure consistency during inserts and updates.
+- **Validation Logic:** Updated validation methods to correctly handle end datetime adjustments for the next day.
+
 ## [1.6.2] - 2025-12-28
 
 **Improvements:**
@@ -440,7 +459,6 @@
 **Improvements:**
 
 - **Refactor `TimeReport` to use `TimeReportHelper` module for utility methods:**
-
   - Extracted utility methods (`add_hashes`, `date_ranges`, `format_item`, `valid_date_format?`) into a new `TimeReportHelper` module.
   - Updated `TimeReport` class to include `TimeReportHelper` module.
   - Removed redundant utility methods from `TimeReport` class.
@@ -450,7 +468,6 @@
   - Adjusted formatting in `total` method for better alignment.
 
 - **Refactor `Timet::Formatter` to improve readability and modularity:**
-
   - Introduced a constant `CHAR_MAPPING` to store block characters for different value ranges.
   - Refactored `format_notes` method to use a more descriptive variable name for the maximum length.
   - Updated `format_tag_distribution` method to accept `colors` parameter and pass it to `process_and_print_tags`.
