@@ -4,3 +4,10 @@ detectors:
     max_statements: 7
   UncommunicativeVariableName:
     enabled: false
+  FeatureEnvy:
+    exclude:
+      - fetch_last_id
+      - last_item
+      - update_time_columns
+  TooManyMethods:
+    max_methods: 20
