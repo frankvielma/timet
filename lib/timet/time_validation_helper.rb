@@ -20,18 +20,14 @@ module Timet
 
     # Adjusts the end datetime if it's earlier than or same as the start time, assuming it's for the next day.
     #
-    # @param field [String] The field being validated ('start' or 'end').
     # @param start_timestamp [Integer, nil] The start timestamp of the item.
     # @param new_datetime [Time] The new datetime object.
     #
     # @return [Time] The adjusted datetime object.
-    def adjust_end_datetime(field, start_timestamp, new_datetime)
-      # If setting 'end' time and the parsed new_datetime (based on start_date)
-      # is earlier than or same as start_time, assume it's for the next calendar day.
-      if field == 'end' && start_timestamp && (new_datetime.to_i <= start_timestamp)
-        new_datetime += (24 * 60 * 60) # Add one day
-      end
-      new_datetime
+    def adjust_end_datetime_for_next_day(start_timestamp, new_datetime)
+      return new_datetime unless start_timestamp && (new_datetime.to_i <= start_timestamp)
+
+      new_datetime + (24 * 60 * 60)
     end
 
     # Determines the base date and time for creating a new datetime object.
@@ -111,42 +107,54 @@ module Timet
 
     # Validates that the difference between two timestamps is less than 24 hours.
     #
-    # @param timestamp1 [Integer] The first timestamp.
-    # @param timestamp2 [Integer] The second timestamp.
+    # @param earlier_timestamp [Integer] The earlier timestamp.
+    # @param later_timestamp [Integer] The later timestamp.
     #
     # @raise [ArgumentError] If the difference is >= 24 hours.
-    def validate_time_difference(timestamp1, timestamp2)
-      return unless (timestamp2 - timestamp1).abs >= 24 * 60 * 60
+    def validate_time_difference(earlier_timestamp, later_timestamp)
+      return unless (later_timestamp - earlier_timestamp).abs >= 24 * 60 * 60
 
       raise ArgumentError, 'The difference between start and end time must be less than 24 hours.'
     end
     private :validate_time_difference
 
-    # Validates the time order (start before end, end after start).
+    # Validates that end time is after start time.
     #
-    # @param new_epoch [Integer] The new time in epoch format.
-    # @param reference_timestamp [Integer] The reference timestamp (start or end).
+    # @param new_epoch [Integer] The new end time in epoch format.
+    # @param start_timestamp [Integer] The start timestamp.
     # @param new_datetime [Time] The new datetime object.
-    # @param field [String] The field being validated ('start' or 'end').
     #
-    # @raise [ArgumentError] If the time order is invalid.
-    def validate_time_order(new_epoch, reference_timestamp, new_datetime, field)
-      case field
-      when 'end'
-        if new_epoch <= reference_timestamp
-          raise ArgumentError,
-                "End time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be after start time " \
-                "(#{Time.at(reference_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
-        end
-      when 'start'
-        if new_epoch >= reference_timestamp
-          raise ArgumentError,
-                "Start time (#{new_datetime.strftime('%Y-%m-%d %H:%M:%S')}) must be before end time " \
-                "(#{Time.at(reference_timestamp).strftime('%Y-%m-%d %H:%M:%S')})."
-        end
-      end
+    # @raise [ArgumentError] If the end time is not after the start time.
+    def validate_end_time_order(new_epoch, start_timestamp, new_datetime)
+      reference_time = Time.at(start_timestamp)
+      formatted_new = new_datetime.strftime('%Y-%m-%d %H:%M:%S')
+      formatted_ref = reference_time.strftime('%Y-%m-%d %H:%M:%S')
+
+      return unless new_epoch <= start_timestamp
+
+      raise ArgumentError,
+            "End time (#{formatted_new}) must be after start time (#{formatted_ref})."
     end
-    private :validate_time_order
+    private :validate_end_time_order
+
+    # Validates that start time is before end time.
+    #
+    # @param new_epoch [Integer] The new start time in epoch format.
+    # @param end_timestamp [Integer] The end timestamp.
+    # @param new_datetime [Time] The new datetime object.
+    #
+    # @raise [ArgumentError] If the start time is not before the end time.
+    def validate_start_time_order(new_epoch, end_timestamp, new_datetime)
+      reference_time = Time.at(end_timestamp)
+      formatted_new = new_datetime.strftime('%Y-%m-%d %H:%M:%S')
+      formatted_ref = reference_time.strftime('%Y-%m-%d %H:%M:%S')
+
+      return unless new_epoch >= end_timestamp
+
+      raise ArgumentError,
+            "Start time (#{formatted_new}) must be before end time (#{formatted_ref})."
+    end
+    private :validate_start_time_order
 
     # Validates the end time against the start time.
     #
@@ -156,7 +164,7 @@ module Timet
     #
     # @raise [ArgumentError] If the end time is not after the start time or the difference is >= 24 hours.
     def validate_end_time(new_epoch, start_timestamp, new_datetime)
-      validate_time_order(new_epoch, start_timestamp, new_datetime, 'end')
+      validate_end_time_order(new_epoch, start_timestamp, new_datetime)
       validate_time_difference(start_timestamp, new_epoch)
     end
 
@@ -168,7 +176,7 @@ module Timet
     #
     # @raise [ArgumentError] If the start time is not before the end time or the difference is >= 24 hours.
     def validate_start_time(new_epoch, end_timestamp, new_datetime)
-      validate_time_order(new_epoch, end_timestamp, new_datetime, 'start')
+      validate_start_time_order(new_epoch, end_timestamp, new_datetime)
       validate_time_difference(new_epoch, end_timestamp)
     end
   end

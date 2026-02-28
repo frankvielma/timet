@@ -103,7 +103,10 @@ module Timet
     def print_tag_explanation_report
       time_stats = TimeStatistics.new(@items)
       total = time_stats.total_duration
-      print_explanation(time_stats, total) if total.positive?
+      return unless total.positive?
+
+      ctx = TagDistribution::Context.new(time_stats, total, nil)
+      ctx.print_explanation
     end
 
     # Displays a single row of the report.

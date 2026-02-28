@@ -84,7 +84,7 @@ module Timet
       parsed_time = parse_time_string(time_str)
       base = determine_base_date_time(@item, field_type.to_s, start_timestamp)
       new_dt = create_new_datetime(base, parsed_time)
-      adjusted_dt = field_type == :end ? adjust_end_datetime('end', start_timestamp, new_dt) : new_dt
+      adjusted_dt = field_type == :end ? adjust_end_datetime_for_next_day(start_timestamp, new_dt) : new_dt
       adjusted_dt.to_i
     end
 
