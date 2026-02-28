@@ -1,14 +1,10 @@
 # frozen_string_literal: true
 
-# require_relative 'color_codes'
-require 'timet/time_report_helper'
 require_relative 'utils'
 module Timet
   # This class is responsible for formatting the output of the `timet` application.
   # It provides methods for formatting the table header, separators, and rows.
   class Table
-    include TimeReportHelper
-
     attr_reader :filter, :items
 
     def initialize(filter, items, db)

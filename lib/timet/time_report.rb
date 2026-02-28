@@ -3,7 +3,6 @@
 require 'date'
 require 'csv'
 require 'icalendar'
-require_relative 'time_report_helper'
 require_relative 'table'
 require_relative 'time_block_chart'
 require_relative 'tag_distribution'
@@ -13,7 +12,6 @@ module Timet
   # entries. It allows filtering the report by time periods and displays
   # a formatted table with the relevant information.
   class TimeReport
-    include TimeReportHelper
     include TagDistribution
 
     # Provides access to the database instance.
@@ -134,6 +132,19 @@ module Timet
       @table.display_time_entry(item)
       puts @table.separator
       @table.total
+    end
+
+    def export_csv
+      file_name = "#{csv_filename}.csv"
+      write_csv(file_name)
+      puts "The #{file_name} has been exported."
+    end
+
+    def export_icalendar
+      file_name = "#{ics_filename}.ics"
+      cal = Timet::Utils.add_events(items)
+      File.write(file_name, cal.to_ical)
+      puts "The #{file_name} has been generated."
     end
 
     private

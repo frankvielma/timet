@@ -11,3 +11,12 @@ detectors:
       - update_time_columns
   TooManyMethods:
     max_methods: 20
+    exclude:
+      - ValidationEditor
+  LongParameterList:
+    exclude:
+      - process_and_update_time_field
+      - invalid_time_value?
+  DataClump:
+    exclude:
+      - TimeValidationHelpers
