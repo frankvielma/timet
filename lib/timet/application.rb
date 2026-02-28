@@ -4,7 +4,7 @@ require 'thor'
 require 'tty-prompt'
 require 'icalendar'
 require_relative 's3_supabase'
-require_relative 'validation_edit_helper'
+require_relative 'validation_editor'
 require_relative 'application_helper'
 require_relative 'time_helper'
 require_relative 'version'
@@ -22,7 +22,6 @@ module Timet
   # - delete: Delete a task
   # - cancel: Cancel active time tracking
   class Application < Thor
-    include ValidationEditHelper
     include ApplicationHelper
     include TimeHelper
 
@@ -271,7 +270,8 @@ Update start time => tt edit 12 start 12:33'
         new_value = prompt_for_new_value(item, field)
       end
 
-      updated_item = validate_and_update(item, field, new_value)
+      editor = Timet::ValidationEditor.new(item, @db)
+      updated_item = editor.update(field, new_value)
       @db.update_item(id, field, updated_item[FIELD_INDEX[field]])
       display_item(updated_item)
     end

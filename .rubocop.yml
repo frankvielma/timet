@@ -6,6 +6,10 @@ AllCops:
     - timet.gemspec
     - "vendor/**/*" # Exclude vendor/bundle gems
 
+Metrics/ModuleLength:
+  Exclude:
+    - 'lib/timet/tag_distribution.rb'
+
 Metrics/MethodLength:
   Max: 15
 

@@ -3,51 +3,41 @@
 module Timet
   # Module responsible for synchronizing local and remote databases
   module DatabaseSyncer
-    # Fields used in item operations
     ITEM_FIELDS = %w[start end tag notes pomodoro updated_at created_at deleted].freeze
 
-    # Handles the synchronization process when differences are detected between databases
-    #
-    # @param local_db [SQLite3::Database] The local database connection
-    # @param remote_storage [S3Supabase] The remote storage client for cloud operations
-    # @param bucket [String] The S3 bucket name
-    # @param local_db_path [String] Path to the local database file
-    # @param remote_path [String] Path to the downloaded remote database file
-    # @return [void]
-    # @note This method attempts to sync the databases and handles any errors that occur during the process
     def handle_database_differences(*args)
       local_db, remote_storage, bucket, local_db_path, remote_path = args
       puts 'Differences detected between local and remote databases'
       begin
         sync_with_remote_database(local_db, remote_path, remote_storage, bucket, local_db_path)
       rescue SQLite3::Exception => e
-        handle_sync_error(e, remote_storage, bucket, local_db_path)
+        handle_sync_error(e, remote_storage: remote_storage, bucket: bucket, local_db_path: local_db_path)
       end
     end
 
-    # Handles errors that occur during database synchronization
-    #
-    # @param error [SQLite3::Exception] The error that occurred during sync
-    # @param remote_storage [S3Supabase] The remote storage client for cloud operations
-    # @param bucket [String] The S3 bucket name
-    # @param local_db_path [String] Path to the local database file
-    # @return [void]
-    # @note When sync fails, this method falls back to uploading the local database
-    def handle_sync_error(error, remote_storage, bucket, local_db_path)
-      puts "Error opening remote database: #{error.message}"
-      puts 'Uploading local database to replace corrupted remote database'
-      remote_storage.upload_file(bucket, local_db_path, 'timet.db')
+    def handle_sync_error(error, *args)
+      first_arg = args.first
+      if first_arg.is_a?(Hash)
+        options = first_arg
+        remote_storage, bucket, local_db_path = options.values_at(:remote_storage, :bucket, :local_db_path)
+      else
+        remote_storage, bucket, local_db_path = args
+      end
+      report_sync_error(error)
+      upload_local_database(remote_storage, bucket, local_db_path)
     end
 
-    # Performs the actual database synchronization by setting up connections and syncing data
-    #
-    # @param local_db [SQLite3::Database] The local database connection
-    # @param remote_path [String] Path to the remote database file
-    # @param remote_storage [S3Supabase] The remote storage client for cloud operations
-    # @param bucket [String] The S3 bucket name
-    # @param local_db_path [String] Path to the local database file
-    # @return [void]
-    # @note Configures both databases to return results as hashes for consistent data handling
+    def report_sync_error(error)
+      puts "Error opening remote database: #{error.message}"
+      puts 'Uploading local database to replace corrupted remote database'
+    end
+    module_function :report_sync_error
+
+    def upload_local_database(remote_storage, bucket, local_db_path)
+      remote_storage.upload_file(bucket, local_db_path, 'timet.db')
+    end
+    module_function :upload_local_database
+
     def sync_with_remote_database(*args)
       local_db, remote_path, remote_storage, bucket, local_db_path = args
       db_remote = open_remote_database(remote_path)
@@ -56,12 +46,6 @@ module Timet
       sync_databases(local_db, db_remote, remote_storage, bucket, local_db_path)
     end
 
-    # Opens and validates a connection to the remote database
-    #
-    # @param remote_path [String] Path to the remote database file
-    # @return [SQLite3::Database] The initialized database connection
-    # @raise [RuntimeError] If the database connection cannot be established
-    # @note Validates that the database connection is properly initialized
     def open_remote_database(remote_path)
       db_remote = SQLite3::Database.new(remote_path)
       raise 'Failed to initialize remote database' unless db_remote
@@ -69,15 +53,6 @@ module Timet
       db_remote
     end
 
-    # Synchronizes the local and remote databases by comparing and merging their items
-    #
-    # @param local_db [SQLite3::Database] The local database connection
-    # @param remote_db [SQLite3::Database] The remote database connection
-    # @param remote_storage [S3Supabase] The remote storage client for cloud operations
-    # @param bucket [String] The S3 bucket name
-    # @param local_db_path [String] Path to the local database file
-    # @return [void]
-    # @note This method orchestrates the entire database synchronization process
     def sync_databases(*args)
       local_db, remote_db, remote_storage, bucket, local_db_path = args
       process_database_items(local_db, remote_db)
@@ -85,130 +60,117 @@ module Timet
       puts 'Database sync completed'
     end
 
-    # Processes items from both databases and syncs them
-    #
-    # @param local_db [SQLite3::Database] The local database connection
-    # @param remote_db [SQLite3::Database] The remote database connection
-    # @return [void]
     def process_database_items(local_db, remote_db)
       remote_items = remote_db.execute('SELECT * FROM items ORDER BY updated_at DESC')
       local_items = local_db.execute_sql('SELECT * FROM items ORDER BY updated_at DESC')
 
-      sync_items_by_id(
-        local_db,
-        items_to_hash(local_items),
-        items_to_hash(remote_items)
-      )
+      sync_items_by_id(local_db, items_to_hash(local_items), items_to_hash(remote_items))
     end
 
-    # Syncs items between local and remote databases based on their IDs
-    #
-    # @param local_db [SQLite3::Database] The local database connection
-    # @param local_items_by_id [Hash] Local items indexed by ID
-    # @param remote_items_by_id [Hash] Remote items indexed by ID
-    # @return [void]
     def sync_items_by_id(local_db, local_items_by_id, remote_items_by_id)
       all_item_ids = (remote_items_by_id.keys + local_items_by_id.keys).uniq
+      all_item_ids.each { |id| sync_single_item(local_db, id, local_items_by_id, remote_items_by_id) }
+    end
 
-      all_item_ids.each do |id|
-        if !remote_items_by_id[id]
-          puts "Local item #{id} will be uploaded"
-        elsif !local_items_by_id[id]
-          puts "Adding remote item #{id} to local"
-          insert_item_from_hash(local_db, remote_items_by_id[id])
-        else
-          process_existing_item(id, local_items_by_id[id], remote_items_by_id[id], local_db)
-        end
+    def sync_single_item(*args)
+      local_db, id, local_items_by_id, remote_items_by_id = args
+      remote_item = remote_items_by_id[id]
+      local_item = local_items_by_id[id]
+
+      if !remote_item
+        log_local_only(id)
+      elsif !local_item
+        add_remote_item(local_db, id, remote_item)
+      else
+        merge_item(local_db, id, local_item, remote_item)
       end
     end
 
-    # Inserts a new item into the database from a hash
-    #
-    # @param db [SQLite3::Database] The database connection
-    # @param item [Hash] Hash containing item data
-    # @return [void]
+    def log_local_only(id)
+      puts "Local item #{id} will be uploaded"
+    end
+    module_function :log_local_only
+
+    def add_remote_item(local_db, id, remote_item)
+      puts "Adding remote item #{id} to local"
+      insert_item_from_hash(local_db, remote_item)
+    end
+
+    def process_existing_item(id, local_item, remote_item, local_db)
+      merge_item(local_db, id, local_item, remote_item)
+    end
+
+    def merge_item(*args)
+      local_db, id, local_item, remote_item = args
+      local_time = extract_timestamp(local_item)
+      remote_time = extract_timestamp(remote_item)
+
+      return resolve_remote_wins(local_db, id, remote_item) if remote_wins?(remote_item, remote_time, local_time)
+
+      log_local_wins(id, local_item)
+    end
+
+    def resolve_remote_wins(local_db, id, remote_item)
+      puts format_status_message(id, remote_item, 'Remote')
+      update_item_from_hash(local_db, remote_item)
+      :local_update
+    end
+
+    def log_local_wins(id, local_item)
+      puts format_status_message(id, local_item, 'Local')
+      :remote_update
+    end
+
     def insert_item_from_hash(db, item)
       fields = ['id', *ITEM_FIELDS].join(', ')
       placeholders = Array.new(ITEM_FIELDS.length + 1, '?').join(', ')
       db.execute_sql(
         "INSERT INTO items (#{fields}) VALUES (#{placeholders})",
-        get_item_values(item, include_id_at_start: true)
+        get_insert_values(item)
       )
     end
 
-    # Processes an item that exists in both databases
-    #
-    # @param id [Integer] Item ID
-    # @param local_item [Hash] Local database item
-    # @param remote_item [Hash] Remote database item
-    # @param local_db [SQLite3::Database] Local database connection
-    # @return [Symbol] :local_update if local was updated, :remote_update if remote needs update
-    def process_existing_item(*args)
-      id, local_item, remote_item, local_db = args
-      local_time = local_item['updated_at'].to_i
-      remote_time = remote_item['updated_at'].to_i
-
-      if remote_wins?(remote_item, remote_time, local_time)
-        puts format_status_message(id, remote_item, 'Remote')
-        update_item_from_hash(local_db, remote_item)
-        :local_update
-      elsif local_time > remote_time
-        puts format_status_message(id, local_item, 'Local')
-        :remote_update
-      end
-    end
-
-    # Converts database items to a hash indexed by ID
-    #
-    # @param items [Array<Hash>] Array of database items
-    # @return [Hash] Items indexed by ID
-    def items_to_hash(items)
-      items.to_h { |item| [item['id'], item] }
-    end
-
-    # Determines if remote item should take precedence
-    #
-    # @param remote_item [Hash] Remote database item
-    # @param remote_time [Integer] Remote item timestamp
-    # @param local_time [Integer] Local item timestamp
-    # @return [Boolean] true if remote item should take precedence
-    def remote_wins?(remote_item, remote_time, local_time)
-      remote_time > local_time && (remote_item['deleted'].to_i == 1 || remote_time > local_time)
-    end
-
-    # Formats item status message
-    #
-    # @param id [Integer] Item ID
-    # @param item [Hash] Database item
-    # @param source [String] Source of the item ('Remote' or 'Local')
-    # @return [String] Formatted status message
-    def format_status_message(id, item, source)
-      deleted = item['deleted'].to_i == 1 ? ' and deleted' : ''
-      "#{source} item #{id} is newer#{deleted} - #{source == 'Remote' ? 'updating local' : 'will be uploaded'}"
-    end
-
-    # Updates an existing item in the database with values from a hash
-    #
-    # @param db [SQLite3::Database] The database connection
-    # @param item [Hash] Hash containing item data
-    # @return [void]
     def update_item_from_hash(db, item)
       fields = "#{ITEM_FIELDS.join(' = ?, ')} = ?"
       db.execute_sql(
         "UPDATE items SET #{fields} WHERE id = ?",
-        get_item_values(item)
+        get_update_values(item)
       )
     end
 
-    # Gets the values array for database operations
-    #
-    # @param item [Hash] Hash containing item data
-    # @param include_id [Boolean] Whether to include ID at start (insert) or end (update)
-    # @return [Array] Array of values for database operation
-    def get_item_values(item, include_id_at_start: false)
+    def extract_timestamp(item)
+      item['updated_at'].to_i
+    end
+    module_function :extract_timestamp
+
+    def items_to_hash(items)
+      items.to_h { |item| [item['id'], item] }
+    end
+
+    def remote_wins?(remote_item, remote_time, local_time)
+      time_diff = remote_time > local_time
+      time_diff && (remote_item['deleted'].to_i == 1 || time_diff)
+    end
+
+    def format_status_message(id, item, source)
+      deleted = item['deleted'].to_i == 1 ? ' and deleted' : ''
+      "#{source} item #{id} is newer#{deleted} - #{source == 'Remote' ? 'updating local' : 'will be uploaded'}"
+    end
+    module_function :format_status_message
+
+    def get_insert_values(item)
       @database_fields ||= ITEM_FIELDS
       values = @database_fields.map { |field| item[field] }
-      include_id_at_start ? [item['id'], *values] : values
+      [item['id'], *values]
+    end
+
+    def get_update_values(item)
+      @database_fields ||= ITEM_FIELDS
+      @database_fields.map { |field| item[field] }
+    end
+
+    def get_item_values(item, include_id_at_start: false)
+      include_id_at_start ? get_insert_values(item) : get_update_values(item)
     end
   end
 end

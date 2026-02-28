@@ -24,7 +24,7 @@ module Timet
     # @note The method creates a new SQLite3 database connection and initializes the necessary tables if they
     # do not already exist.
     def initialize(database_path = DEFAULT_DATABASE_PATH)
-      move_old_database_file(database_path)
+      self.class.move_old_database_file(database_path)
 
       @db = SQLite3::Database.new(database_path)
       create_table
@@ -76,13 +76,15 @@ module Timet
       raise 'Invalid table name' unless table_name == 'items'
       raise 'Invalid column name' unless /\A[a-zA-Z0-9_]+\z/.match?(new_column_name)
       raise 'Invalid date type' unless %w[INTEGER TEXT BOOLEAN].include?(date_type)
-
-      result = execute_sql("SELECT count(*) FROM pragma_table_info('items') where name=?", [new_column_name])
-      column_exists = result[0][0].positive?
-      return if column_exists
+      return if column_exists?(new_column_name)
 
       execute_sql("ALTER TABLE #{table_name} ADD COLUMN #{new_column_name} #{date_type}")
       puts "Column '#{new_column_name}' added to table '#{table_name}'."
+    end
+
+    def column_exists?(new_column_name)
+      execute_sql("SELECT count(*) FROM pragma_table_info('items') where name=?",
+                  [new_column_name]).first.first.positive?
     end
 
     # Inserts a new item into the items table.
@@ -150,8 +152,8 @@ module Timet
     #
     # @note The method executes SQL to fetch the ID of the last inserted item.
     def fetch_last_id
-      result = execute_sql('SELECT id FROM items WHERE deleted IS NULL OR deleted = 0 ORDER BY id DESC LIMIT 1')
-      result.empty? ? nil : result[0][0]
+      execute_sql('SELECT id FROM items WHERE deleted IS NULL OR deleted = 0 ORDER BY id DESC LIMIT 1')
+        .then { |result| result.empty? ? nil : result.first.first }
     end
 
     # Fetches the last item from the items table.
@@ -163,8 +165,8 @@ module Timet
     #
     # @note The method executes SQL to fetch the last item from the 'items' table.
     def last_item
-      result = execute_sql('SELECT * FROM items WHERE deleted IS NULL OR deleted = 0 ORDER BY id DESC LIMIT 1')
-      result.empty? ? nil : result[0]
+      execute_sql('SELECT * FROM items WHERE deleted IS NULL OR deleted = 0 ORDER BY id DESC LIMIT 1')
+        .then { |result| result.empty? ? nil : result.first }
     end
 
     # Finds an item by its ID.
@@ -180,8 +182,7 @@ module Timet
     # @note If the item is found, it returns the item as an array.
     # @note If the item is not found, it returns nil.
     def find_item(id)
-      result = execute_sql('SELECT * FROM items WHERE id = ?', [id])
-      result.first.dup if result.any? # Add .dup to create a copy
+      execute_sql('SELECT * FROM items WHERE id = ?', [id]).first&.dup
     end
 
     # Fetches all items from the items table that have a start time greater than or equal to today.
@@ -212,8 +213,8 @@ module Timet
     #
     # @see StatusHelper#determine_status
     def item_status(id = nil)
-      id = fetch_last_id if id.nil?
-      determine_status(find_item(id))
+      id ||= fetch_last_id
+      self.class.determine_status(find_item(id))
     end
 
     # Executes a SQL query and returns the result.
@@ -281,8 +282,8 @@ module Timet
     # @note The method checks if the result set is empty and returns :no_items if true.
     # @note If the last item in the result set has no end time, it returns :in_progress.
     # @note If the last item in the result set has an end time, it returns :complete.
-    def determine_status(result)
-      return :no_items if result.nil?
+    def self.determine_status(result)
+      return :no_items unless result
 
       last_item_end = result[2]
       return :in_progress unless last_item_end
@@ -293,11 +294,12 @@ module Timet
     # Moves the old database file to the new location if it exists.
     #
     # @param database_path [String] The path to the new SQLite database file.
-    def move_old_database_file(database_path)
+    def self.move_old_database_file(database_path)
       old_file = File.join(Dir.home, '.timet.db')
       return unless File.exist?(old_file)
 
-      FileUtils.mkdir_p(File.dirname(database_path)) unless File.directory?(File.dirname(database_path))
+      dir = File.dirname(database_path)
+      FileUtils.mkdir_p(dir) unless File.directory?(dir)
       FileUtils.mv(old_file, database_path)
     end
 
@@ -317,14 +319,12 @@ module Timet
     # @raise [StandardError] If there is an issue executing the SQL queries, an error may be raised.
     #
     def update_time_columns
-      result = execute_sql('SELECT * FROM items WHERE updated_at IS NULL OR created_at IS NULL')
-      result.each do |item|
-        id = item[0]
-        start_time = item[1]
-        end_time = item[2]
-        fallback_time = end_time || start_time || Time.now.to_i
-        execute_sql('UPDATE items SET updated_at = ?, created_at = ? WHERE id = ?', [fallback_time, fallback_time, id])
-      end
+      execute_sql('SELECT * FROM items WHERE updated_at IS NULL OR created_at IS NULL')
+        .each { |item| update_timestamp_for_item(item[0], item[2] || item[1] || Time.now.to_i) }
+    end
+
+    def update_timestamp_for_item(id, fallback_time)
+      execute_sql('UPDATE items SET updated_at = ?, created_at = ? WHERE id = ?', [fallback_time, fallback_time, id])
     end
   end
 end
