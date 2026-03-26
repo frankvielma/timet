@@ -112,8 +112,6 @@ module Timet
         update_item_from_hash(local_db, remote_item)
       elsif local_time > remote_time
         puts "Local item #{id} is newer - will be uploaded"
-      else
-        puts "Item #{id} has same timestamp - keeping local"
       end
       true
     end
