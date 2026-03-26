@@ -6,9 +6,14 @@ AllCops:
     - timet.gemspec
     - "vendor/**/*" # Exclude vendor/bundle gems
 
+Naming/PredicateMethod:
+  Exclude:
+    - 'lib/timet/database_syncer.rb'
+
 Metrics/ModuleLength:
   Exclude:
     - 'lib/timet/tag_distribution.rb'
+    - 'lib/timet/database_syncer.rb'
 
 Metrics/MethodLength:
   Max: 15

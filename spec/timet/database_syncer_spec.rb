@@ -126,47 +126,56 @@ RSpec.describe Timet::DatabaseSyncer do
       database_syncer.sync_databases(local_db, db_remote, remote_storage, bucket, local_db_path)
     end
 
-    before do
-      allow(database_syncer).to receive(:process_database_items)
-      allow(remote_storage).to receive(:upload_file)
-    end
-
-    it 'processes database items' do
-      sync_databases
-      expect(database_syncer).to have_received(:process_database_items).with(local_db, db_remote)
-    end
-
-    it 'uploads local database' do
-      sync_databases
-      expect(remote_storage).to have_received(:upload_file).with(bucket, local_db_path, 'timet.db')
-    end
-  end
-
-  describe '#process_database_items' do
     let(:local_db) { instance_double(Timet::Database) }
-    let(:remote_db) { instance_double(SQLite3::Database) }
+    let(:local_items) { [{ 'id' => 1, 'updated_at' => '1706745600' }] }
+    let(:remote_items) { [{ 'id' => 2, 'updated_at' => '1706745601' }] }
 
     before do
       allow(local_db).to receive(:execute_sql).and_return(local_items)
-      allow(remote_db).to receive(:execute).and_return(remote_items)
-      allow(database_syncer).to receive(:sync_items_by_id)
+      allow(db_remote).to receive(:execute).and_return(remote_items)
+      allow(database_syncer).to receive(:items_to_hash).and_call_original
+      allow(database_syncer).to receive(:sync_single_item_and_flag).and_return(true)
+      allow(remote_storage).to receive(:upload_file)
     end
 
-    it 'fetches items from the local database' do
-      database_syncer.process_database_items(local_db, remote_db)
+    it 'fetches local items from database' do
+      sync_databases
       expect(local_db).to have_received(:execute_sql).with('SELECT * FROM items ORDER BY updated_at DESC')
     end
 
-    it 'fetches items from the remote database' do
-      database_syncer.process_database_items(local_db, remote_db)
-      expect(remote_db).to have_received(:execute).with('SELECT * FROM items ORDER BY updated_at DESC')
+    it 'fetches remote items from database' do
+      sync_databases
+      expect(db_remote).to have_received(:execute).with('SELECT * FROM items ORDER BY updated_at DESC')
+    end
+  end
+
+  describe '#process_bidirectional_sync' do
+    let(:local_items_by_id) { { 1 => { 'id' => 1, 'updated_at' => '1706745600' } } }
+    let(:remote_items_by_id) { { 2 => { 'id' => 2, 'updated_at' => '1706745601' } } }
+
+    it 'processes all item IDs from both databases' do
+      allow(database_syncer).to receive(:sync_single_item_and_flag).and_return(true)
+      database_syncer.process_bidirectional_sync(local_db, local_items_by_id, remote_items_by_id)
+      expect(database_syncer).to have_received(:sync_single_item_and_flag).twice
+    end
+  end
+
+  describe '#sync_single_item_and_flag' do
+    let(:local_item) { { 'id' => 1, 'updated_at' => '1706745600' } }
+    let(:remote_item) { { 'id' => 1, 'updated_at' => '1706745601' } }
+
+    it 'returns true for local-only items' do
+      allow(database_syncer).to receive(:puts)
+      result = database_syncer.sync_single_item_and_flag(local_db, 1, local_item, nil)
+      expect(result).to be true
     end
 
-    it 'calls sync_items_by_id with the correct arguments' do
-      local_items_hash = { 1 => { 'id' => 1, 'updated_at' => '2024-01-01' } }
-      remote_items_hash = { 2 => { 'id' => 2, 'updated_at' => '2024-01-02' } }
-      database_syncer.process_database_items(local_db, remote_db)
-      expect(database_syncer).to have_received(:sync_items_by_id).with(local_db, local_items_hash, remote_items_hash)
+    it 'returns false and inserts remote-only items' do
+      allow(database_syncer).to receive(:puts)
+      allow(database_syncer).to receive(:insert_item_from_hash)
+      result = database_syncer.sync_single_item_and_flag(local_db, 2, nil, remote_item)
+      expect(result).to be false
+      expect(database_syncer).to have_received(:insert_item_from_hash).with(local_db, remote_item)
     end
   end
 
@@ -221,50 +230,6 @@ RSpec.describe Timet::DatabaseSyncer do
     end
   end
 
-  describe '#sync_items_by_id' do
-    let(:local_items_by_id) { { 1 => { 'id' => 1, 'updated_at' => '2025-01-01' } } }
-    let(:remote_items_by_id) { { 2 => { 'id' => 2, 'updated_at' => '2025-01-02' } } }
-
-    it 'syncs items between local and remote databases' do
-      allow(database_syncer).to receive(:insert_item_from_hash)
-      allow(database_syncer).to receive(:process_existing_item)
-      database_syncer.sync_items_by_id(local_db, local_items_by_id, remote_items_by_id)
-      expect(database_syncer).to have_received(:insert_item_from_hash).with(local_db, remote_items_by_id[2])
-    end
-  end
-
-  describe '#process_existing_item' do
-    let(:id) { 1 }
-    let(:local_item) { { 'id' => 1, 'updated_at' => '2025-01-01' } }
-    let(:remote_item) { { 'id' => 1, 'updated_at' => '2025-01-02' } }
-
-    context 'when remote time is newer' do
-      it 'updates from remote' do
-        allow(database_syncer).to receive(:remote_wins?).and_return(true)
-        allow(database_syncer).to receive(:update_item_from_hash)
-        database_syncer.process_existing_item(id, local_item, remote_item, local_db)
-        expect(database_syncer).to have_received(:update_item_from_hash).with(local_db, remote_item)
-      end
-    end
-
-    context 'when local time is newer' do
-      it 'returns :remote_update and prints local status' do
-        local_time = Time.now + 3600
-        remote_time = Time.now
-        local_item = { 'updated_at' => local_time.to_i.to_s }
-        remote_item = { 'updated_at' => remote_time.to_i.to_s }
-
-        result = database_syncer.process_existing_item(
-          id,
-          local_item,
-          remote_item,
-          local_db
-        )
-        expect(result).to eq(:remote_update)
-      end
-    end
-  end
-
   describe '#items_to_hash' do
     let(:items) { [{ 'id' => 1, 'start' => '2025-01-01' }] }
 
@@ -292,6 +257,219 @@ RSpec.describe Timet::DatabaseSyncer do
 
     it 'returns false if remote_time is less than or equal to local_time' do
       expect(database_syncer.remote_wins?(deleted_remote_item, remote_time_past, local_time_future)).to be false
+    end
+  end
+
+  describe '#merge_and_track_changes?' do
+    let(:local_db) { instance_double(Timet::Database) }
+
+    context 'when remote timestamp is newer' do
+      let(:local_item) { { 'id' => 1, 'updated_at' => '1706745600', 'tag' => 'old_tag' } }
+      let(:remote_item) { { 'id' => 1, 'updated_at' => '1706745700', 'tag' => 'new_tag' } }
+
+      it 'updates local database with remote data' do
+        allow(database_syncer).to receive(:update_item_from_hash)
+        allow(database_syncer).to receive(:extract_timestamp).and_call_original
+        allow(database_syncer).to receive(:puts)
+
+        result = database_syncer.merge_and_track_changes?(local_db, 1, local_item, remote_item)
+
+        expect(database_syncer).to have_received(:update_item_from_hash).with(local_db, remote_item)
+        expect(result).to be true
+      end
+
+      it 'prints message about remote being newer' do
+        allow(database_syncer).to receive(:update_item_from_hash)
+        allow(database_syncer).to receive(:extract_timestamp).and_call_original
+
+        expect do
+          database_syncer.merge_and_track_changes?(local_db, 1, local_item, remote_item)
+        end.to output(/Remote item 1 is newer - updating local/).to_stdout
+      end
+    end
+
+    context 'when local timestamp is newer' do
+      let(:local_item) { { 'id' => 1, 'updated_at' => '1706745700', 'tag' => 'new_tag' } }
+      let(:remote_item) { { 'id' => 1, 'updated_at' => '1706745600', 'tag' => 'old_tag' } }
+
+      it 'marks for upload without updating local' do
+        allow(database_syncer).to receive(:update_item_from_hash)
+        allow(database_syncer).to receive(:extract_timestamp).and_call_original
+        allow(database_syncer).to receive(:puts)
+
+        result = database_syncer.merge_and_track_changes?(local_db, 1, local_item, remote_item)
+
+        expect(database_syncer).not_to have_received(:update_item_from_hash)
+        expect(result).to be true
+      end
+
+      it 'prints message about local being newer' do
+        allow(database_syncer).to receive(:update_item_from_hash)
+        allow(database_syncer).to receive(:extract_timestamp).and_call_original
+
+        expect do
+          database_syncer.merge_and_track_changes?(local_db, 1, local_item, remote_item)
+        end.to output(/Local item 1 is newer - will be uploaded/).to_stdout
+      end
+    end
+
+    context 'when timestamps are equal' do
+      let(:local_item) { { 'id' => 1, 'updated_at' => '1706745600', 'tag' => 'tag' } }
+      let(:remote_item) { { 'id' => 1, 'updated_at' => '1706745600', 'tag' => 'tag' } }
+
+      it 'keeps local and marks for upload' do
+        allow(database_syncer).to receive(:update_item_from_hash)
+        allow(database_syncer).to receive(:extract_timestamp).and_call_original
+        allow(database_syncer).to receive(:puts)
+
+        result = database_syncer.merge_and_track_changes?(local_db, 1, local_item, remote_item)
+
+        expect(database_syncer).not_to have_received(:update_item_from_hash)
+        expect(result).to be true
+      end
+    end
+  end
+
+  describe 'Bidirectional sync integration' do
+    let(:temp_dir) { Dir.mktmpdir('timet_test') }
+
+    after do
+      FileUtils.remove_entry(temp_dir) if Dir.exist?(temp_dir)
+    end
+
+    def create_test_db(path, items)
+      db = SQLite3::Database.new(path)
+      db.execute('CREATE TABLE IF NOT EXISTS items (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        end TEXT,
+        tag TEXT,
+        notes TEXT,
+        pomodoro INTEGER,
+        updated_at TEXT,
+        created_at TEXT,
+        deleted INTEGER DEFAULT 0
+      )')
+      items.each do |item|
+        db.execute(
+          'INSERT INTO items (id, start, end, tag, notes, pomodoro, updated_at, created_at, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [item[:id], item[:start], item[:end], item[:tag], item[:notes], item[:pomodoro], item[:updated_at],
+           item[:created_at], item[:deleted] || 0]
+        )
+      end
+      db
+    end
+
+    context 'when remote has item that local does not have' do
+      it 'adds remote item to local database' do
+        local_path = File.join(temp_dir, 'local.db')
+        remote_path = File.join(temp_dir, 'remote.db')
+
+        create_test_db(local_path, [
+                         { id: 1, start: '2025-01-01 09:00', end: '2025-01-01 10:00', tag: 'work', notes: 'local task', pomodoro: 0, updated_at: '1706745600', created_at: '1706745600' }
+                       ])
+
+        create_test_db(remote_path, [
+                         { id: 2, start: '2025-01-01 11:00', end: '2025-01-01 12:00', tag: 'meeting', notes: 'remote task', pomodoro: 0, updated_at: '1706745601', created_at: '1706745601' }
+                       ])
+
+        local_db = Timet::Database.new(local_path)
+        remote_db = SQLite3::Database.new(remote_path)
+        remote_db.results_as_hash = true
+        local_db.instance_variable_get(:@db).results_as_hash = true
+
+        remote_storage = instance_spy(Timet::S3Supabase)
+        allow(remote_storage).to receive(:upload_file)
+
+        database_syncer.sync_databases(local_db, remote_db, remote_storage, 'test-bucket', local_path)
+
+        items = local_db.execute_sql('SELECT * FROM items ORDER BY id')
+        expect(items.length).to eq(2)
+        expect(items.map { |i| i['id'] }).to include(2)
+      end
+    end
+
+    context 'when local has item that remote does not have' do
+      it 'marks local-only item for upload' do
+        local_path = File.join(temp_dir, 'local.db')
+        remote_path = File.join(temp_dir, 'remote.db')
+
+        create_test_db(local_path, [
+                         { id: 1, start: '2025-01-01 09:00', end: '2025-01-01 10:00', tag: 'work', notes: 'local task', pomodoro: 0, updated_at: '1706745600', created_at: '1706745600' }
+                       ])
+
+        create_test_db(remote_path, [])
+
+        local_db = Timet::Database.new(local_path)
+        remote_db = SQLite3::Database.new(remote_path)
+        remote_db.results_as_hash = true
+        local_db.instance_variable_get(:@db).results_as_hash = true
+
+        remote_storage = instance_spy(Timet::S3Supabase)
+        allow(remote_storage).to receive(:upload_file)
+
+        database_syncer.sync_databases(local_db, remote_db, remote_storage, 'test-bucket', local_path)
+
+        expect(remote_storage).to have_received(:upload_file)
+      end
+    end
+
+    context 'when same item exists in both with newer remote timestamp' do
+      it 'updates local with remote data' do
+        local_path = File.join(temp_dir, 'local.db')
+        remote_path = File.join(temp_dir, 'remote.db')
+
+        create_test_db(local_path, [
+                         { id: 1, start: '2025-01-01 09:00', end: '2025-01-01 10:00', tag: 'old_tag', notes: 'local notes', pomodoro: 0, updated_at: '1706745600', created_at: '1706745600' }
+                       ])
+
+        create_test_db(remote_path, [
+                         { id: 1, start: '2025-01-01 09:00', end: '2025-01-01 11:00', tag: 'new_tag', notes: 'remote notes', pomodoro: 0, updated_at: '1706745700', created_at: '1706745600' }
+                       ])
+
+        local_db = Timet::Database.new(local_path)
+        remote_db = SQLite3::Database.new(remote_path)
+        remote_db.results_as_hash = true
+        local_db.instance_variable_get(:@db).results_as_hash = true
+
+        remote_storage = instance_spy(Timet::S3Supabase)
+        allow(remote_storage).to receive(:upload_file)
+
+        database_syncer.sync_databases(local_db, remote_db, remote_storage, 'test-bucket', local_path)
+
+        items = local_db.execute_sql('SELECT * FROM items WHERE id = 1')
+        expect(items.first['tag']).to eq('new_tag')
+        expect(items.first['end']).to eq('2025-01-01 11:00')
+      end
+    end
+
+    context 'when same item exists in both with newer local timestamp' do
+      it 'marks for upload without changing local' do
+        local_path = File.join(temp_dir, 'local.db')
+        remote_path = File.join(temp_dir, 'remote.db')
+
+        create_test_db(local_path, [
+                         { id: 1, start: '2025-01-01 09:00', end: '2025-01-01 11:00', tag: 'new_tag', notes: 'local notes', pomodoro: 0, updated_at: '1706745700', created_at: '1706745600' }
+                       ])
+
+        create_test_db(remote_path, [
+                         { id: 1, start: '2025-01-01 09:00', end: '2025-01-01 10:00', tag: 'old_tag', notes: 'remote notes', pomodoro: 0, updated_at: '1706745600', created_at: '1706745600' }
+                       ])
+
+        local_db = Timet::Database.new(local_path)
+        remote_db = SQLite3::Database.new(remote_path)
+        remote_db.results_as_hash = true
+        local_db.instance_variable_get(:@db).results_as_hash = true
+
+        remote_storage = instance_spy(Timet::S3Supabase)
+        allow(remote_storage).to receive(:upload_file)
+
+        database_syncer.sync_databases(local_db, remote_db, remote_storage, 'test-bucket', local_path)
+
+        items = local_db.execute_sql('SELECT * FROM items WHERE id = 1')
+        expect(items.first['tag']).to eq('new_tag')
+        expect(remote_storage).to have_received(:upload_file)
+      end
     end
   end
 
@@ -341,7 +519,7 @@ RSpec.describe Timet::DatabaseSyncer do
 
     it 'executes the correct SQL query with proper values' do
       expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
-      expected_values = database_syncer.get_item_values(item)
+      expected_values = database_syncer.get_update_values(item) + [item['id']]
 
       allow(db).to receive(:execute_sql)
       database_syncer.update_item_from_hash(db, item)
@@ -350,7 +528,7 @@ RSpec.describe Timet::DatabaseSyncer do
 
     it 'updates the item with new values' do
       expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
-      expected_values = database_syncer.get_item_values(new_item)
+      expected_values = database_syncer.get_update_values(new_item) + [new_item['id']]
 
       allow(db).to receive(:execute_sql).with(expected_sql, expected_values)
 
@@ -360,7 +538,7 @@ RSpec.describe Timet::DatabaseSyncer do
 
     it 'handles missing fields gracefully' do
       expected_sql = "UPDATE items SET #{expected_fields} WHERE id = ?"
-      expected_values = database_syncer.get_item_values(incomplete_item)
+      expected_values = database_syncer.get_update_values(incomplete_item) + [incomplete_item['id']]
       allow(db).to receive(:execute_sql)
       database_syncer.update_item_from_hash(db, incomplete_item)
       expect(db).to have_received(:execute_sql).with(expected_sql, expected_values)
