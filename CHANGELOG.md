@@ -1,3 +1,20 @@
+## [1.6.4] - 2026-03-26
+
+**Improvements:**
+
+- **Database Synchronization:** Refactored sync logic to use bidirectional comparison with timestamp-based conflict resolution, improving reliability during database merges.
+- **Dependencies:** Updated `icalendar` to `~> 2.12.2` and `json` to `~> 2.19`, removing unused gems.
+- **Code Quality:** Added RuboCop exclusions for predicate methods in `DatabaseSyncer` and module length for `database_syncer.rb`.
+- **Test Coverage:** Expanded test suite for bidirectional sync scenarios, including conflict resolution and remote item handling.
+
+**Bug Fixes:**
+- Fix validation editor spec to properly stub database update
+
+- **Sync Logic:** Fixed item synchronization to properly handle local-only and remote-only items with timestamp-based decision making.
+- **Database Updates:** Corrected `update_item_from_hash` method to properly bind ID parameter in SQL queries.
+- **Conflict Resolution:** Simplified remote wins logic to compare timestamps directly, removing redundant deleted flag checks.
+- **Sync Flagging:** Fixed return values in sync methods to accurately track whether local changes occurred during synchronization.
+
 ## [1.6.3] - 2026-02-28
 
 **Improvements:**

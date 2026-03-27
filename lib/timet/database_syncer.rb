@@ -55,35 +55,65 @@ module Timet
 
     def sync_databases(*args)
       local_db, remote_db, remote_storage, bucket, local_db_path = args
-      process_database_items(local_db, remote_db)
-      remote_storage.upload_file(bucket, local_db_path, 'timet.db')
+      local_items = local_db.execute_sql('SELECT * FROM items ORDER BY updated_at DESC')
+      remote_items = remote_db.execute('SELECT * FROM items ORDER BY updated_at DESC')
+
+      local_by_id = items_to_hash(local_items)
+      remote_by_id = items_to_hash(remote_items)
+
+      local_changes = process_bidirectional_sync(local_db, local_by_id, remote_by_id)
+
+      if local_changes
+        remote_storage.upload_file(bucket, local_db_path, 'timet.db')
+        puts 'Changes uploaded to remote'
+      else
+        puts 'No local changes to upload'
+      end
+
       puts 'Database sync completed'
     end
 
-    def process_database_items(local_db, remote_db)
-      remote_items = remote_db.execute('SELECT * FROM items ORDER BY updated_at DESC')
-      local_items = local_db.execute_sql('SELECT * FROM items ORDER BY updated_at DESC')
+    def process_bidirectional_sync(local_db, local_items_by_id, remote_items_by_id)
+      all_ids = (remote_items_by_id.keys + local_items_by_id.keys).uniq
+      local_has_changes = false
 
-      sync_items_by_id(local_db, items_to_hash(local_items), items_to_hash(remote_items))
-    end
+      all_ids.each do |id|
+        remote_item = remote_items_by_id[id]
+        local_item = local_items_by_id[id]
 
-    def sync_items_by_id(local_db, local_items_by_id, remote_items_by_id)
-      all_item_ids = (remote_items_by_id.keys + local_items_by_id.keys).uniq
-      all_item_ids.each { |id| sync_single_item(local_db, id, local_items_by_id, remote_items_by_id) }
-    end
-
-    def sync_single_item(*args)
-      local_db, id, local_items_by_id, remote_items_by_id = args
-      remote_item = remote_items_by_id[id]
-      local_item = local_items_by_id[id]
-
-      if !remote_item
-        log_local_only(id)
-      elsif !local_item
-        add_remote_item(local_db, id, remote_item)
-      else
-        merge_item(local_db, id, local_item, remote_item)
+        changed = sync_single_item_and_flag(local_db, id, local_item, remote_item)
+        local_has_changes = true if changed
       end
+
+      local_has_changes
+    end
+
+    def sync_single_item_and_flag(local_db, id, local_item, remote_item)
+      if !remote_item && local_item
+        puts "Local item #{id} will be uploaded"
+        true
+      elsif !local_item && remote_item
+        puts "Adding remote item #{id} to local"
+        insert_item_from_hash(local_db, remote_item)
+        false
+      elsif local_item && remote_item
+        merge_and_track_changes?(local_db, id, local_item, remote_item)
+      else
+        false
+      end
+    end
+
+    def merge_and_track_changes?(local_db, id, local_item, remote_item)
+      local_time = extract_timestamp(local_item)
+      remote_time = extract_timestamp(remote_item)
+
+      if remote_time > local_time
+        puts "Remote item #{id} is newer - updating local"
+        update_item_from_hash(local_db, remote_item)
+      elsif local_time > remote_time
+        puts "Local item #{id} is newer - will be uploaded"
+      end
+      true
     end
 
     def log_local_only(id)
@@ -132,9 +162,11 @@ module Timet
 
     def update_item_from_hash(db, item)
       fields = "#{ITEM_FIELDS.join(' = ?, ')} = ?"
+      values = get_update_values(item)
+      values << item['id']
       db.execute_sql(
         "UPDATE items SET #{fields} WHERE id = ?",
-        get_update_values(item)
+        values
       )
     end
 
@@ -147,9 +179,8 @@ module Timet
       items.to_h { |item| [item['id'], item] }
     end
 
-    def remote_wins?(remote_item, remote_time, local_time)
-      time_diff = remote_time > local_time
-      time_diff && (remote_item['deleted'].to_i == 1 || time_diff)
+    def remote_wins?(_remote_item, remote_time, local_time)
+      remote_time > local_time
     end
 
     def format_status_message(id, item, source)
