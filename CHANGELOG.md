@@ -8,6 +8,7 @@
 - **Test Coverage:** Expanded test suite for bidirectional sync scenarios, including conflict resolution and remote item handling.
 
 **Bug Fixes:**
+- Fix validation editor spec to properly stub database update
 
 - **Sync Logic:** Fixed item synchronization to properly handle local-only and remote-only items with timestamp-based decision making.
 - **Database Updates:** Corrected `update_item_from_hash` method to properly bind ID parameter in SQL queries.

@@ -142,10 +142,12 @@ RSpec.describe Timet::ValidationEditor do
     end
 
     it 'raises ArgumentError when setting a future date' do
-      future_datetime = Time.now + (24 * 60 * 60)
+      stubbed_time = Time.parse("#{current_date} 12:00:00").getlocal
+      future_datetime = stubbed_time + (24 * 60 * 60) + 3600
       future_datetime_str = future_datetime.strftime('%Y-%m-%d %H:%M:%S')
 
-      allow(Time).to receive(:now).and_return(Time.parse("#{current_date} 12:00:00").getlocal)
+      allow(Time).to receive(:now).and_return(stubbed_time)
+      allow(db).to receive(:update_item)
 
       expect { editor.update('start', future_datetime_str) }
         .to raise_error(ArgumentError, /Cannot set time to a future date/)
