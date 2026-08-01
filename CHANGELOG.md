@@ -1,3 +1,18 @@
+## [1.6.5] - 2026-08-01
+
+**Improvements:**
+
+- **Documentation:** Expanded `README.md` with detailed setup instructions for Supabase S3-compatible storage, environment variable configuration, and usage of the `timet sync` command.
+- **Dependencies:** Updated locked gem dependencies in `Gemfile.lock` including `aws-sdk`, `rubocop`, `sqlite3`, `json`, and `rake`.
+
+**Bug Fixes & Security:**
+
+- **Security Patches:** Resolved multiple security vulnerabilities by updating locked gem versions:
+  - `addressable` (`>= 2.9.0`): Addressed ReDoS vulnerability in Addressable templates ([CVE-2026-35611](https://github.com/sporkmonger/addressable/security/advisories/GHSA-h27x-rffw-24p4)).
+  - `json` (`>= 2.19.9`): Fixed heap buffer overflow when streaming to IO ([CVE-2026-54696](https://nvd.nist.gov/vuln/detail/CVE-2026-54696)).
+  - `mcp` (`>= 0.23.0`): Resolved SSE stream hijacking, session poisoning, memory exhaustion, and DNS-rebinding protection issues ([CVE-2026-33946](https://github.com/modelcontextprotocol/ruby-sdk/security/advisories/GHSA-qvqr-5cv7-wh35)).
+  - `sqlite3` (`>= 2.9.5`): Patched Use-After-Free vulnerabilities when redefining functions and in aggregate callbacks ([CVE-2026-54619](https://www.cve.org/CVERecord/SearchResults?query=CVE-2026-54619), [CVE-2026-54620](https://www.cve.org/CVERecord/SearchResults?query=CVE-2026-54620)).
+
 ## [1.6.4] - 2026-03-26
 
 **Improvements:**

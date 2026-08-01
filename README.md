@@ -251,7 +251,7 @@ Once configured, Timet will automatically send a notification to your Discord ch
 | `timet su [start_date]..[end_date]`              | Display a report of tracked time for a date range.                     | `timet su 2024-01-02..2024-01-03` |
 | `timet resume (r) [id]`                          | Resume tracking a task by ID or the last completed task.               | `timet resume [id]`               |
 | `timet resume (r) [id] --pomodoro=[minutes]`     | Resume tracking with a Pomodoro timer.                                 | `timet resume 1 --pomodoro=25`    |
-| `timet sync`                                     | Sync local db with remote (S3) external db                             | `timet sync`                      |
+| `timet sync`                                     | Sync local database with S3 storage (bidirectional sync).              | `timet sync`                      |
 | `timet version`                                  | Display the current version.                                           | `timet version`                   |
 
 ### Date Range in Summary
@@ -260,17 +260,46 @@ The `timet summary` command now supports specifying a date range for generating 
 
 #### Examples:
 
-- **Single Date:** Display a report for a specific date.
+- **Single Date**: Display a report for a specific date.
 
   ```sh
   timet su 2024-01-03
   ```
 
-- **Date Range:** Display a report for a date range.
+- **Date Range**: Display a report for a date range.
 
   ```sh
   timet su 2024-01-02..2024-01-03
   ```
+
+### Sync Operations
+
+```bash
+# Sync local database with S3
+timet sync
+```
+
+This command performs a bidirectional sync:
+1. Creates the S3 bucket if it doesn't exist
+2. If a remote database exists, downloads it and compares with the local database using MD5 hashing
+3. If databases differ, syncs the changes
+4. If no remote database exists, uploads the local database as `timet.db`
+
+### Example Sync Workflow:
+
+```bash
+# First time setup: configure credentials
+mkdir -p ~/.timet && cd ~/.timet
+cat > .env <<-'EOF'
+S3_ENDPOINT=https://abcdefghijklmnop.supabase.co/storage/v1/object
+S3_ACCESS_KEY=your-access-key-here
+S3_SECRET_KEY=your-secret-key-here
+S3_REGION=us-east-1
+EOF
+
+# Sync your time tracking data to cloud
+timet sync
+```
 
 <a name="data"></a>
 
@@ -284,23 +313,101 @@ Timet's data is stored in `~/.timet`.
 
 Timet supports backing up and syncing your time tracking data with S3-compatible storage services (such as Supabase S3). To configure S3 backup, follow these steps:
 
-### Environment Variables
+### Setting Up Supabase S3 Storage
 
-Create a `.env` file in your project root (`~/.timet`) with the following variables:
+#### 1. Create a Database Project in Supabase
+
+If you don't have a Supabase project yet:
+1. Go to [Supabase](https://supabase.com/) and create a new project
+2. Choose a region close to your location
+3. Complete the project setup wizard
+
+#### 2. Enable S3 Storage in Supabase
+
+1. In your Supabase project dashboard, navigate to **Settings** → **Storage**
+2. Click **Create storage bucket** or select an existing bucket
+3. Configure the bucket:
+   - **Bucket name**: Use a descriptive name like `timet-data` or `time-tracking`
+   - **File size limit**: Choose appropriate limits (e.g., 10MB per file)
+   - **Public access**: Set to **Private** for security
+
+#### 3. Generate S3 Access Credentials
+
+Supabase uses AWS-compatible S3 APIs, so it requires access keys:
+
+1. Go to your Supabase project dashboard → **Settings** → **API**
+2. Scroll down to **Service Role Secrets** or **S3 Configuration**
+3. Click **Generate New Key** or view existing credentials
+4. Copy the following values (you won't be able to see them again after leaving this page):
+   - `SERVICE_ROLE_KEY` → This is your S3_ACCESS_KEY
+   - The corresponding secret → This is your S3_SECRET_KEY
+
+> ⚠️ **Important**: If you don't see these options in Settings, check:
+> - **Security** tab in project settings
+> - **Database** → **Connection Pooling** section (sometimes under **Settings**)
+> - Contact Supabase support if credentials aren't visible
+>
+> Alternatively, create a custom S3-compatible endpoint using Supabase's API:
+> ```bash
+> # Format: https://<project-ref>.supabase.co/storage/v1/object
+> ```
+
+#### 4. Configure Environment Variables
+
+Create a `.env` file in `~/.timet/` with the following variables:
 
 ```bash
-S3_ENDPOINT=your_s3_endpoint_url
-S3_ACCESS_KEY=your_access_key
-S3_SECRET_KEY=your_secret_key
-S3_REGION=your_s3_region
+S3_ENDPOINT=https://<your-project-id>.supabase.co/storage/v1/object
+S3_ACCESS_KEY=<your-service-role-key>
+S3_SECRET_KEY=<your-service-role-secret>
+S3_REGION=us-west-1  # Or your Supabase region (e.g., europe-west3, ap-southeast-1)
 ```
+
+Replace the placeholders with your actual values from Step 3. Example:
+
+```bash
+S3_ENDPOINT=https://abcdefghijklmnop.supabase.co/storage/v1/object
+S3_ACCESS_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+S3_SECRET_KEY=xyz987-abc123-def456-ghi789-jkl012
+S3_REGION=us-east-1
+```
+
+#### 5. Create the S3 Bucket (Optional)
+
+If you haven't created a bucket yet in Supabase, Timet can create one:
+
+```bash
+timet s3 create <bucket-name>
+```
+
+Or use the shortcut:
+
+```bash
+timet s3 create timet-data
+```
+
 
 ### Security Considerations
 
-- Keep your `.env` file private and never commit it to version control
+- Keep your `.env` file private and never commit it to version control (`.env` should be in your `.gitignore`)
 - Use strong, unique access keys
 - Regularly rotate your S3 access credentials
 - Implement appropriate IAM policies to restrict bucket access
+- For production use, consider using a dedicated service role with minimum required permissions
+
+### Verification
+
+After configuration, verify the connection:
+
+```bash
+# List objects in your bucket (if you have list permissions)
+timet s3 list-buckets
+
+# Or simply try a sync operation to upload your data
+timet sync
+```
+
+All S3 operations are logged to `~/.timet/s3_supabase.log`.
 
 ## Development
 
