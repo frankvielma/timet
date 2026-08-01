@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    timet (1.6.4)
+    timet (1.6.5)
       aws-sdk-s3 (~> 1.209)
       descriptive_statistics (~> 2)
       dotenv (~> 3)
@@ -61,7 +61,6 @@ GEM
     prism (1.9.0)
     racc (1.8.1)
     rainbow (3.1.1)
-    rake (13.4.2)
     regexp_parser (2.12.0)
     rexml (3.4.4)
     rspec (3.13.2)
@@ -144,13 +143,11 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk-s3 (~> 1.213)
-  base64 (~> 0.2)
   csv (~> 3.3)
   descriptive_statistics (~> 2.5)
   dotenv (~> 3.2)
   icalendar (~> 2.12.2)
   json (~> 2.19)
-  rake (~> 13.3)
   rexml (~> 3.4)
   rspec (~> 3.13)
   rubocop (~> 1.79)
